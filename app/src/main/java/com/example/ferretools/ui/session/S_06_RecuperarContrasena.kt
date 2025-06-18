@@ -23,10 +23,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,23 +32,28 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
+import com.example.ferretools.viewmodel.session.RecuperarContrasenaViewModel
 
 @Composable
 fun S_06_RecuperarContrasena(
     navController: NavController,
     isLoading: Boolean = false,
     errorMessage: String? = null,
-    // viewModel: RecuperarContrasenaViewModel = viewModel() // Para uso futuro
+    viewModel: RecuperarContrasenaViewModel = viewModel()
 ) {
-    var email by remember { mutableStateOf("") }
-    var code by remember { mutableStateOf("") }
-    var codeSent by remember { mutableStateOf(false) }
-    val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    val isCodeValid = code.length >= 4 // Puedes ajustar la longitud del código
+    val uiState = viewModel.uiState.collectAsState()
+
+    // Navegar a la pantalla de cambio de contraseña cuando el código sea válido
+    LaunchedEffect(uiState.value.isCodeValid) {
+        if (uiState.value.isCodeValid) {
+            navController.navigate(AppRoutes.Auth.CHANGE_PASSWORD)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -94,7 +97,7 @@ fun S_06_RecuperarContrasena(
         )
 
         // Grupo de correo electrónico
-        if (!codeSent) {
+        if (!uiState.value.codeSent) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "•",
@@ -109,19 +112,19 @@ fun S_06_RecuperarContrasena(
                 )
             }
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
+                value = uiState.value.email,
+                onValueChange = { viewModel.updateEmail(it) },
                 placeholder = { Text("Correo", color = Color(0xFF999999)) },
                 singleLine = true,
-                isError = email.isNotBlank() && !isEmailValid,
+                isError = uiState.value.emailError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 4.dp, bottom = 20.dp)
             )
-            if (email.isNotBlank() && !isEmailValid) {
+            if (uiState.value.emailError != null) {
                 Text(
-                    text = "Correo inválido",
+                    text = uiState.value.emailError!!,
                     color = MaterialTheme.colorScheme.onError,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -130,12 +133,8 @@ fun S_06_RecuperarContrasena(
 
             // Botón "Enviar código"
             TextButton(
-                onClick = {
-                    // Aquí puedes llamar a tu ViewModel o lógica para enviar el código
-                    // viewModel.sendCode(email)
-                    codeSent = true
-                },
-                enabled = isEmailValid && !isLoading,
+                onClick = { viewModel.sendVerificationCode() },
+                enabled = uiState.value.emailError == null && !isLoading,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text(
@@ -146,7 +145,7 @@ fun S_06_RecuperarContrasena(
             }
         }
 
-        if (codeSent) {
+        if (uiState.value.codeSent) {
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant,
                 thickness = 1.dp,
@@ -168,25 +167,29 @@ fun S_06_RecuperarContrasena(
                 )
             }
             OutlinedTextField(
-                value = code,
-                onValueChange = { code = it },
+                value = uiState.value.code,
+                onValueChange = { viewModel.updateCode(it) },
                 placeholder = { Text("Código", color = Color(0xFF999999)) },
                 singleLine = true,
+                isError = uiState.value.codeError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 4.dp, bottom = 20.dp)
             )
+            if (uiState.value.codeError != null) {
+                Text(
+                    text = uiState.value.codeError!!,
+                    color = MaterialTheme.colorScheme.onError,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             // Botón principal "Continuar"
             Button(
-                onClick = {
-                    // Aquí puedes llamar a tu ViewModel o lógica para continuar
-                    // viewModel.verifyCode(code)
-                    // Por ahora, navega a la pantalla de cambiar contraseña
-                    navController.navigate(AppRoutes.Auth.CHANGE_PASSWORD)
-                },
-                enabled = isCodeValid && !isLoading,
+                onClick = { viewModel.verifyCode() },
+                enabled = uiState.value.codeError == null && !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -206,9 +209,9 @@ fun S_06_RecuperarContrasena(
             }
         }
 
-        if (errorMessage != null) {
+        if (uiState.value.errorMessage != null) {
             Text(
-                text = errorMessage,
+                text = uiState.value.errorMessage!!,
                 color = MaterialTheme.colorScheme.onError,
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.padding(top = 16.dp)
@@ -224,5 +227,4 @@ fun S_06_RecuperarContrasenaPreview() {
         val navController = rememberNavController()
         S_06_RecuperarContrasena(navController = navController)
     }
-
 }
