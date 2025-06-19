@@ -27,6 +27,9 @@ import com.example.ferretools.navigation.AppRoutes
 fun I_05_ReporteProducto(
     navController: NavController,
     // viewModel: ReporteProductoViewModel = viewModel() // Para uso futuro
+
+
+
 ) {
     Scaffold(
         topBar = { TopNavBar(navController, "Reporte por Producto") }
@@ -35,11 +38,12 @@ fun I_05_ReporteProducto(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
                 .fillMaxSize()
                 .background(Color.White),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(32.dp)) // Espacio adicional arriba de los elementos
+
             // Botón de fecha
             Button(
                 onClick = { /* Acción seleccionar fecha */ },
@@ -158,7 +162,7 @@ fun I_05_ReporteProducto(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun I_05_ReporteProductoPreview() {
     val navController = rememberNavController()
