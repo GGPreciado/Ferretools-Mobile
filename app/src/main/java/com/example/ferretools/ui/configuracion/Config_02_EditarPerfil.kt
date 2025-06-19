@@ -1,58 +1,80 @@
 package com.example.ferretools.ui.configuracion
 
-import android.util.Patterns
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.tooling.preview.Preview
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.example.ferretools.viewmodel.configuracion.EditarPerfilViewModel
 
 @Composable
 fun Config_02_EditarPerfil(
     navController: NavController,
-    initialName: String,
-    initialLastName: String,
-    initialPhone: String,
-    initialEmail: String,
-    initialProfileImage: String? = null,
     isLoading: Boolean = false,
-    errorMessage: String? = null,
-    // viewModel: EditarPerfilViewModel = viewModel() // Para uso futuro
+    editarPefilViewModel: EditarPerfilViewModel = viewModel()
 ) {
-    var name by remember { mutableStateOf(initialName) }
-    var lastName by remember { mutableStateOf(initialLastName) }
-    var phone by remember { mutableStateOf(initialPhone) }
-    var email by remember { mutableStateOf(initialEmail) }
-    var profileImage by remember { mutableStateOf(initialProfileImage) }
-    var showSuccess by remember { mutableStateOf(false) }
+    val editarPerfilUiState = editarPefilViewModel.uiState.collectAsState()
 
-    val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    val areFieldsFilled = name.isNotBlank() && lastName.isNotBlank() && phone.isNotBlank() && email.isNotBlank()
-    val isFormValid = isEmailValid && areFieldsFilled
+    // Define un launcher para elegir fotos
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        editarPefilViewModel.updateFotoUri(uri)
+    }
+
+    // Evento que se lanza cuando se logra guardar la información en FB Auth y Firestore
+    if (editarPerfilUiState.value.editSuccessful) {
+        if (editarPerfilUiState.value.emailEdited) {
+            EmailUpdateDialog(
+                onConfirm = { navController.popBackStack() },
+                onDismiss = { navController.popBackStack() },
+            )
+        } else {
+            navController.popBackStack()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -62,9 +84,9 @@ fun Config_02_EditarPerfil(
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Volver",
-                    tint = Color(0xFF333333)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -72,99 +94,119 @@ fun Config_02_EditarPerfil(
 
         Text(
             text = "Editar Perfil",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF333333),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             textAlign = TextAlign.Center
         )
 
-        ProfileImage(profileImage) {
-            // TODO: Acción para seleccionar imagen
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        EditProfileFormField("Nombres", name, { name = it }, "Ingrese sus nombres")
-        Spacer(modifier = Modifier.height(16.dp))
-        EditProfileFormField("Apellidos", lastName, { lastName = it }, "Ingrese sus apellidos")
-        Spacer(modifier = Modifier.height(16.dp))
-        EditProfileFormField("Teléfono", phone, { phone = it }, "Teléfono", keyboardType = KeyboardType.Phone)
-        Spacer(modifier = Modifier.height(16.dp))
-        EditProfileFormField(
-            label = "Correo electrónico",
-            value = email,
-            onValueChange = { email = it },
-            placeholder = "Correo",
-            keyboardType = KeyboardType.Email,
-            isError = email.isNotBlank() && !isEmailValid,
-            errorText = if (email.isNotBlank() && !isEmailValid) "Correo inválido" else null
+        ProfileImage(
+            imageRemoteUrl = editarPerfilUiState.value.imageRemoteUrl,
+            imageLocalUri = editarPerfilUiState.value.imageLocalUri,
+            onClick = {
+                launcher.launch(
+                    PickVisualMediaRequest(
+                        mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                    )
+                )
+            }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-        Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+
+        EditProfileFormField(
+            label = "Nombre",
+            value = editarPerfilUiState.value.name,
+            onValueChange = { editarPefilViewModel.updateName(it) },
+            placeholder = "Ingrese sus nombres",
+            isError = editarPerfilUiState.value.nameError != null,
+            errorText = editarPerfilUiState.value.nameError
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        EditProfileFormField(
+            label = "Teléfono",
+            value = editarPerfilUiState.value.phone,
+            onValueChange = { editarPefilViewModel.updatePhone(it) },
+            placeholder = "Teléfono",
+            keyboardType = KeyboardType.Phone,
+            isError = editarPerfilUiState.value.phoneError != null,
+            errorText = editarPerfilUiState.value.phoneError
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        EditProfileFormField(
+            label = "Correo electrónico",
+            value = editarPerfilUiState.value.email,
+            onValueChange = { editarPefilViewModel.updateEmail(it) },
+            placeholder = "Correo",
+            keyboardType = KeyboardType.Email,
+            isError = editarPerfilUiState.value.emailError != null,
+            errorText = editarPerfilUiState.value.emailError
+        )
+
         Spacer(modifier = Modifier.height(24.dp))
 
-        errorMessage?.let {
-            Text(
-                text = it,
-                color = Color.Red,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
+        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
-        if (showSuccess) {
-            Text(
-                text = "¡Datos guardados exitosamente!",
-                color = Color(0xFF2E7D32),
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-        }
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            enabled = isFormValid && !isLoading,
+            enabled = editarPerfilUiState.value.isFormValid && !isLoading,
             onClick = {
-                showSuccess = true
-                // Aquí puedes llamar a tu ViewModel o lógica de guardado
-                // viewModel.saveProfile(name, lastName, phone, email, profileImage)
-                navController.popBackStack() // O navega a donde corresponda tras guardar
+                editarPefilViewModel.editProfile()
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
-            shape = RoundedCornerShape(24.dp),
+            shape = MaterialTheme.shapes.small,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2E7D32),
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                contentColor = MaterialTheme.colorScheme.onTertiary
             ),
             elevation = ButtonDefaults.buttonElevation(4.dp)
         ) {
-            Text("GUARDAR", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("GUARDAR", style = MaterialTheme.typography.labelSmall)
         }
     }
 }
 
 @Composable
-private fun ProfileImage(profileImage: String?, onClick: () -> Unit) {
+private fun ProfileImage(imageRemoteUrl: String?, imageLocalUri: Uri?, onClick: () -> Unit) {
+    val context = LocalContext.current
+    val imageToDisplay: Any? = imageLocalUri ?: imageRemoteUrl
+
     Box(
         modifier = Modifier
             .size(90.dp)
             .clip(CircleShape)
-            .background(Color(0xFFE0E0E0))
+            .background(MaterialTheme.colorScheme.surfaceDim)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = Icons.Default.CameraAlt,
-            contentDescription = if (profileImage != null) "Imagen de perfil" else "Agregar imagen de perfil",
-            tint = Color(0xFF757575),
-            modifier = Modifier.size(36.dp)
-        )
+        if (imageToDisplay != null) {
+            val painter = rememberAsyncImagePainter(
+                ImageRequest.Builder(context)
+                    .data(imageToDisplay)
+                    .build()
+            )
+            Image(
+                painter = painter,
+                contentDescription = "Imagen de perfil",
+                modifier = Modifier.size(90.dp)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Agregar imagen de perfil",
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(54.dp)
+            )
+        }
     }
 }
 
@@ -181,15 +223,14 @@ fun EditProfileFormField(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF333333),
-            fontSize = 16.sp,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 4.dp)
         )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = Color(0xFF999999)) },
+            placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
             singleLine = true,
             isError = isError,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
@@ -199,23 +240,49 @@ fun EditProfileFormField(
         if (isError && errorText != null) {
             Text(
                 text = errorText,
-                color = Color.Red,
-                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(top = 2.dp)
             )
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun Config_02_EditarPerfilPreview() {
-    val navController = rememberNavController()
-    Config_02_EditarPerfil(
-        navController = navController,
-        initialName = "Juan",
-        initialLastName = "Pérez",
-        initialPhone = "987654321",
-        initialEmail = "juan.perez@email.com"
+fun EmailUpdateDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = onConfirm
+            ) {
+                Text("Aceptar")
+            }
+        },
+        title = { Text("Cambio de correo electrónico") },
+        text = {
+            Column {
+                Text("Se le ha enviado un correo para que confirme los cambios. Acéptelo y los cambios se harán efectivos desde el siguiente inicio de sesión." )
+            }
+        }
     )
 }
+
+//@Preview(showBackground = true)
+//@Composable
+//fun Config_02_EditarPerfilPreview() {
+//    FerretoolsTheme {
+//        val navController = rememberNavController()
+//        Config_02_EditarPerfil(
+//            navController = navController,
+//            initialName = "Juan",
+//            initialLastName = "Pérez",
+//            initialPhone = "987654321",
+//            initialEmail = "juan.perez@email.com"
+//        )
+//    }
+//}
+

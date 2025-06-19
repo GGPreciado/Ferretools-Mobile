@@ -1,25 +1,40 @@
 package com.example.ferretools.utils
 
-import android.net.Uri
 import com.example.ferretools.model.enums.RolUsuario
 
 data class UsuarioActual(
-    val uid: String,
-    val nombre: String,
-    val correo: String,
-    val celular: String,
-    val fotoUri: Uri? = null,
-    val rol: RolUsuario
+    val uid: String = "",
+    val nombre: String = "",
+    val correo: String = "",
+    val celular: String = "",
+    val fotoUrl: String? = null,
+    val rol: RolUsuario = RolUsuario.CLIENTE
 )
 
 object SesionUsuario {
-    var usuario: UsuarioActual? = null
+    private var _usuario: UsuarioActual? = null
+    val usuario: UsuarioActual?
+        get() = _usuario
 
     fun iniciarSesion(usuario: UsuarioActual) {
-        this.usuario = usuario
+        this._usuario = usuario
+    }
+
+    fun actualizarDatos(
+        nombre: String? = null,
+        correo: String? = null,
+        celular: String? = null,
+        fotoUrl: String? = null
+    ) {
+        _usuario = _usuario?.copy(
+            nombre = nombre ?: _usuario!!.nombre,
+            correo = correo ?: _usuario!!.correo,
+            celular = celular ?: _usuario!!.celular,
+            fotoUrl = fotoUrl ?: _usuario!!.fotoUrl
+        )
     }
 
     fun cerrarSesion() {
-        this.usuario = null
+        this._usuario = null
     }
 }

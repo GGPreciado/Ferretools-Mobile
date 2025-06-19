@@ -2,10 +2,9 @@ package com.example.ferretools.viewmodel.session
 
 import android.util.Log
 import android.util.Patterns
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
-import com.example.ferretools.model.enums.RolUsuario
-import com.example.ferretools.model.registro.IniciarSesionUiState
+import com.example.ferretools.model.database.Usuario
+import com.example.ferretools.model.states.registro.IniciarSesionUiState
 import com.example.ferretools.utils.SesionUsuario
 import com.example.ferretools.utils.UsuarioActual
 import com.google.firebase.Firebase
@@ -90,7 +89,7 @@ class IniciarSesionViewModel: ViewModel() {
                         db.collection("usuarios").document(it!!).get()
                             .addOnSuccessListener { document ->
                                 if (document.exists()) {
-                                    val usuario = document.toObject(UsuarioIntermedio::class.java)
+                                    val usuario = document.toObject(Usuario::class.java)
                                     // Guardar en el singleton UserSession
                                     SesionUsuario.iniciarSesion(
                                         UsuarioActual(
@@ -98,18 +97,24 @@ class IniciarSesionViewModel: ViewModel() {
                                             nombre = usuario!!.nombre,
                                             correo = auth.currentUser?.email!!,
                                             celular = usuario.celular,
-                                            fotoUri = usuario.foto?.toUri(),
+                                            fotoUrl = usuario.fotoUrl,
                                             rol = usuario.rol
                                         )
                                     )
+                                } else {
+                                    Log.e("DEBUG", "El documento no existe")
                                 }
                                 // DEBUG
-                                Log.e("DEBUG", SesionUsuario.usuario.toString())
+                                Log.e("DEBUG", "Usuario: ${SesionUsuario.usuario.toString()}")
+                                Log.e("DEBUG", "Usuario: ${auth.currentUser!!.email}")
 
                                 // Logueo exitoso
                                 _uiState.update {
                                     it.copy(loginSuccessful = true)
                                 }
+                            }
+                            .addOnFailureListener {
+                                Log.e("DEBUG", "Falló el registro del documento")
                             }
                     }
                 } else {
@@ -135,13 +140,3 @@ class IniciarSesionViewModel: ViewModel() {
             }
     }
 }
-
-// Data class intermedia para lograr la serialización (sin el uso de Uri)
-data class UsuarioIntermedio(
-    val nombre: String = "",
-    val correo: String = "",
-    val celular: String = "",
-    val contrasena: String = "",
-    val foto: String? = null,
-    val rol: RolUsuario = RolUsuario.CLIENTE
-)
