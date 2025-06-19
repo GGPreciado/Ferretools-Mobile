@@ -97,7 +97,10 @@ fun S_03_RegistroUsuario(
                 if (registroUsuarioUiState.value.isFormValid) {
                     navController.navigate(
                         //AppRoutes.Auth.SELECT_BUSINESS(RolUsuario.ALMACENERO)
-                        AppRoutes.Employee.DASHBOARD
+                        AppRoutes.Client.DASHBOARD
+
+                        // te manda a cliente porque la uistate se mantiene como empleado a pesar
+                        // de no haber aceptado la solicitud de empleado.
                     )
                 }
             }

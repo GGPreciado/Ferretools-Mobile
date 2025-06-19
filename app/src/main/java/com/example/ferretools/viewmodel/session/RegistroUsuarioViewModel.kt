@@ -113,30 +113,93 @@ class RegistroUsuarioViewModel: ViewModel() {
 
                     val uid = auth.currentUser?.uid
 
-                    val userMap = mapOf(
-                        "nombre" to _uiState.value.name,
-                        "celular" to _uiState.value.phone,
-                        "foto" to _uiState.value.imageUri,
-                        "rol" to _uiState.value.rolUsuario
-                    )
-
-                    uid?.let {
-                        db.collection("usuarios")
-                            .document(uid)
-                            .set(userMap)
-                            .addOnSuccessListener {
-                                Log.d("TAG", "Usuario guardado en Firestore")
-
-                                // Si registro en Auth y Firestore es exitoso, cambiar estado
-                                _uiState.update {
-                                    it.copy(registerSuccessful = true)
+                    // --- NUEVO FLUJO PARA ALMACENERO ---
+                    if (_uiState.value.rolUsuario == RolUsuario.ALMACENERO) {
+                        val userMap = mapOf(
+                            "nombre" to _uiState.value.name,
+                            "celular" to _uiState.value.phone,
+                            "foto" to _uiState.value.imageUri,
+                            // Se registra como CLIENTE temporalmente
+                            "rol" to RolUsuario.CLIENTE
+                        )
+                        uid?.let {
+                            db.collection("usuarios")
+                                .document(uid)
+                                .set(userMap)
+                                .addOnSuccessListener {
+                                    // Crear la solicitud en la colección 'solicitudes'
+                                    val solicitudMap = mapOf(
+                                        "usuarioId" to uid,
+                                        "nombreUsuario" to _uiState.value.name,
+                                        "correo" to _uiState.value.email,
+                                        "celular" to _uiState.value.phone,
+                                        "fotoUri" to (_uiState.value.imageUri?.toString() ?: ""),
+                                        "rolSolicitado" to RolUsuario.ALMACENERO.name,
+                                        "estado" to "pendiente"
+                                    )
+                                    db.collection("solicitudes")
+                                        .add(solicitudMap)
+                                        .addOnSuccessListener {
+                                            Log.d("TAG", "Solicitud de almacenero registrada")
+                                            _uiState.update {
+                                                it.copy(registerSuccessful = true)
+                                            }
+                                        }
+                                        .addOnFailureListener { e ->
+                                            Log.e("TAG", "Error al registrar solicitud: ${e.message}")
+                                        }
                                 }
-                            }
-                            .addOnFailureListener { e ->
-                                Log.e("TAG", "Error al guardar en Firestore")
-                            }
-                    }
+                                .addOnFailureListener { e ->
+                                    Log.e("TAG", "Error al guardar en Firestore")
+                                }
+                        }
 
+                    } else {
+                        // --- CÓDIGO ANTERIOR (comentado) ---
+                        /*
+                        val userMap = mapOf(
+                            "nombre" to _uiState.value.name,
+                            "celular" to _uiState.value.phone,
+                            "foto" to _uiState.value.imageUri,
+                            "rol" to _uiState.value.rolUsuario
+                        )
+                        uid?.let {
+                            db.collection("usuarios")
+                                .document(uid)
+                                .set(userMap)
+                                .addOnSuccessListener {
+                                    Log.d("TAG", "Usuario guardado en Firestore")
+                                    _uiState.update {
+                                        it.copy(registerSuccessful = true)
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("TAG", "Error al guardar en Firestore")
+                                }
+                        }
+                        */
+                        // --- NUEVO FLUJO PARA CLIENTE Y ADMIN ---
+                        val userMap = mapOf(
+                            "nombre" to _uiState.value.name,
+                            "celular" to _uiState.value.phone,
+                            "foto" to _uiState.value.imageUri,
+                            "rol" to _uiState.value.rolUsuario
+                        )
+                        uid?.let {
+                            db.collection("usuarios")
+                                .document(uid)
+                                .set(userMap)
+                                .addOnSuccessListener {
+                                    Log.d("TAG", "Usuario guardado en Firestore")
+                                    _uiState.update {
+                                        it.copy(registerSuccessful = true)
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("TAG", "Error al guardar en Firestore")
+                                }
+                        }
+                    }
                 } else {
                     when (task.exception) {
                         is FirebaseAuthUserCollisionException -> {
