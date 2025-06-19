@@ -176,7 +176,7 @@ fun Config_02_EditarPerfil(
 }
 
 @Composable
-private fun ProfileImage(imageRemoteUrl: String?, imageLocalUri: Uri?, onClick: () -> Unit) {
+fun ProfileImage(imageRemoteUrl: String?, imageLocalUri: Uri?, onClick: () -> Unit) {
     val context = LocalContext.current
     val imageToDisplay: Any? = imageLocalUri ?: imageRemoteUrl
 
