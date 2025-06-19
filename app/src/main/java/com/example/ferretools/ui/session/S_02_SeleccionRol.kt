@@ -113,7 +113,7 @@ fun RoleCard(
     onClick: () -> Unit
 ) {
     val backgroundColor = if (selected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.inversePrimary
 
     val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary
                             else MaterialTheme.colorScheme.onSecondary

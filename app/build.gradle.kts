@@ -78,6 +78,9 @@ dependencies {
     // Firebase Auth
     implementation("com.google.firebase:firebase-auth")
 
+    // Firebase Storage
+    implementation("com.google.firebase:firebase-storage")
+
     // Crashlytics
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")

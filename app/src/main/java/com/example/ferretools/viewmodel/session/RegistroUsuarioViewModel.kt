@@ -4,12 +4,16 @@ import android.net.Uri
 import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
+import com.example.ferretools.model.database.Usuario
 import com.example.ferretools.model.enums.RolUsuario
-import com.example.ferretools.model.registro.RegistroUsuarioUiState
+import com.example.ferretools.model.states.registro.RegistroUsuarioUiState
+import com.example.ferretools.utils.SesionUsuario
+import com.example.ferretools.utils.UsuarioActual
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -19,8 +23,9 @@ class RegistroUsuarioViewModel: ViewModel() {
     private val _uiState = MutableStateFlow(RegistroUsuarioUiState())
     val uiState = _uiState.asStateFlow()
 
-    val db = Firebase.firestore
-    val auth = Firebase.auth
+    private val db = Firebase.firestore
+    private val auth = Firebase.auth
+    private val storage = Firebase.storage
 
     fun setRol(rolUsuario: RolUsuario) {
         _uiState.update {
@@ -104,37 +109,83 @@ class RegistroUsuarioViewModel: ViewModel() {
                 areFieldsFilled(state)
     }
 
+    private fun uploadImage(uri: Uri, userId: String, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
+        val imageRef = storage.reference.child("usuarios/$userId/perfil.jpg")
+
+        imageRef.putFile(uri)
+            .continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    throw task.exception ?: Exception("Error al subir imagen")
+                }
+                imageRef.downloadUrl
+            }
+            .addOnSuccessListener { downloadUrl ->
+                onSuccess(downloadUrl.toString())
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
+    }
+
+    private fun saveUser(uid: String, fotoUrl: String?) {
+        val userMap = Usuario(
+            nombre = _uiState.value.name,
+            celular = _uiState.value.phone,
+            fotoUrl = fotoUrl,
+            rol = _uiState.value.rolUsuario
+        )
+
+        db.collection("usuarios")
+            .document(uid)
+            .set(userMap)
+            .addOnSuccessListener { document ->
+                Log.d("TAG", "Usuario guardado en Firestore")
+
+                // Guardar en el singleton UserSession
+                SesionUsuario.iniciarSesion(
+                    UsuarioActual(
+                        uid = auth.uid!!,
+                        nombre = userMap.nombre,
+                        correo = auth.currentUser?.email!!,
+                        celular = userMap.celular,
+                        fotoUrl = userMap.fotoUrl,
+                        rol = userMap.rol
+                    )
+                )
+
+                _uiState.update { it.copy(registerSuccessful = true) }
+            }
+            .addOnFailureListener { e ->
+                Log.e("TAG", "Error al guardar en Firestore: ${e.message}")
+            }
+    }
+
     fun registerUser() {
         auth.createUserWithEmailAndPassword(_uiState.value.email, _uiState.value.password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // Si el registro es exitoso
-                    Log.e("TAG", "Registro exitoso")
-
                     val uid = auth.currentUser?.uid
+                    val fotoUri = _uiState.value.imageUri
 
-                    val userMap = mapOf(
-                        "nombre" to _uiState.value.name,
-                        "celular" to _uiState.value.phone,
-                        "foto" to _uiState.value.imageUri,
-                        "rol" to _uiState.value.rolUsuario
-                    )
-
-                    uid?.let {
-                        db.collection("usuarios")
-                            .document(uid)
-                            .set(userMap)
-                            .addOnSuccessListener {
-                                Log.d("TAG", "Usuario guardado en Firestore")
-
-                                // Si registro en Auth y Firestore es exitoso, cambiar estado
-                                _uiState.update {
-                                    it.copy(registerSuccessful = true)
+                    if (uid != null) {
+                        if (fotoUri != null) {
+                            // Caso 1: Hay imagen, subirla
+                            uploadImage(
+                                uri = fotoUri,
+                                userId = uid,
+                                onSuccess = { fotoUrl ->
+                                    saveUser(uid, fotoUrl)
+                                },
+                                onError = { e ->
+                                    Log.e("TAG", "Error al subir imagen: ${e.message}")
                                 }
-                            }
-                            .addOnFailureListener { e ->
-                                Log.e("TAG", "Error al guardar en Firestore")
-                            }
+                            )
+                        } else {
+                            // Caso 2: No hay imagen, guardar null
+                            saveUser(uid, null)
+                        }
+                    } else {
+                        Log.e("TAG", "UID es null")
                     }
 
                 } else {
@@ -145,8 +196,7 @@ class RegistroUsuarioViewModel: ViewModel() {
                             }
                         }
                     }
-                    // Si el registro falla
-                    Log.e("TAG", "Registro fallido")
+                    Log.e("TAG", "Registro fallido: ${task.exception?.message}")
                 }
             }
     }

@@ -120,20 +120,12 @@ fun AppNavigation(navController: NavHostController) {
             Config_01_Configuracion(
                 navController = navController,
                 darkModeEnabled = false,
-                stockNotificationEnabled = false,
-                userEmail = "demo@email.com",
-                userLastName = "Demo",
-                userName = "Usuario Demo",
-                userPhone = "999999999"
+                stockNotificationEnabled = false
             )
         }
         composable(AppRoutes.Config.EDIT_PROFILE) {
             Config_02_EditarPerfil(
-                navController = navController,
-                initialEmail = "demo@email.com",
-                initialLastName = "Demo",
-                initialName = "Usuario",
-                initialPhone = "999999999"
+                navController = navController
             )
         }
         composable(AppRoutes.Config.EDIT_BUSINESS) {
