@@ -119,6 +119,7 @@ object AppRoutes {
         const val CHANGE_QR = "config_change_qr"
         const val CHANGE_PASSWORD = "config_change_password"
         const val CONFIRM_LOGOUT = "config_confirm_logout"
+        const val SOLICITUDES = "config_solicitudes"
     }
 
     // Función helper para construir rutas con parámetros

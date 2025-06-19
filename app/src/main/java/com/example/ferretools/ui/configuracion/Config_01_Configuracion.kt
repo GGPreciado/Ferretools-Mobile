@@ -27,7 +27,7 @@ fun Config_01_Configuracion(
     userLastName: String,
     userPhone: String,
     userEmail: String,
-    isAdmin: Boolean = false,
+    isAdmin: Boolean = true,
     darkModeEnabled: Boolean,
     stockNotificationEnabled: Boolean,
     // viewModel: ConfiguracionViewModel = viewModel() // Para uso futuro
@@ -80,6 +80,13 @@ fun Config_01_Configuracion(
                     text = "Editar datos del negocio",
                     color = Color(0xFF2E7D32),
                     onClick = { navController.navigate(AppRoutes.Config.EDIT_BUSINESS) }
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                SettingsItem(
+                    icon = Icons.Default.PersonAdd,
+                    text = "Solicitudes",
+                    color = Color(0xFF2563EB),
+                    onClick = { navController.navigate(AppRoutes.Config.SOLICITUDES) }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
             }

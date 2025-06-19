@@ -158,6 +158,9 @@ fun AppNavigation(navController: NavHostController) {
         composable(AppRoutes.Config.CHANGE_PASSWORD) {
             Config_05_CambiarContrasena(navController = navController)
         }
+        composable(AppRoutes.Config.SOLICITUDES) {
+            com.example.ferretools.ui.configuracion.SolicitudesScreen(navController = navController)
+        }
         // Dashboard Stack
         composable(AppRoutes.Admin.DASHBOARD) {
             HOME_Admin(navController = navController)
