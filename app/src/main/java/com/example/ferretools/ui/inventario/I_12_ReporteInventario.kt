@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
@@ -40,12 +41,13 @@ fun I_12_ReporteInventario(
             Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF00C853))
-                .padding(8.dp),
+                .padding(vertical = 24.dp, horizontal = 8.dp)
+                .padding(top = 40.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController?.popBackStack() }) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
                     tint = Color.Black,
                     modifier = Modifier.size(24.dp)
@@ -85,7 +87,7 @@ fun I_12_ReporteInventario(
 
         // Chips de categorías
         Row(Modifier.padding(horizontal = 16.dp)) {
-            listOf("Todas las categorías", "Categoría 1", "Categoría 2").forEach { cat ->
+            listOf("Todas las categorías", "Categoría 1").forEach { cat ->
                 FilterChip(
                     selected = selectedCategory == cat,
                     onClick = { selectedCategory = cat },
