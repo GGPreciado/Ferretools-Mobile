@@ -130,11 +130,7 @@ fun AppNavigation(navController: NavHostController) {
         }
         composable(AppRoutes.Config.EDIT_BUSINESS) {
             Config_03_EditarNegocio(
-                navController = navController,
-                initialAddress = "Calle Falsa 123",
-                initialBusinessName = "Negocio Demo",
-                initialBusinessType = "Bodega",
-                initialRuc = "12345678901"
+                navController = navController
             )
         }
         composable(AppRoutes.Config.CHANGE_QR) {
