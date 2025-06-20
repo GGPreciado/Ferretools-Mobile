@@ -94,6 +94,16 @@ fun Config_01_Configuracion(
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
+            if (usuarioActual?.rol == RolUsuario.CLIENTE) {
+                SettingsItem(
+                    icon = Icons.Default.Person,
+                    text = "Mi Solicitud",
+                    color = Color(0xFF2563EB),
+                    onClick = { navController.navigate(AppRoutes.Config.MI_SOLICITUD) }
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
             SettingsItem(
                 icon = Icons.Default.QrCode,
                 text = "Cambiar QR de Yape",
@@ -125,16 +135,6 @@ fun Config_01_Configuracion(
                 onClick = { navController.navigate(AppRoutes.Config.CHANGE_PASSWORD) }
             )
             Spacer(modifier = Modifier.height(20.dp))
-
-            if (usuarioActual?.rol == RolUsuario.CLIENTE) {
-                SettingsItem(
-                    icon = Icons.Default.Person,
-                    text = "Mi Solicitud",
-                    color = Color(0xFF2563EB),
-                    onClick = { navController.navigate(AppRoutes.Config.MI_SOLICITUD) }
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
 
             SettingsItem(
                 icon = Icons.Default.ExitToApp,
