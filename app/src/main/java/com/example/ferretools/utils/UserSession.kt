@@ -8,7 +8,8 @@ data class UsuarioActual(
     val correo: String = "",
     val celular: String = "",
     val fotoUrl: String? = null,
-    val rol: RolUsuario = RolUsuario.CLIENTE
+    val rol: RolUsuario = RolUsuario.CLIENTE,
+    val negocioId: String? = null
 )
 
 object SesionUsuario {
@@ -24,13 +25,15 @@ object SesionUsuario {
         nombre: String? = null,
         correo: String? = null,
         celular: String? = null,
-        fotoUrl: String? = null
+        fotoUrl: String? = null,
+        negocioId: String? = null
     ) {
         _usuario = _usuario?.copy(
             nombre = nombre ?: _usuario!!.nombre,
             correo = correo ?: _usuario!!.correo,
             celular = celular ?: _usuario!!.celular,
-            fotoUrl = fotoUrl ?: _usuario!!.fotoUrl
+            fotoUrl = fotoUrl ?: _usuario!!.fotoUrl,
+            negocioId = negocioId ?: _usuario!!.negocioId
         )
     }
 

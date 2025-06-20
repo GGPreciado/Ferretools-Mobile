@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.ferretools"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -84,4 +84,8 @@ dependencies {
     // Crashlytics
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")
+
+    // Vico para gráficos
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
 }

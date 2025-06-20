@@ -165,8 +165,14 @@ fun AppNavigation(navController: NavHostController) {
         composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
             I_04_DetallesProducto(navController = navController)
         }
-        composable(AppRoutes.Inventory.PRODUCT_REPORT) {
-            I_05_ReporteProducto(navController = navController)
+
+        composable<AppRoutes.Inventory.PRODUCT_REPORT> { backStackEntry ->
+            val productReport: AppRoutes.Inventory.PRODUCT_REPORT = backStackEntry.toRoute()
+            I_05_ReporteProducto(
+                navController = navController,
+                productoId = productReport.productoId,
+                productoNombre = productReport.productoNombre
+            )
         }
         composable(AppRoutes.Inventory.LIST_CATEGORIES) {
             I_08_ListaCategorias(navController = navController)

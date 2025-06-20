@@ -49,9 +49,9 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 firestoreViewModel = firestoreViewModel
             )
         }
-        composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
-            I_05_ReporteProducto(navController = navController)
-        }
+//        composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
+//            I_05_ReporteProducto(navController = navController)
+//        }
         composable(AppRoutes.Inventory.LIST_CATEGORIES) {
             I_08_ListaCategorias(navController = navController)
         }

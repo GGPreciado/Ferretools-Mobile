@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.ferretools.model.database.Negocio
 import com.example.ferretools.model.states.registro.RegistroNegocioUiState
+import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -80,6 +81,20 @@ class RegistroNegocioViewModel: ViewModel() {
             }
     }
 
+    private fun updateUserBusiness(uid: String, negocio_id: String) {
+        db.collection("usuarios")
+            .document(uid)
+            .update("negocio_id", negocio_id)
+            .addOnSuccessListener {
+                Log.e("FIREBASE", "Usuario actualizado correctamente")
+                SesionUsuario.actualizarDatos(negocioId = negocio_id)
+
+            }
+            .addOnFailureListener {
+                Log.e("FIREBASE", "Error: ${it.message}")
+            }
+    }
+
     private fun saveBusiness(uid: String, logoUrl: String?) {
         val newBusiness = Negocio(
             nombre = _uiState.value.businessName,
@@ -95,6 +110,7 @@ class RegistroNegocioViewModel: ViewModel() {
         docRef.set(newBusiness)
             .addOnSuccessListener {
                 Log.e("FIREBASE", "Negocio registrado correctamente")
+                updateUserBusiness(uid, docRef.id)
             }
             .addOnFailureListener {
                 Log.e("FIREBASE", "Error: ${it.message}")

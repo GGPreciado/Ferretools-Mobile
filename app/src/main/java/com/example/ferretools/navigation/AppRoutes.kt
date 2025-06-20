@@ -1,6 +1,5 @@
 package com.example.ferretools.navigation
 
-import com.example.ferretools.model.database.Usuario
 import com.example.ferretools.model.enums.RolUsuario
 import kotlinx.serialization.Serializable
 
@@ -56,7 +55,7 @@ object AppRoutes {
         const val ADD_PRODUCT = "inventory_add"
         const val PRODUCT_ADDED = "inventory_product_added"
         const val PRODUCT_DETAILS = "inventory_product_details"
-        const val PRODUCT_REPORT = "inventory_product_report"
+//        const val PRODUCT_REPORT = "inventory_product_report"
         const val EDIT_PRODUCT = "inventory_edit"
         const val DELETE_PRODUCT = "inventory_delete"
         const val LIST_CATEGORIES = "inventory_categories"
@@ -65,6 +64,9 @@ object AppRoutes {
         const val CATEGORY_ADDED = "inventory_category_added"
         const val INVENTORY_REPORT = "inventory_report"
         const val SHARE_REPORT = "inventory_share_report"
+
+        @Serializable
+        data class PRODUCT_REPORT(val productoId: String, val productoNombre: String)
     }
 
     // Rutas de Compras
