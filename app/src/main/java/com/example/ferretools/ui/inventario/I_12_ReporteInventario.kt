@@ -22,14 +22,37 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ferretools.navigation.AppRoutes
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.ui.inventario.InventarioFirestoreViewModel
+import com.example.ferretools.ui.inventario.CategoriaFirestoreViewModel
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 
 @Composable
 fun I_12_ReporteInventario(
     navController: NavController? = null,
-    // viewModel: ReporteInventarioViewModel = viewModel() // Para uso futuro
+    viewModel: InventarioFirestoreViewModel = viewModel(),
+    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
 ) {
     var showModal by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }
+
+    // Obtener productos reales del ViewModel
+    val productos = viewModel.productos.collectAsState().value
+    // Obtener categorías reales
+    val categoriasList = categoriaViewModel.categorias.collectAsState().value
+    // Lista de nombres de categorías para los chips
+    val categorias = listOf("Todas las categorías") + categoriasList.map { it.nombre }
+
+    // Filtrar productos por categoría seleccionada
+    val productosFiltrados = if (selectedCategory == "Todas las categorías") {
+        productos
+    } else {
+        // Buscar el id de la categoría seleccionada por nombre
+        val categoriaId = categoriasList.find { it.nombre == selectedCategory }?.id
+        productos.filter { it.categoria_id == categoriaId }
+    }
 
     Column(
         Modifier
@@ -76,7 +99,7 @@ fun I_12_ReporteInventario(
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Text("Total de Productos", fontWeight = FontWeight.Bold)
-                    Text("0", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text(productosFiltrados.size.toString(), fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
             }
             Spacer(Modifier.width(8.dp))
@@ -85,9 +108,9 @@ fun I_12_ReporteInventario(
             }
         }
 
-        // Chips de categorías
-        Row(Modifier.padding(horizontal = 16.dp)) {
-            listOf("Todas las categorías", "Categoría 1").forEach { cat ->
+        // Chips de categorías desplazables horizontalmente
+        LazyRow(modifier = Modifier.padding(horizontal = 16.dp)) {
+            items(categorias) { cat ->
                 FilterChip(
                     selected = selectedCategory == cat,
                     onClick = { selectedCategory = cat },
@@ -97,37 +120,43 @@ fun I_12_ReporteInventario(
             }
         }
 
-        // Lista de productos (mock)
-        Column(Modifier.padding(16.dp)) {
-            repeat(4) {
-                Card(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Row(
-                        Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+        // Lista de productos desplazable verticalmente
+        LazyColumn(Modifier.padding(16.dp).weight(1f, fill = true)) {
+            if (productosFiltrados.isEmpty()) {
+                item {
+                    Text("No hay productos para mostrar", color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+                }
+            } else {
+                items(productosFiltrados) { producto ->
+                    Card(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Box(
-                            Modifier
-                                .size(48.dp)
-                                .background(Color.LightGray, RoundedCornerShape(8.dp)),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                painter = painterResource(android.R.drawable.ic_menu_gallery),
-                                contentDescription = "Imagen",
-                                tint = Color.DarkGray,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                        Spacer(Modifier.width(16.dp))
-                        Column {
-                            Text("{Nombre del Producto}", fontWeight = FontWeight.Bold)
-                            Text("S/ {precio}")
-                            Text("{cantidad} disponibles", color = Color.Gray, fontSize = 12.sp)
+                            Box(
+                                Modifier
+                                    .size(48.dp)
+                                    .background(Color.LightGray, RoundedCornerShape(8.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(android.R.drawable.ic_menu_gallery),
+                                    contentDescription = "Imagen",
+                                    tint = Color.DarkGray,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text(producto.nombre, fontWeight = FontWeight.Bold)
+                                Text("S/ ${producto.precio}")
+                                Text("${producto.cantidad_disponible} disponibles", color = Color.Gray, fontSize = 12.sp)
+                            }
                         }
                     }
                 }

@@ -278,7 +278,13 @@ fun I_06_EditarProducto(
                     val descripcion = descripcionProducto.trim()
                     val categoria = categoriaSeleccionada.trim()
                     
-                    if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoria.isNotEmpty()) {
+                    val categoriaId = if (categoria.isNotEmpty()) {
+                        categorias.find { it.nombre == categoria }?.id ?: productoOriginal.categoria_id
+                    } else {
+                        productoOriginal.categoria_id
+                    }
+                    
+                    if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoriaId != null) {
                         // Crear producto editado
                         val productoEditado = Producto(
                             nombre = nombre,
@@ -287,7 +293,7 @@ fun I_06_EditarProducto(
                             cantidad_disponible = cantidad,
                             codigo_barras = productoOriginal.codigo_barras,
                             imagen_url = null,
-                            categoria_id = productoOriginal.categoria_id // Mantener el categoria_id original
+                            categoria_id = categoriaId
                         )
                         
                         println("DEBUG: Guardando cambios del producto: ${productoEditado.nombre}")
@@ -322,8 +328,6 @@ fun I_06_EditarProducto(
                     Button(
                         onClick = {
                             showDialog.value = false
-                            // Forzar recarga antes de navegar
-                            inventarioViewModel.recargarProductos()
                             navController.popBackStack()
                         }
                     ) {

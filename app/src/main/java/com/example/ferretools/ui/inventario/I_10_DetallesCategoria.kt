@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,7 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.model.database.Categoria
 import com.example.ferretools.model.database.Producto
-import kotlinx.coroutines.launch
+import com.example.ferretools.ui.inventario.ProductoSeleccionadoManager
 
 @Composable
 fun I_10_DetallesCategoria(
@@ -37,7 +36,6 @@ fun I_10_DetallesCategoria(
     categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
     
     val productos = inventarioViewModel.productos.collectAsState().value
     val categorias = categoriaViewModel.categorias.collectAsState().value
@@ -45,24 +43,6 @@ fun I_10_DetallesCategoria(
     // Filtrar productos por categoría
     val productosFiltrados = productos.filter { it.categoria_id == categoriaId }
     val categoria = categorias.find { it.id == categoriaId }
-    
-    println("DEBUG: I_10_DetallesCategoria - Total productos cargados: ${productos.size}")
-    println("DEBUG: I_10_DetallesCategoria - Productos filtrados para categoría $categoriaId: ${productosFiltrados.size}")
-    productosFiltrados.forEach { producto ->
-        println("DEBUG: I_10_DetallesCategoria - Producto: ${producto.nombre} (${producto.codigo_barras})")
-    }
-    
-    // Verificar productos al cargar la pantalla
-    LaunchedEffect(categoriaId) {
-        println("DEBUG: Pantalla de detalles de categoría cargada para ID: $categoriaId")
-        inventarioViewModel.verificarProductosCategoria(categoriaId)
-    }
-
-    // Recargar productos cuando la pantalla se active
-    LaunchedEffect(Unit) {
-        println("DEBUG: Recargando productos al activar pantalla")
-        inventarioViewModel.recargarProductos()
-    }
     
     // Logs de depuración
     println("DEBUG: categoriaId recibido: $categoriaId")
@@ -104,25 +84,6 @@ fun I_10_DetallesCategoria(
                 fontSize = 18.sp,
                 modifier = Modifier.padding(start = 4.dp)
             )
-            Spacer(modifier = Modifier.weight(1f))
-            // Botón de recarga
-            IconButton(
-                onClick = {
-                    isLoading = true
-                    inventarioViewModel.recargarProductos()
-                    // Simular un pequeño delay para mostrar el loading
-                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
-                        kotlinx.coroutines.delay(500)
-                        isLoading = false
-                    }
-                }
-            ) {
-                Icon(
-                    Icons.Default.Refresh, 
-                    contentDescription = "Recargar", 
-                    tint = Color.Black
-                )
-            }
         }
 
         // Contenido desplazable
@@ -195,40 +156,19 @@ fun I_10_DetallesCategoria(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Indicador de carga
-            if (isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color(0xFF22D366))
-                }
-            }
             // Lista de productos reales
-            else if (productosMostrados.isEmpty()) {
+            if (productosMostrados.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = if (searchQuery.isNotEmpty()) "No se encontraron productos" else "No hay productos en esta categoría",
-                            color = Color.Gray,
-                            fontSize = 16.sp
-                        )
-                        if (searchQuery.isEmpty()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Toca el botón de recarga para actualizar",
-                                color = Color.Gray,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
+                    Text(
+                        text = if (searchQuery.isNotEmpty()) "No se encontraron productos" else "No hay productos en esta categoría",
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
                 }
             } else {
                 Column(
@@ -242,24 +182,22 @@ fun I_10_DetallesCategoria(
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
                                 .clickable {
-                                    // Seleccionar el producto y navegar a detalles
-                                    println("DEBUG: I_10_DetallesCategoria - Click en producto: ${producto.nombre}")
                                     ProductoSeleccionadoManager.seleccionarProducto(producto)
                                     navController.navigate(AppRoutes.Inventory.PRODUCT_DETAILS)
                                 },
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
                             shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
+                        ) {
+                            Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(12.dp)
-                    ) {
-                        Icon(
+                            ) {
+                                Icon(
                                     Icons.Default.Check,
                                     contentDescription = "Producto",
                                     tint = Color.Black,
                                     modifier = Modifier.size(24.dp)
-                        )
+                                )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
                                     Text(
