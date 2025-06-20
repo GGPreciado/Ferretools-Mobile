@@ -1,5 +1,6 @@
 package com.example.ferretools.ui.configuracion
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,6 +21,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.example.ferretools.viewmodel.session.CambiarQRYapeViewModel
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun Config_04_CambiarQRYape(
@@ -27,10 +36,14 @@ fun Config_04_CambiarQRYape(
     initialQrImage: String? = null,
     isLoading: Boolean = false,
     errorMessage: String? = null,
-    // viewModel: CambiarQRYapeViewModel = viewModel() // Para uso futuro
+    viewModel: CambiarQRYapeViewModel = viewModel()
 ) {
-    var qrImage by remember { mutableStateOf(initialQrImage) }
-    var showSuccess by remember { mutableStateOf(false) }
+    val uiState = viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        viewModel.updateQrYapeUri(uri)
+    }
 
     Column(
         modifier = Modifier
@@ -79,16 +92,19 @@ fun Config_04_CambiarQRYape(
                 .size(180.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(Color(0xFFE0E0E0))
-                .clickable { /* TODO: lógica para seleccionar imagen de QR */ },
+                .clickable { launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             contentAlignment = Alignment.Center
         ) {
-            if (qrImage != null) {
-                // Aquí puedes cargar la imagen seleccionada
-                Icon(
-                    imageVector = Icons.Default.CameraAlt,
+            if (uiState.value.qrYapeUri != null) {
+                val painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(context)
+                        .data(uiState.value.qrYapeUri)
+                        .build()
+                )
+                Image(
+                    painter = painter,
                     contentDescription = "QR de Yape",
-                    tint = Color(0xFF757575),
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(160.dp)
                 )
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -112,16 +128,16 @@ fun Config_04_CambiarQRYape(
         Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
         Spacer(modifier = Modifier.height(24.dp))
 
-        if (errorMessage != null) {
+        if (uiState.value.errorMessage != null) {
             Text(
-                text = errorMessage,
+                text = uiState.value.errorMessage ?: "",
                 color = Color.Red,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         }
 
-        if (showSuccess) {
+        if (uiState.value.success) {
             Text(
                 text = "¡QR guardado exitosamente!",
                 color = Color(0xFF2E7D32),
@@ -133,12 +149,9 @@ fun Config_04_CambiarQRYape(
 
         Button(
             onClick = {
-                showSuccess = true
-                // Aquí puedes llamar a tu ViewModel o lógica de guardado
-                // viewModel.saveQr(qrImage)
-                navController.popBackStack() // O navega a donde corresponda tras guardar
+                viewModel.saveQrYape()
             },
-            enabled = !isLoading,
+            enabled = !uiState.value.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -149,11 +162,15 @@ fun Config_04_CambiarQRYape(
             shape = RoundedCornerShape(12.dp),
             elevation = ButtonDefaults.buttonElevation(2.dp)
         ) {
-            Text(
-                text = "GUARDAR",
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
+            if (uiState.value.isLoading) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+            } else {
+                Text(
+                    text = "GUARDAR",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
         }
     }
 }
