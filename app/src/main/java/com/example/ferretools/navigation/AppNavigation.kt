@@ -161,6 +161,9 @@ fun AppNavigation(navController: NavHostController) {
         composable(AppRoutes.Config.SOLICITUDES) {
             com.example.ferretools.ui.configuracion.SolicitudesScreen(navController = navController)
         }
+        composable(AppRoutes.Config.MI_SOLICITUD) {
+            com.example.ferretools.ui.configuracion.MiSolicitudScreen(navController = navController)
+        }
         // Dashboard Stack
         composable(AppRoutes.Admin.DASHBOARD) {
             HOME_Admin(navController = navController)

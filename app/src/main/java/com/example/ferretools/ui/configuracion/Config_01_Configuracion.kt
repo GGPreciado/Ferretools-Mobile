@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.utils.SesionUsuario
+import com.example.ferretools.model.enums.RolUsuario
 
 @Composable
 fun Config_01_Configuracion(
@@ -32,6 +34,7 @@ fun Config_01_Configuracion(
     stockNotificationEnabled: Boolean,
     // viewModel: ConfiguracionViewModel = viewModel() // Para uso futuro
 ) {
+    val usuarioActual = SesionUsuario.usuario
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,7 +77,7 @@ fun Config_01_Configuracion(
 
         Column(modifier = Modifier.fillMaxWidth()) {
 
-            if (isAdmin) {
+            if (usuarioActual?.rol == RolUsuario.ADMIN) {
                 SettingsItem(
                     icon = Icons.Default.Warehouse,
                     text = "Editar datos del negocio",
@@ -122,6 +125,16 @@ fun Config_01_Configuracion(
                 onClick = { navController.navigate(AppRoutes.Config.CHANGE_PASSWORD) }
             )
             Spacer(modifier = Modifier.height(20.dp))
+
+            if (usuarioActual?.rol == RolUsuario.CLIENTE) {
+                SettingsItem(
+                    icon = Icons.Default.Person,
+                    text = "Mi Solicitud",
+                    color = Color(0xFF2563EB),
+                    onClick = { navController.navigate(AppRoutes.Config.MI_SOLICITUD) }
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+            }
 
             SettingsItem(
                 icon = Icons.Default.ExitToApp,
