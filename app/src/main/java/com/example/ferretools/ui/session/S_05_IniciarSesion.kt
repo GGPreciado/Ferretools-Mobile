@@ -44,6 +44,7 @@ import com.example.ferretools.utils.SesionUsuario
 import com.example.ferretools.viewmodel.session.IniciarSesionViewModel
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.ferretools.utils.NotificationHelper
 
 
 @Composable
@@ -67,6 +68,23 @@ fun S_05_IniciarSesion(
                             .update("fcmToken", token)
                     }
                 }
+            }
+            // Listener de notificaciones locales SOLO para admin y SOLO una vez por sesión
+            if (SesionUsuario.usuario?.rol == RolUsuario.ADMIN) {
+                val context = navController.context
+                val db = FirebaseFirestore.getInstance()
+                val notificationHelper = NotificationHelper(context)
+                db.collection("solicitudes")
+                    .whereEqualTo("estado", "pendiente")
+                    .addSnapshotListener { snapshot, _ ->
+                        val count = snapshot?.size() ?: 0
+                        if (count > 0) {
+                            notificationHelper.mostrarNotificacionSolicitud(
+                                "Nueva Solicitud de Empleo",
+                                "Tienes $count solicitud(es) pendiente(s) de revisión"
+                            )
+                        }
+                    }
             }
         }
         when (SesionUsuario.usuario?.rol) {

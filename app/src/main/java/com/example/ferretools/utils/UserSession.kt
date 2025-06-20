@@ -9,7 +9,8 @@ data class UsuarioActual(
     val correo: String,
     val celular: String,
     val fotoUri: Uri? = null,
-    val rol: RolUsuario
+    val rol: RolUsuario,
+    val notificacionSolicitudes: Boolean = true
 )
 
 object SesionUsuario {

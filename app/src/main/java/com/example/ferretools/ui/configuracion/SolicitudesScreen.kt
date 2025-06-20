@@ -34,9 +34,10 @@ fun SolicitudesScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
 
+    /*
     LaunchedEffect(Unit) {
         viewModel.setContext(context)
-    }
+    }*/
 
     Column(
         modifier = Modifier

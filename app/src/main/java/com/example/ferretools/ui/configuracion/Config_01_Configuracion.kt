@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.utils.SesionUsuario
 import com.example.ferretools.model.enums.RolUsuario
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun Config_01_Configuracion(
@@ -35,6 +36,21 @@ fun Config_01_Configuracion(
     // viewModel: ConfiguracionViewModel = viewModel() // Para uso futuro
 ) {
     val usuarioActual = SesionUsuario.usuario
+    var notificacionSolicitudesEnabled by remember { mutableStateOf(usuarioActual?.rol == RolUsuario.ADMIN && (usuarioActual?.let { it.notificacionSolicitudes } ?: true)) }
+
+    // Leer el valor actualizado de Firestore al entrar a la pantalla
+    LaunchedEffect(usuarioActual?.uid) {
+        if (usuarioActual?.rol == RolUsuario.ADMIN) {
+            val db = FirebaseFirestore.getInstance()
+            db.collection("usuarios").document(usuarioActual.uid).get()
+                .addOnSuccessListener { doc ->
+                    val valor = doc.getBoolean("notificacionSolicitudes") ?: true
+                    notificacionSolicitudesEnabled = valor
+                    SesionUsuario.usuario = usuarioActual.copy(notificacionSolicitudes = valor)
+                }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -110,13 +126,24 @@ fun Config_01_Configuracion(
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            SettingsSwitchItem(
-                icon = Icons.Default.Notifications,
-                text = "Notificación de Stock bajo",
-                checked = stockNotificationEnabled,
-                onCheckedChange = { /* TODO: Implementar lógica de notificación de stock */ }
-            )
-            Spacer(modifier = Modifier.height(20.dp))
+            if (usuarioActual?.rol == RolUsuario.ADMIN) {
+                SettingsSwitchItem(
+                    icon = Icons.Default.Notifications,
+                    text = "Notificación nueva solicitud",
+                    checked = notificacionSolicitudesEnabled,
+                    onCheckedChange = { checked ->
+                        notificacionSolicitudesEnabled = checked
+                        usuarioActual?.let { user ->
+                            val db = FirebaseFirestore.getInstance()
+                            db.collection("usuarios").document(user.uid)
+                                .update("notificacionSolicitudes", checked)
+                            // Actualizar también en la sesión local
+                            SesionUsuario.usuario = user.copy(notificacionSolicitudes = checked)
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+            }
 
             SettingsItem(
                 icon = Icons.Default.Lock,
