@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import androidx.navigation.navArgument
 import com.example.ferretools.ui.balance.B_01_Balances
 import com.example.ferretools.ui.balance.B_02_Detalles
 import com.example.ferretools.ui.balance.B_03_Reporte
@@ -26,12 +27,14 @@ import com.example.ferretools.ui.inventario.I_01_ListaProductos
 import com.example.ferretools.ui.inventario.I_02_AgregarProducto
 import com.example.ferretools.ui.inventario.I_04_DetallesProducto
 import com.example.ferretools.ui.inventario.I_05_ReporteProducto
+import com.example.ferretools.ui.inventario.I_06_EditarProducto
 import com.example.ferretools.ui.inventario.I_08_ListaCategorias
 import com.example.ferretools.ui.inventario.I_09_CrearCategoria
 import com.example.ferretools.ui.inventario.I_10_DetallesCategoria
 import com.example.ferretools.ui.inventario.I_12_ReporteInventario
 import com.example.ferretools.ui.inventario.ProductoViewModel
 import com.example.ferretools.ui.inventario.InventarioFirestoreViewModel
+import com.example.ferretools.ui.inventario.CategoriaFirestoreViewModel
 import com.example.ferretools.ui.pedido.P_01_AgregarAlCarrito
 import com.example.ferretools.ui.pedido.P_02_CarritoCliente
 import com.example.ferretools.ui.pedido.P_03_ConfirmarPedido
@@ -168,14 +171,29 @@ fun AppNavigation(navController: NavHostController) {
         composable(AppRoutes.Inventory.ADD_PRODUCT) {
             val viewModel: ProductoViewModel = viewModel()
             val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
+            val categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
             I_02_AgregarProducto(
                 navController = navController,
-               viewModel = viewModel,
-                firestoreViewModel = firestoreViewModel
+                viewModel = viewModel,
+                firestoreViewModel = firestoreViewModel,
+                categoriaViewModel = categoriaViewModel
             )
         }
         composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
-            I_04_DetallesProducto(navController = navController)
+            val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
+            I_04_DetallesProducto(
+                navController = navController,
+                inventarioViewModel = firestoreViewModel
+            )
+        }
+        composable(AppRoutes.Inventory.EDIT_PRODUCT) {
+            val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
+            val categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+            I_06_EditarProducto(
+                navController = navController,
+                inventarioViewModel = firestoreViewModel,
+                categoriaViewModel = categoriaViewModel
+            )
         }
         composable(AppRoutes.Inventory.PRODUCT_REPORT) {
             I_05_ReporteProducto(navController = navController)
@@ -186,8 +204,19 @@ fun AppNavigation(navController: NavHostController) {
         composable(AppRoutes.Inventory.ADD_CATEGORY) {
             I_09_CrearCategoria(navController = navController)
         }
-        composable(AppRoutes.Inventory.CATEGORY_DETAILS) {
-            I_10_DetallesCategoria(navController = navController)
+        composable(
+            route = AppRoutes.Inventory.CATEGORY_DETAILS,
+            arguments = listOf(
+                navArgument("categoriaId") { type = androidx.navigation.NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val categoriaId = backStackEntry.arguments?.getString("categoriaId") ?: ""
+            val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
+            I_10_DetallesCategoria(
+                navController = navController,
+                categoriaId = categoriaId,
+                inventarioViewModel = firestoreViewModel
+            )
         }
         composable(AppRoutes.Inventory.INVENTORY_REPORT) {
             I_12_ReporteInventario(navController = navController)

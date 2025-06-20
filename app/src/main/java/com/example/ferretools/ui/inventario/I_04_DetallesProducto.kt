@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -34,29 +35,70 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.R
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.model.database.Producto
+import androidx.compose.foundation.verticalScroll
+//import androidx.compose.foundation.layout.weight
+//import androidx.compose.foundation.layout.rememberScrollState
+import androidx.compose.foundation.rememberScrollState
 
 @Composable
 fun I_04_DetallesProducto(
     navController: NavController,
-    codigoBarras: String = "",
-    nombre: String = "",
-    precio: String = "",
-    cantidad: String = "",
-    categoria: String = "",
-    descripcion: String = ""
+    inventarioViewModel: InventarioFirestoreViewModel = viewModel()
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val showSuccess = remember { mutableStateOf(false) }
+    val showErrorDialog = remember { mutableStateOf(false) }
+    
+    // Obtener productos del ViewModel
+    val productos = inventarioViewModel.productos.collectAsState().value
+    
+    // Obtener el producto seleccionado del manager
+    val producto = ProductoSeleccionadoManager.obtenerProducto()
+    
+    println("DEBUG: I_04_DetallesProducto - Total productos: ${productos.size}")
+    println("DEBUG: I_04_DetallesProducto - Producto seleccionado: ${producto?.nombre}")
+    
+    if (producto == null) {
+        // Mostrar mensaje si no hay producto seleccionado
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "No hay producto seleccionado",
+                fontSize = 18.sp,
+                color = Color.Gray
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Productos disponibles: ${productos.size}",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { navController.popBackStack() }) {
+                Text("Volver")
+            }
+        }
+        return
+    }
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header
+        // Header fijo
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -81,91 +123,113 @@ fun I_04_DetallesProducto(
 
             )
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        // Imagen
-        Button(
-            onClick = { /* TODO */ },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+        
+        // Contenido desplazable
+        Column(
             modifier = Modifier
-                .size(width = 300.dp, height = 100.dp)
-                .align(Alignment.CenterHorizontally),
-            shape = RoundedCornerShape(8.dp),
-
-
-            ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-            Image(
-                painter = painterResource(id = R.drawable.cargar_imagen), // Cambia el nombre según tu archivo
-                contentDescription = "Cambiar imagen",
-                modifier = Modifier.size(64.dp)
-            )
-            Text(
-                text = "Cambiar imagen",
-                color = Color.Black,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campos
-        DetalleCampo("Codigo de barras", codigoBarras)
-        DetalleCampo("Nombre de Producto", nombre)
-        DetalleCampo("Precio", precio)
-        DetalleCampo("Cantidad disponible", cantidad)
-        DetalleCampo("Categoria", categoria)
-        DetalleCampo("Descripcion", descripcion, multiline = true)
-        Spacer(modifier = Modifier.height(16.dp))
-        // Botón de análisis
-        Button(
-            onClick = { navController.navigate(AppRoutes.Inventory.PRODUCT_REPORT) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B))
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Realizar análisis por producto", color = Color.Black)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botones de acción
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Button(
-                onClick = { showDialog.value = true },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Eliminar", color = Color.White)
-            }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Imagen
             Button(
                 onClick = { /* TODO */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
-                modifier = Modifier.weight(1f)
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                modifier = Modifier
+                    .size(width = 300.dp, height = 100.dp),
+                shape = RoundedCornerShape(8.dp),
             ) {
-                Text("Editar", color = Color.White)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(
+                        painter = painterResource(id = R.drawable.cargar_imagen),
+                        contentDescription = "Cambiar imagen",
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Text(
+                        text = "Cambiar imagen",
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Campos
+            DetalleCampo("Codigo de barras", producto.codigo_barras)
+            DetalleCampo("Nombre de Producto", producto.nombre)
+            DetalleCampo("Precio", "S/ ${producto.precio}")
+            DetalleCampo("Cantidad disponible", producto.cantidad_disponible.toString())
+            DetalleCampo("Categoria", "Categoría del producto") // TODO: Obtener nombre de categoría
+            DetalleCampo("Descripcion", producto.descripcion ?: "Sin descripción", multiline = true)
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Botón de análisis
+            Button(
+                onClick = { navController.navigate(AppRoutes.Inventory.PRODUCT_REPORT) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B))
+            ) {
+                Text("Realizar análisis por producto", color = Color.Black)
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Botones de acción
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = { showDialog.value = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Eliminar", color = Color.White)
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Button(
+                    onClick = { 
+                        // Navegar a la pantalla de editar producto
+                        navController.navigate(AppRoutes.Inventory.EDIT_PRODUCT)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Editar", color = Color.White)
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 
-    // Diálogo de confirmación
+    // Diálogo de confirmación de eliminación
     if (showDialog.value) {
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
             title = { Text("Confirmar eliminación") },
             text = { Text("¿Estás seguro de que deseas eliminar este producto?") },
             confirmButton = {
-                Button(onClick = {
-                    showDialog.value = false
-                    showSuccess.value = true
-                }, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
+                Button(
+                    onClick = {
+                        showDialog.value = false
+                        // Eliminar el producto
+                        inventarioViewModel.eliminarProducto(producto) { exito ->
+                            if (exito) {
+                                showSuccess.value = true
+                            } else {
+                                showErrorDialog.value = true
+                            }
+                        }
+                    }, 
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
                     Text("Eliminar", color = Color.White)
                 }
             },
@@ -176,6 +240,7 @@ fun I_04_DetallesProducto(
             }
         )
     }
+    
     // Mensaje de éxito
     if (showSuccess.value) {
         AlertDialog(
@@ -191,6 +256,20 @@ fun I_04_DetallesProducto(
                     navController.popBackStack()
                 }) {
                     Text("Aceptar")
+                }
+            }
+        )
+    }
+    
+    // Diálogo de error
+    if (showErrorDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog.value = false },
+            title = { Text("Error") },
+            text = { Text("No se pudo eliminar el producto. Inténtalo de nuevo.") },
+            confirmButton = {
+                Button(onClick = { showErrorDialog.value = false }) {
+                    Text("OK")
                 }
             }
         )

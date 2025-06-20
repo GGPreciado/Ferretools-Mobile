@@ -53,16 +53,21 @@ import com.example.ferretools.R
 import com.example.ferretools.theme.primaryContainerLight
 import com.example.ferretools.model.database.Producto
 import com.example.ferretools.ui.inventario.InventarioFirestoreViewModel
+import com.example.ferretools.ui.inventario.CategoriaFirestoreViewModel
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun I_02_AgregarProducto(
     navController: NavController,
     viewModel: ProductoViewModel,
-    firestoreViewModel: InventarioFirestoreViewModel
+    firestoreViewModel: InventarioFirestoreViewModel,
+    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
 ) {
+    val categorias = categoriaViewModel.categorias.collectAsState().value
     val scrollState = rememberScrollState()
     val showDialog = remember { mutableStateOf(false) }
     val showErrorDialog = remember { mutableStateOf(false) }
+    val showCategoriaDialog = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -207,18 +212,30 @@ fun I_02_AgregarProducto(
                 ) {
                     Text(
                         if (viewModel.categoriaSeleccionada.value.isEmpty()) "Selecciona una categoría"
-                        else viewModel.categoriaSeleccionada.value
+                        else {
+                            val categoria = categorias.find { it.id == viewModel.categoriaSeleccionada.value }
+                            categoria?.nombre ?: viewModel.categoriaSeleccionada.value
+                        }
                     )
                 }
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    viewModel.categorias.forEach { cat ->
+                    // Opción para agregar nueva categoría
+                    DropdownMenuItem(
+                        text = { Text("+ Agregar nueva categoría") },
+                        onClick = {
+                            showCategoriaDialog.value = true
+                            expanded = false
+                        }
+                    )
+                    // Lista de categorías existentes
+                    categorias.forEach { cat ->
                         DropdownMenuItem(
                             text = { Text(cat.nombre) },
                             onClick = {
-                                viewModel.categoriaSeleccionada.value = cat.nombre
+                                viewModel.categoriaSeleccionada.value = cat.id
                                 expanded = false
                             }
                         )
@@ -257,23 +274,63 @@ fun I_02_AgregarProducto(
                     val cantidad = viewModel.cantidad.value.toIntOrNull() ?: 0
                     val descripcion = viewModel.descripcion.value.trim()
                     val codigoBarras = viewModel.codigoBarras.value.trim()
-                    val categoria = viewModel.categoriaSeleccionada.value.trim()
-                    if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoria.isNotEmpty()) {
-                        val producto = Producto(
-                            nombre = nombre,
-                            descripcion = if (descripcion.isNotEmpty()) descripcion else null,
-                            precio = precio,
-                            cantidad_disponible = cantidad,
-                            codigo_barras = codigoBarras,
-                            imagen_url = null, // Puedes agregar lógica para imagen luego
-                            categoria_id = categoria
-                        )
-                        firestoreViewModel.agregarProducto(producto) { exito ->
-                            if (exito) {
-                                showDialog.value = true
-                                viewModel.limpiarFormulario()
-                            } else {
-                                showErrorDialog.value = true
+                    val categoriaSeleccionada = viewModel.categoriaSeleccionada.value.trim()
+                    
+                    if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoriaSeleccionada.isNotEmpty()) {
+                        // Si la categoría seleccionada es un ID (categoría existente)
+                        if (categorias.any { it.id == categoriaSeleccionada }) {
+                            // Es una categoría existente, guardar directamente
+                            println("DEBUG: Categoría existente seleccionada - ID: $categoriaSeleccionada")
+                            val producto = Producto(
+                                nombre = nombre,
+                                descripcion = if (descripcion.isNotEmpty()) descripcion else null,
+                                precio = precio,
+                                cantidad_disponible = cantidad,
+                                codigo_barras = codigoBarras,
+                                imagen_url = null,
+                                categoria_id = categoriaSeleccionada
+                            )
+                            println("DEBUG: Producto a guardar (categoría existente) - categoria_id: ${producto.categoria_id}")
+                            firestoreViewModel.agregarProducto(producto) { exito ->
+                                if (exito) {
+                                    println("DEBUG: Producto agregado exitosamente, mostrando diálogo de confirmación")
+                                    showDialog.value = true
+                                    viewModel.limpiarFormulario()
+                                } else {
+                                    println("ERROR: Error al agregar producto")
+                                    showErrorDialog.value = true
+                                }
+                            }
+                        } else {
+                            // Es una nueva categoría, crearla primero
+                            categoriaViewModel.agregarCategoriaSiNoExiste(categoriaSeleccionada) { categoriaId ->
+                                if (categoriaId != null) {
+                                    println("DEBUG: Nueva categoría creada - Nombre: $categoriaSeleccionada, ID: $categoriaId")
+                                    
+                                    val producto = Producto(
+                                        nombre = nombre,
+                                        descripcion = if (descripcion.isNotEmpty()) descripcion else null,
+                                        precio = precio,
+                                        cantidad_disponible = cantidad,
+                                        codigo_barras = codigoBarras,
+                                        imagen_url = null,
+                                        categoria_id = categoriaId
+                                    )
+                                    println("DEBUG: Producto a guardar - categoria_id: ${producto.categoria_id}")
+                                    firestoreViewModel.agregarProducto(producto) { exito ->
+                                        if (exito) {
+                                            println("DEBUG: Producto agregado exitosamente (nueva categoría), mostrando diálogo de confirmación")
+                                            showDialog.value = true
+                                            viewModel.limpiarFormulario()
+                                        } else {
+                                            println("ERROR: Error al agregar producto (nueva categoría)")
+                                            showErrorDialog.value = true
+                                        }
+                                    }
+                                } else {
+                                    println("ERROR: Error al crear categoría")
+                                    showErrorDialog.value = true
+                                }
                             }
                         }
                     } else {
@@ -298,7 +355,10 @@ fun I_02_AgregarProducto(
                 confirmButton = {
                     Button(
                         onClick = {
+                            println("DEBUG: Cerrando diálogo y navegando hacia atrás")
                             showDialog.value = false
+                            // Forzar recarga antes de navegar
+                            firestoreViewModel.recargarProductos()
                             navController.popBackStack()
                         }
                     ) {
@@ -316,6 +376,39 @@ fun I_02_AgregarProducto(
                 confirmButton = {
                     Button(onClick = { showErrorDialog.value = false }) {
                         Text("OK")
+                    }
+                }
+            )
+        }
+        // Diálogo para agregar nueva categoría
+        if (showCategoriaDialog.value) {
+            var nuevaCategoria by remember { mutableStateOf("") }
+            AlertDialog(
+                onDismissRequest = { showCategoriaDialog.value = false },
+                title = { Text("Agregar Nueva Categoría") },
+                text = {
+                    TextField(
+                        value = nuevaCategoria,
+                        onValueChange = { nuevaCategoria = it },
+                        label = { Text("Nombre de la categoría") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (nuevaCategoria.trim().isNotEmpty()) {
+                                viewModel.categoriaSeleccionada.value = nuevaCategoria.trim()
+                                showCategoriaDialog.value = false
+                            }
+                        }
+                    ) {
+                        Text("Agregar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showCategoriaDialog.value = false }) {
+                        Text("Cancelar")
                     }
                 }
             )

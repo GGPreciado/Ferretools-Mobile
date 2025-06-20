@@ -2,7 +2,6 @@ package com.example.ferretools.ui.inventario
 
 import androidx.lifecycle.ViewModel
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableStateListOf
 
 data class Producto(
     val codigoBarras: String,
@@ -13,11 +12,6 @@ data class Producto(
     val descripcion: String
 )
 
-data class Categoria(
-    val nombre: String,
-    val productos: MutableList<Producto> = mutableListOf()
-)
-
 class ProductoViewModel : ViewModel() {
     val nombreProducto = mutableStateOf("")
     val precio = mutableStateOf("")
@@ -25,25 +19,8 @@ class ProductoViewModel : ViewModel() {
     val descripcion = mutableStateOf("")
     val codigoBarras = mutableStateOf("")
 
-    // Lista de categorías y selección
-    var categorias = mutableStateListOf(
-        Categoria("Ferretería"),
-        Categoria("Electricidad"),
-        Categoria("Plomería")
-    )
+    // Solo mantener la categoría seleccionada
     var categoriaSeleccionada = mutableStateOf("")
-
-    fun agregarProducto() {
-        val producto = Producto(
-            codigoBarras.value,
-            nombreProducto.value,
-            precio.value,
-            cantidad.value,
-            categoriaSeleccionada.value,
-            descripcion.value
-        )
-        categorias.find { it.nombre == categoriaSeleccionada.value }?.productos?.add(producto)
-    }
 
     fun limpiarFormulario() {
         nombreProducto.value = ""

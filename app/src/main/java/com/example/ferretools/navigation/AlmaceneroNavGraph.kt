@@ -4,6 +4,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import androidx.navigation.navArgument
 import com.example.ferretools.ui.compra.C_01_CarritoCompra
 import com.example.ferretools.ui.compra.C_02_ResumenCarritoCompra
 import com.example.ferretools.ui.compra.C_04_CompraExitosa
@@ -51,10 +52,16 @@ fun NavGraphBuilder.almaceneroNavGraph(navController: NavHostController) {
         // falta composable("I_07_ConfirmarEliminarProducto") { I_07_ConfirmarEliminarProducto(navController) }
         composable("I_08_ListaCategorias") { I_08_ListaCategorias(navController) }
         composable("I_09_CrearCategoria") { I_09_CrearCategoria(navController) }
-        composable("I_10_DetallesCategoria/{categoria}") { backStackEntry ->
+        composable(
+            route = AppRoutes.Inventory.CATEGORY_DETAILS,
+            arguments = listOf(
+                navArgument("categoriaId") { type = androidx.navigation.NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val categoriaId = backStackEntry.arguments?.getString("categoriaId") ?: ""
             I_10_DetallesCategoria(
                 navController = navController,
-                categoria = backStackEntry.arguments?.getString("categoria") ?: ""
+                categoriaId = categoriaId
             )
         }
         //composable("I_11_CategoríaAgregada") { I_11_CategoríaAgregada(navController) }

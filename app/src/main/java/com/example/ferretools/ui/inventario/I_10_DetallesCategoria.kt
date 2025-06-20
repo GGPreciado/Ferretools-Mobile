@@ -1,13 +1,16 @@
 package com.example.ferretools.ui.inventario
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,23 +21,64 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.model.database.Categoria
+import com.example.ferretools.model.database.Producto
+import kotlinx.coroutines.launch
 
 @Composable
 fun I_10_DetallesCategoria(
     navController: NavController,
-    categoria: String = "Nombre de la categoria"
+    categoriaId: String,
+    inventarioViewModel: InventarioFirestoreViewModel = viewModel(),
+    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    val productosMock = listOf(
-        "Producto 01",
-        "Producto 02",
-        "Producto 03",
-        "Producto 05",
-        "Producto ..."
-    )
+    var isLoading by remember { mutableStateOf(false) }
+    
+    val productos = inventarioViewModel.productos.collectAsState().value
+    val categorias = categoriaViewModel.categorias.collectAsState().value
+    
+    // Filtrar productos por categoría
+    val productosFiltrados = productos.filter { it.categoria_id == categoriaId }
+    val categoria = categorias.find { it.id == categoriaId }
+    
+    println("DEBUG: I_10_DetallesCategoria - Total productos cargados: ${productos.size}")
+    println("DEBUG: I_10_DetallesCategoria - Productos filtrados para categoría $categoriaId: ${productosFiltrados.size}")
+    productosFiltrados.forEach { producto ->
+        println("DEBUG: I_10_DetallesCategoria - Producto: ${producto.nombre} (${producto.codigo_barras})")
+    }
+    
+    // Verificar productos al cargar la pantalla
+    LaunchedEffect(categoriaId) {
+        println("DEBUG: Pantalla de detalles de categoría cargada para ID: $categoriaId")
+        inventarioViewModel.verificarProductosCategoria(categoriaId)
+    }
+
+    // Recargar productos cuando la pantalla se active
+    LaunchedEffect(Unit) {
+        println("DEBUG: Recargando productos al activar pantalla")
+        inventarioViewModel.recargarProductos()
+    }
+    
+    // Logs de depuración
+    println("DEBUG: categoriaId recibido: $categoriaId")
+    println("DEBUG: Total de productos: ${productos.size}")
+    println("DEBUG: Productos filtrados: ${productosFiltrados.size}")
+    println("DEBUG: Categoría encontrada: ${categoria?.nombre}")
+    productos.forEach { producto ->
+        println("DEBUG: Producto '${producto.nombre}' tiene categoria_id: '${producto.categoria_id}'")
+    }
+    
+    // Filtrar por búsqueda si hay query
+    val productosMostrados = if (searchQuery.isNotEmpty()) {
+        productosFiltrados.filter { it.nombre.contains(searchQuery, ignoreCase = true) }
+    } else {
+        productosFiltrados
+    }
 
     Column(
         modifier = Modifier
@@ -54,21 +98,63 @@ fun I_10_DetallesCategoria(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = Color.Black)
             }
             Text(
-                text = "Ver Categorias",
+                text = "Detalles de Categoría",
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 modifier = Modifier.padding(start = 4.dp)
             )
+            Spacer(modifier = Modifier.weight(1f))
+            // Botón de recarga
+            IconButton(
+                onClick = {
+                    isLoading = true
+                    inventarioViewModel.recargarProductos()
+                    // Simular un pequeño delay para mostrar el loading
+                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                        kotlinx.coroutines.delay(500)
+                        isLoading = false
+                    }
+                }
+            ) {
+                Icon(
+                    Icons.Default.Refresh, 
+                    contentDescription = "Recargar", 
+                    tint = Color.Black
+                )
+            }
         }
 
+        // Contenido desplazable
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+        ) {
         // Nombre de la categoría
         Text(
-            text = categoria,
+                text = categoria?.nombre ?: "Categoría no encontrada",
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
+                fontSize = 20.sp,
             modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 8.dp)
         )
+
+            // Contador de productos
+            Text(
+                text = "${productosFiltrados.size} productos en esta categoría",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(start = 24.dp, bottom = 16.dp)
+            )
+
+            // Valor total de productos en la categoría
+            val valorTotal = productosFiltrados.sumOf { it.precio * it.cantidad_disponible }
+            Text(
+                text = "Valor total: S/ ${valorTotal}",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(start = 24.dp, bottom = 24.dp)
+            )
 
         // Buscador
         Row(
@@ -87,7 +173,7 @@ fun I_10_DetallesCategoria(
             TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Nombre producto") },
+                    placeholder = { Text("Buscar producto") },
                 singleLine = true,
                 modifier = Modifier
                     .weight(1f)
@@ -107,39 +193,88 @@ fun I_10_DetallesCategoria(
             )
         }
 
-        // Lista de productos mock
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-                .background(Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
-                .padding(16.dp)
-        ) {
-            productosMock.forEach { producto ->
-                Button(
-                    onClick = {
-                        // Datos mock para ejemplo
-                        navController.navigate(
-                            AppRoutes.Inventory.PRODUCT_DETAILS
-                        )
-                    },
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Indicador de carga
+            if (isLoading) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF22D366))
+                }
+            }
+            // Lista de productos reales
+            else if (productosMostrados.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = if (searchQuery.isNotEmpty()) "No se encontraron productos" else "No hay productos en esta categoría",
+                            color = Color.Gray,
+                            fontSize = 16.sp
+                        )
+                        if (searchQuery.isEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Toca el botón de recarga para actualizar",
+                                color = Color.Gray,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            } else {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                ) {
+                    productosMostrados.forEach { producto ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                    // Seleccionar el producto y navegar a detalles
+                                    println("DEBUG: I_10_DetallesCategoria - Click en producto: ${producto.nombre}")
+                                    ProductoSeleccionadoManager.seleccionarProducto(producto)
+                                    navController.navigate(AppRoutes.Inventory.PRODUCT_DETAILS)
+                                },
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                            shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
-                        Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(12.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = Color.Black
+                                    Icons.Default.Check,
+                                    contentDescription = "Producto",
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(24.dp)
                         )
-                        Spacer(Modifier.width(16.dp))
-                        Text(producto, fontWeight = FontWeight.Bold, color = Color.Black)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        producto.nombre,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                    Text(
+                                        "S/ ${producto.precio} - Stock: ${producto.cantidad_disponible}",
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -151,5 +286,8 @@ fun I_10_DetallesCategoria(
 @Composable
 fun PreviewProductosCategoriaScreen() {
     val navController = rememberNavController()
-    I_10_DetallesCategoria(navController = navController)
+    I_10_DetallesCategoria(
+        navController = navController,
+        categoriaId = "test-id"
+    )
 }
