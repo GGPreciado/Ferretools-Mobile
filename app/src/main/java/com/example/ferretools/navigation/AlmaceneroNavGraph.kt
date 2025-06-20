@@ -11,7 +11,6 @@ import com.example.ferretools.ui.compra.C_05_BoletaCompra
 import com.example.ferretools.ui.home.HOME_Empleado
 import com.example.ferretools.ui.home.PedidoPendiente
 import com.example.ferretools.ui.inventario.I_01_ListaProductos
-import com.example.ferretools.ui.inventario.I_05_ReporteProducto
 import com.example.ferretools.ui.inventario.I_08_ListaCategorias
 import com.example.ferretools.ui.inventario.I_09_CrearCategoria
 import com.example.ferretools.ui.inventario.I_10_DetallesCategoria
@@ -46,7 +45,7 @@ fun NavGraphBuilder.almaceneroNavGraph(navController: NavHostController) {
 //        composable("I_02_AgregarProducto") { I_02_AgregarProducto(navController) }
         //composable("I_03_ProductoAgregado") { I_03_ProductoAgregado(navController) }
         // falta composable("I_04_DetallesProducto") { I_04_DetallesProducto(navController) }
-        composable("I_05_ReporteProducto") { I_05_ReporteProducto(navController) }
+//        composable("I_05_ReporteProducto") { I_05_ReporteProducto(navController) }
         // falta composable("I_06_EditarProducto") { I_06_EditarProducto(navController) }
         // falta composable("I_07_ConfirmarEliminarProducto") { I_07_ConfirmarEliminarProducto(navController) }
         composable("I_08_ListaCategorias") { I_08_ListaCategorias(navController) }

@@ -43,16 +43,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.R
-import com.example.ferretools.theme.primaryContainerLight
 import com.example.ferretools.model.database.Producto
-import com.example.ferretools.ui.inventario.InventarioFirestoreViewModel
+import com.example.ferretools.theme.primaryContainerLight
+import com.example.ferretools.utils.SesionUsuario
 
 @Composable
 fun I_02_AgregarProducto(
@@ -266,7 +263,8 @@ fun I_02_AgregarProducto(
                             cantidad_disponible = cantidad,
                             codigo_barras = codigoBarras,
                             imagen_url = null, // Puedes agregar lógica para imagen luego
-                            categoria_id = categoria
+                            categoria_id = categoria,
+                            negocio_id = SesionUsuario.usuario?.negocioId!!
                         )
                         firestoreViewModel.agregarProducto(producto) { exito ->
                             if (exito) {

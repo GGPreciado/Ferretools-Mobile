@@ -98,7 +98,8 @@ class IniciarSesionViewModel: ViewModel() {
                                             correo = auth.currentUser?.email!!,
                                             celular = usuario.celular,
                                             fotoUrl = usuario.fotoUrl,
-                                            rol = usuario.rol
+                                            rol = usuario.rol,
+                                            negocioId = usuario.negocio_id
                                         )
                                     )
                                 } else {

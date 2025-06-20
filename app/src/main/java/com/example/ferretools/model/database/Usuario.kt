@@ -9,4 +9,5 @@ data class Usuario(
     val celular: String = "",
     val fotoUrl: String? = null,
     val rol: RolUsuario = RolUsuario.CLIENTE,
+    val negocio_id: String? = null
 )
