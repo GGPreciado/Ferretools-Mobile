@@ -42,6 +42,8 @@ import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
 import com.example.ferretools.utils.SesionUsuario
 import com.example.ferretools.viewmodel.session.IniciarSesionViewModel
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 @Composable
@@ -54,6 +56,19 @@ fun S_05_IniciarSesion(
     val iniciarSesionUiState = iniciarSesionViewModel.uiState.collectAsState()
 
     LaunchedEffect(iniciarSesionUiState.value.loginSuccessful) {
+        if (iniciarSesionUiState.value.loginSuccessful) {
+            // Guardar el token FCM en Firestore al iniciar sesión
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    SesionUsuario.usuario?.let { user ->
+                        val db = FirebaseFirestore.getInstance()
+                        db.collection("usuarios").document(user.uid)
+                            .update("fcmToken", token)
+                    }
+                }
+            }
+        }
         when (SesionUsuario.usuario?.rol) {
             RolUsuario.ADMIN -> {
                 navController.navigate(AppRoutes.Admin.DASHBOARD)

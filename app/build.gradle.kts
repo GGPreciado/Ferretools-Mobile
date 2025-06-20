@@ -81,4 +81,8 @@ dependencies {
     // Crashlytics
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")
+
+    // mensajes
+    implementation("com.google.firebase:firebase-messaging-ktx:23.4.0")
+    implementation("androidx.core:core-ktx:1.12.0")
 }

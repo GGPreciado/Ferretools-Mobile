@@ -20,17 +20,23 @@ import androidx.navigation.NavController
 import com.example.ferretools.model.database.Solicitud
 import com.example.ferretools.viewmodel.session.RevisarSolicitudesViewModel
 import com.example.ferretools.viewmodel.session.SolicitudesUiState
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun SolicitudesScreen(
     navController: NavController,
     viewModel: RevisarSolicitudesViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+    val context = LocalContext.current
     val solicitudesState by viewModel.solicitudesState.collectAsState()
     var selectedSolicitud by remember { mutableStateOf<Solicitud?>(null) }
     var showDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.setContext(context)
+    }
 
     Column(
         modifier = Modifier

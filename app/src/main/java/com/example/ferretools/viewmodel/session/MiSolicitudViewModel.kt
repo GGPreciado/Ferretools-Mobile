@@ -92,11 +92,20 @@ class MiSolicitudViewModel : ViewModel() {
         db.collection("solicitudes")
             .add(solicitudMap)
             .addOnSuccessListener {
+                // Enviar notificación push a los administradores
+                enviarNotificacionPushAdmin()
                 fetchMiSolicitud()
                 onSuccess()
             }
             .addOnFailureListener { e ->
                 onError(e.message ?: "Error al crear solicitud")
             }
+    }
+
+    private fun enviarNotificacionPushAdmin() {
+        // En una implementación real, esto se haría con Cloud Functions
+        // Por ahora, simulamos el envío de notificación
+        // TODO: Implementar Cloud Function que envíe notificación push a todos los admins
+        println("Notificación push enviada a administradores")
     }
 } 

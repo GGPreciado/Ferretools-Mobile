@@ -1,5 +1,6 @@
 package com.example.ferretools.viewmodel.session
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.example.ferretools.model.database.Solicitud
 import com.example.ferretools.model.enums.RolUsuario
@@ -8,6 +9,7 @@ import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.example.ferretools.utils.NotificationHelper
 
 sealed class SolicitudesUiState {
     object Loading : SolicitudesUiState()
@@ -20,9 +22,14 @@ class RevisarSolicitudesViewModel : ViewModel() {
     val solicitudesState = _solicitudesState.asStateFlow()
 
     private val db = Firebase.firestore
+    private var notificationHelper: NotificationHelper? = null
 
     init {
         fetchSolicitudes()
+    }
+
+    fun setContext(context: Context) {
+        notificationHelper = NotificationHelper(context)
     }
 
     fun fetchSolicitudes() {
@@ -45,10 +52,22 @@ class RevisarSolicitudesViewModel : ViewModel() {
                     Solicitud(id, usuarioId, nombreUsuario, correo, celular, fotoUri, rolSolicitado, estado)
                 }
                 _solicitudesState.value = SolicitudesUiState.Success(solicitudes)
+                
+                // Mostrar notificación local si hay solicitudes nuevas
+                if (solicitudes.isNotEmpty()) {
+                    mostrarNotificacionLocal(solicitudes.size)
+                }
             }
             .addOnFailureListener { e ->
                 _solicitudesState.value = SolicitudesUiState.Error(e.message ?: "Error al cargar solicitudes")
             }
+    }
+
+    private fun mostrarNotificacionLocal(cantidadSolicitudes: Int) {
+        notificationHelper?.mostrarNotificacionSolicitud(
+            "Nueva Solicitud de Empleo",
+            "Tienes $cantidadSolicitudes solicitud(es) pendiente(s) de revisión"
+        )
     }
 
     fun aceptarSolicitud(solicitud: Solicitud, onSuccess: () -> Unit, onError: (String) -> Unit) {
