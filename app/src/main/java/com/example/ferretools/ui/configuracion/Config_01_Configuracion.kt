@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Warehouse
@@ -30,6 +32,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -64,7 +71,7 @@ fun Config_01_Configuracion(
                 .addOnSuccessListener { doc ->
                     val valor = doc.getBoolean("notificacionSolicitudes") ?: true
                     notificacionSolicitudesEnabled = valor
-                    SesionUsuario.usuario = usuarioActual.copy(notificacionSolicitudes = valor)
+                    SesionUsuario.actualizarDatos(notificacionSolicitudes = valor)
                 }
         }
     }
@@ -177,7 +184,7 @@ fun Config_01_Configuracion(
                             db.collection("usuarios").document(user.uid)
                                 .update("notificacionSolicitudes", checked)
                             // Actualizar también en la sesión local
-                            SesionUsuario.usuario = user.copy(notificacionSolicitudes = checked)
+                            SesionUsuario.actualizarDatos(notificacionSolicitudes = checked)
                         }
                     }
                 )

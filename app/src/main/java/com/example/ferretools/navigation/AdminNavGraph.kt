@@ -50,7 +50,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
             val categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
             I_02_AgregarProducto(
                 navController = navController,
-                viewModel = viewModel,
+                productoViewModel = viewModel,
                 firestoreViewModel = firestoreViewModel,
                 categoriaViewModel = categoriaViewModel
             )
