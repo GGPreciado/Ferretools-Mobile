@@ -5,12 +5,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,30 +21,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.ferretools.viewmodel.session.CambiarContrasenaViewModel
 
 @Composable
 fun Config_05_CambiarContrasena(
     navController: NavController,
     isLoading: Boolean = false,
     errorMessage: String? = null,
-    // viewModel: CambiarContrasenaViewModel = viewModel() // Para uso futuro
+    viewModel: CambiarContrasenaViewModel = viewModel()
 ) {
-    var currentPassword by rememberSaveable { mutableStateOf("") }
-    var newPassword by rememberSaveable { mutableStateOf("") }
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
+    val uiState = viewModel.uiState.collectAsState()
 
-    var showCurrentPassword by rememberSaveable { mutableStateOf(false) }
-    var showNewPassword by rememberSaveable { mutableStateOf(false) }
-    var showConfirmPassword by rememberSaveable { mutableStateOf(false) }
-
-    var showSuccess by rememberSaveable { mutableStateOf(false) }
-
-    val isCurrentValid = currentPassword.length >= 6
-    val isNewValid = newPassword.length >= 6 && newPassword != currentPassword
-    val passwordsMatch = newPassword == confirmPassword
-    val isFormValid = isCurrentValid && isNewValid && passwordsMatch
+    // Navegar de vuelta cuando la contraseña se haya cambiado exitosamente
+    LaunchedEffect(uiState.value.passwordChanged) {
+        if (uiState.value.passwordChanged) {
+            navController.popBackStack()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -58,68 +53,63 @@ fun Config_05_CambiarContrasena(
 
         TitleText("Cambiar Contraseña")
 
+        // Campo de contraseña actual
         PasswordSettingsFormField(
             label = "Contraseña actual",
-            value = currentPassword,
-            onValueChange = { currentPassword = it },
+            value = uiState.value.currentPassword,
+            onValueChange = { viewModel.updateCurrentPassword(it) },
             placeholder = "Contraseña actual",
-            showPassword = showCurrentPassword,
-            onTogglePassword = { showCurrentPassword = !showCurrentPassword },
-            isError = currentPassword.isNotBlank() && !isCurrentValid,
-            errorText = "Mínimo 6 caracteres".takeIf { currentPassword.isNotBlank() && !isCurrentValid }
+            showPassword = false,
+            onTogglePassword = { },
+            isError = uiState.value.currentPasswordError != null,
+            errorText = uiState.value.currentPasswordError
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // Campo de nueva contraseña
         PasswordSettingsFormField(
             label = "Nueva contraseña",
-            value = newPassword,
-            onValueChange = { newPassword = it },
+            value = uiState.value.password,
+            onValueChange = { viewModel.updatePassword(it) },
             placeholder = "Nueva contraseña",
-            showPassword = showNewPassword,
-            onTogglePassword = { showNewPassword = !showNewPassword },
-            isError = newPassword.isNotBlank() && !isNewValid,
-            errorText = when {
-                newPassword == currentPassword -> "La nueva contraseña no puede ser igual a la actual"
-                newPassword.length < 6 -> "Mínimo 6 caracteres"
-                else -> null
-            }.takeIf { newPassword.isNotBlank() }
+            showPassword = false,
+            onTogglePassword = { },
+            isError = uiState.value.passwordError != null,
+            errorText = uiState.value.passwordError
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // Campo de confirmar nueva contraseña
         PasswordSettingsFormField(
             label = "Confirmar nueva contraseña",
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
+            value = uiState.value.confirmPassword,
+            onValueChange = { viewModel.updateConfirmPassword(it) },
             placeholder = "Repetir nueva contraseña",
-            showPassword = showConfirmPassword,
-            onTogglePassword = { showConfirmPassword = !showConfirmPassword },
-            isError = confirmPassword.isNotBlank() && !passwordsMatch,
-            errorText = "Las contraseñas no coinciden".takeIf { confirmPassword.isNotBlank() && !passwordsMatch }
+            showPassword = false,
+            onTogglePassword = { },
+            isError = uiState.value.confirmPasswordError != null,
+            errorText = uiState.value.confirmPasswordError
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+        HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        errorMessage?.let {
+        // Mostrar mensaje de error del ViewModel o del parámetro
+        (uiState.value.errorMessage ?: errorMessage)?.let {
             MessageText(it, color = Color.Red)
         }
 
-        if (showSuccess) {
-            MessageText("¡Contraseña cambiada exitosamente!", color = Color(0xFF2E7D32), bold = true)
-        }
-
         Button(
-            onClick = {
-                showSuccess = true
-                navController.popBackStack()
-                // Aquí puedes llamar a tu ViewModel o lógica de cambio de contraseña
-            },
-            enabled = isFormValid && !isLoading,
+            onClick = { viewModel.changePassword() },
+            enabled = uiState.value.currentPasswordError == null &&
+                     uiState.value.passwordError == null && 
+                     uiState.value.confirmPasswordError == null && 
+                     !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -143,7 +133,7 @@ private fun TopBar(onBack: () -> Unit) {
     ) {
         IconButton(onClick = onBack) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Volver",
                 tint = Color(0xFF333333)
             )
@@ -204,14 +194,6 @@ fun PasswordSettingsFormField(
             singleLine = true,
             isError = isError,
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = onTogglePassword) {
-                    Icon(
-                        imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = if (showPassword) "Ocultar" else "Mostrar"
-                    )
-                }
-            },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth()
         )

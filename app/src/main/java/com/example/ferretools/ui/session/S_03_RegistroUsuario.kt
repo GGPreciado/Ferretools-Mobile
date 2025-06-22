@@ -58,7 +58,6 @@ fun S_03_RegistroUsuario(
     navController: NavController,
     rolUsuario: RolUsuario,
     isLoading: Boolean = false,
-    errorMessage: String? = null,
     registroUsuarioViewModel: RegistroUsuarioViewModel = viewModel()
 ) {
     val registroUsuarioUiState = registroUsuarioViewModel.uiState.collectAsState()
@@ -80,6 +79,7 @@ fun S_03_RegistroUsuario(
             RolUsuario.ADMIN -> {
                 if (registroUsuarioUiState.value.isFormValid) {
                     navController.navigate(
+                        //AppRoutes.Auth.SELECT_BUSINESS(RolUsuario.ADMIN)
                         AppRoutes.Auth.REGISTER_BUSINESS
                     )
                 }
@@ -87,6 +87,7 @@ fun S_03_RegistroUsuario(
             RolUsuario.CLIENTE -> {
                 if (registroUsuarioUiState.value.isFormValid) {
                     navController.navigate(
+                        //AppRoutes.Auth.SELECT_BUSINESS(RolUsuario.CLIENTE)
                         AppRoutes.Client.DASHBOARD
                     )
                 }
@@ -94,7 +95,11 @@ fun S_03_RegistroUsuario(
             RolUsuario.ALMACENERO -> {
                 if (registroUsuarioUiState.value.isFormValid) {
                     navController.navigate(
-                        AppRoutes.Employee.DASHBOARD
+                        //AppRoutes.Auth.SELECT_BUSINESS(RolUsuario.ALMACENERO)
+                        AppRoutes.Client.DASHBOARD
+
+                        // te manda a cliente porque la uistate se mantiene como empleado a pesar
+                        // de no haber aceptado la solicitud de empleado.
                     )
                 }
             }
@@ -232,18 +237,9 @@ fun S_03_RegistroUsuario(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        errorMessage?.let {
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.onError,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
 
         Button(
             onClick = {

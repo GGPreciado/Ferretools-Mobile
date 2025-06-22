@@ -1,6 +1,5 @@
 package com.example.ferretools.navigation
 
-import com.example.ferretools.model.database.Usuario
 import com.example.ferretools.model.enums.RolUsuario
 import kotlinx.serialization.Serializable
 
@@ -13,6 +12,7 @@ object AppRoutes {
     object Auth {
         const val WELCOME = "welcome"
         const val SELECT_ROLE = "select_role"
+        //const val SELECT_BUSINESS = "select_business"
         const val REGISTER_BUSINESS = "register_business"
         const val LOGIN = "login"
         const val RECOVER_PASSWORD = "recover_password"
@@ -20,6 +20,7 @@ object AppRoutes {
 
         @Serializable
         data class REGISTER_USER(val rolUsuario: RolUsuario)
+        data class SELECT_BUSINESS(val rolUsuario: RolUsuario)
     }
 
     // Rutas de Admin
@@ -56,7 +57,7 @@ object AppRoutes {
         const val ADD_PRODUCT = "inventory_add"
         const val PRODUCT_ADDED = "inventory_product_added"
         const val PRODUCT_DETAILS = "inventory_product_details"
-        const val PRODUCT_REPORT = "inventory_product_report"
+//        const val PRODUCT_REPORT = "inventory_product_report"
         const val EDIT_PRODUCT = "inventory_edit"
         const val DELETE_PRODUCT = "inventory_delete"
         const val LIST_CATEGORIES = "inventory_categories"
@@ -65,6 +66,9 @@ object AppRoutes {
         const val CATEGORY_ADDED = "inventory_category_added"
         const val INVENTORY_REPORT = "inventory_report"
         const val SHARE_REPORT = "inventory_share_report"
+
+        @Serializable
+        data class PRODUCT_REPORT(val productoId: String, val productoNombre: String)
     }
 
     // Rutas de Compras
@@ -117,6 +121,8 @@ object AppRoutes {
         const val CHANGE_QR = "config_change_qr"
         const val CHANGE_PASSWORD = "config_change_password"
         const val CONFIRM_LOGOUT = "config_confirm_logout"
+        const val SOLICITUDES = "config_solicitudes"
+        const val MI_SOLICITUD = "config_mi_solicitud"
     }
 
     // Función helper para construir rutas con parámetros

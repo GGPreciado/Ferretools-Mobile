@@ -1,5 +1,8 @@
 package com.example.ferretools.model.database
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Producto(
     val nombre: String = "",
     val descripcion: String? = null,
@@ -8,4 +11,5 @@ data class Producto(
     val codigo_barras: String = "",
     val imagen_url: String? = null,
     val categoria_id: String? = null,
+    val negocio_id: String = ""
 )

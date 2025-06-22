@@ -48,6 +48,7 @@ import com.example.ferretools.ui.pedido.PedidoDetalle
 import com.example.ferretools.ui.pedido.PedidoHistorial
 import com.example.ferretools.ui.session.S_01_PortadaBienvenida
 import com.example.ferretools.ui.session.S_02_SeleccionRol
+import com.example.ferretools.ui.session.S_03_02_ElegirNegocio
 import com.example.ferretools.ui.session.S_03_RegistroUsuario
 import com.example.ferretools.ui.session.S_04_RegistroNegocio
 import com.example.ferretools.ui.session.S_05_IniciarSesion
@@ -104,6 +105,13 @@ fun AppNavigation(navController: NavHostController) {
                 rolUsuario = registerUser.rolUsuario
             )
         }
+        /*composable<AppRoutes.Auth.SELECT_BUSINESS> { backStackEntry ->
+            val registerUser: AppRoutes.Auth.REGISTER_USER = backStackEntry.toRoute()
+            S_03_02_ElegirNegocio(
+                navController = navController,
+                rolUsuario = registerUser.rolUsuario
+            )
+        }*/
         composable(AppRoutes.Auth.REGISTER_BUSINESS) {
             S_04_RegistroNegocio(navController = navController)
 
@@ -123,29 +131,17 @@ fun AppNavigation(navController: NavHostController) {
             Config_01_Configuracion(
                 navController = navController,
                 darkModeEnabled = false,
-                stockNotificationEnabled = false,
-                userEmail = "demo@email.com",
-                userLastName = "Demo",
-                userName = "Usuario Demo",
-                userPhone = "999999999"
+                stockNotificationEnabled = false
             )
         }
         composable(AppRoutes.Config.EDIT_PROFILE) {
             Config_02_EditarPerfil(
-                navController = navController,
-                initialEmail = "demo@email.com",
-                initialLastName = "Demo",
-                initialName = "Usuario",
-                initialPhone = "999999999"
+                navController = navController
             )
         }
         composable(AppRoutes.Config.EDIT_BUSINESS) {
             Config_03_EditarNegocio(
-                navController = navController,
-                initialAddress = "Calle Falsa 123",
-                initialBusinessName = "Negocio Demo",
-                initialBusinessType = "Bodega",
-                initialRuc = "12345678901"
+                navController = navController
             )
         }
         composable(AppRoutes.Config.CHANGE_QR) {
@@ -153,6 +149,12 @@ fun AppNavigation(navController: NavHostController) {
         }
         composable(AppRoutes.Config.CHANGE_PASSWORD) {
             Config_05_CambiarContrasena(navController = navController)
+        }
+        composable(AppRoutes.Config.SOLICITUDES) {
+            com.example.ferretools.ui.configuracion.SolicitudesScreen(navController = navController)
+        }
+        composable(AppRoutes.Config.MI_SOLICITUD) {
+            com.example.ferretools.ui.configuracion.MiSolicitudScreen(navController = navController)
         }
         // Dashboard Stack
         composable(AppRoutes.Admin.DASHBOARD) {
@@ -195,8 +197,14 @@ fun AppNavigation(navController: NavHostController) {
                 categoriaViewModel = categoriaViewModel
             )
         }
-        composable(AppRoutes.Inventory.PRODUCT_REPORT) {
-            I_05_ReporteProducto(navController = navController)
+
+        composable<AppRoutes.Inventory.PRODUCT_REPORT> { backStackEntry ->
+            val productReport: AppRoutes.Inventory.PRODUCT_REPORT = backStackEntry.toRoute()
+            I_05_ReporteProducto(
+                navController = navController,
+                productoId = productReport.productoId,
+                productoNombre = productReport.productoNombre
+            )
         }
         composable(AppRoutes.Inventory.LIST_CATEGORIES) {
             I_08_ListaCategorias(navController = navController)

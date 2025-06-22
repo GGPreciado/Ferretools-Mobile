@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.ferretools"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -78,7 +78,18 @@ dependencies {
     // Firebase Auth
     implementation("com.google.firebase:firebase-auth")
 
+    // Firebase Storage
+    implementation("com.google.firebase:firebase-storage")
+
     // Crashlytics
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")
+
+    // Mensajes
+    implementation("com.google.firebase:firebase-messaging-ktx:23.4.0")
+    implementation("androidx.core:core-ktx:1.12.0")
+
+    // Vico para gráficos
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
 }

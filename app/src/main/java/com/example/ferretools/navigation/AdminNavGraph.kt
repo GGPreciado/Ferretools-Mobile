@@ -55,6 +55,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 categoriaViewModel = categoriaViewModel
             )
         }
+        
         composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
             val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
             I_04_DetallesProducto(
@@ -71,6 +72,7 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 categoriaViewModel = categoriaViewModel
             )
         }
+
         composable(AppRoutes.Inventory.LIST_CATEGORIES) {
             I_08_ListaCategorias(navController = navController)
         }

@@ -1,13 +1,13 @@
 package com.example.ferretools.ui.inventario
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.ferretools.model.database.Producto
+import com.example.ferretools.utils.ProductoDisplay
+import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 // Objeto singleton temporal para compartir el producto seleccionado
 object ProductoSeleccionadoManager {
@@ -31,8 +31,8 @@ object ProductoSeleccionadoManager {
 
 class InventarioFirestoreViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
-    private val _productos = MutableStateFlow<List<Producto>>(emptyList())
-    val productos: StateFlow<List<Producto>> = _productos
+    private val _productos = MutableStateFlow<List<ProductoDisplay>>(emptyList())
+    val productos: StateFlow<List<ProductoDisplay>> = _productos
 
     // Estado para el producto seleccionado
     private val _productoSeleccionado = MutableStateFlow<Producto?>(null)
@@ -45,7 +45,9 @@ class InventarioFirestoreViewModel : ViewModel() {
     }
 
     private fun escucharProductos() {
+        val negocioId = SesionUsuario.usuario?.negocioId
         listenerRegistration = db.collection("productos")
+            .whereEqualTo("negocio_id", negocioId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     println("ERROR: Error al escuchar productos: ${error.message}")
@@ -53,7 +55,16 @@ class InventarioFirestoreViewModel : ViewModel() {
                 }
                 if (snapshot != null) {
                     val lista = snapshot.documents.mapNotNull { doc ->
-                        doc.toObject(Producto::class.java)
+                        val producto = doc.toObject(Producto::class.java)
+                        producto?.let {
+                            ProductoDisplay(
+                                nombre = it.nombre,
+                                precio = it.precio,
+                                descripcion = it.descripcion,
+                                cantidad_disponible = it.cantidad_disponible,
+                                producto_id = doc.id
+                            )
+                        }
                     }
                     println("DEBUG: Productos actualizados desde Firestore: ${lista.size} productos")
                     lista.forEach { producto ->
