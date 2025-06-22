@@ -112,6 +112,13 @@ fun Config_01_Configuracion(
                     onClick = { navController.navigate(AppRoutes.Config.EDIT_BUSINESS) }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
+                SettingsItem(
+                    icon = Icons.Default.PersonAdd,
+                    text = "Solicitudes",
+                    color = Color(0xFF2563EB),
+                    onClick = { navController.navigate(AppRoutes.Config.SOLICITUDES) }
+                )
+                Spacer(modifier = Modifier.height(20.dp))
             }
 
             SettingsItem(

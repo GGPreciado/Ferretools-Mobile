@@ -45,6 +45,7 @@ import com.example.ferretools.ui.pedido.PedidoDetalle
 import com.example.ferretools.ui.pedido.PedidoHistorial
 import com.example.ferretools.ui.session.S_01_PortadaBienvenida
 import com.example.ferretools.ui.session.S_02_SeleccionRol
+import com.example.ferretools.ui.session.S_03_02_ElegirNegocio
 import com.example.ferretools.ui.session.S_03_RegistroUsuario
 import com.example.ferretools.ui.session.S_04_RegistroNegocio
 import com.example.ferretools.ui.session.S_05_IniciarSesion
@@ -101,6 +102,13 @@ fun AppNavigation(navController: NavHostController) {
                 rolUsuario = registerUser.rolUsuario
             )
         }
+        /*composable<AppRoutes.Auth.SELECT_BUSINESS> { backStackEntry ->
+            val registerUser: AppRoutes.Auth.REGISTER_USER = backStackEntry.toRoute()
+            S_03_02_ElegirNegocio(
+                navController = navController,
+                rolUsuario = registerUser.rolUsuario
+            )
+        }*/
         composable(AppRoutes.Auth.REGISTER_BUSINESS) {
             S_04_RegistroNegocio(navController = navController)
 
@@ -138,6 +146,9 @@ fun AppNavigation(navController: NavHostController) {
         }
         composable(AppRoutes.Config.CHANGE_PASSWORD) {
             Config_05_CambiarContrasena(navController = navController)
+        }
+        composable(AppRoutes.Config.SOLICITUDES) {
+            com.example.ferretools.ui.configuracion.SolicitudesScreen(navController = navController)
         }
         // Dashboard Stack
         composable(AppRoutes.Admin.DASHBOARD) {

@@ -92,7 +92,7 @@ class RegistroUsuarioViewModel: ViewModel() {
         _uiState.update { it.copy(showConfirmPassword = !_uiState.value.showConfirmPassword) }
     }
 
-    fun areFieldsFilled(state: RegistroUsuarioUiState): Boolean {
+    private fun areFieldsFilled(state: RegistroUsuarioUiState): Boolean {
         return listOf(
             state.name,
             state.email,
@@ -128,11 +128,17 @@ class RegistroUsuarioViewModel: ViewModel() {
     }
 
     private fun saveUser(uid: String, fotoUrl: String?) {
+
+        val rolFinal = if (_uiState.value.rolUsuario == RolUsuario.ALMACENERO)
+            RolUsuario.CLIENTE
+        else
+            _uiState.value.rolUsuario
+
         val userMap = Usuario(
             nombre = _uiState.value.name,
             celular = _uiState.value.phone,
             fotoUrl = fotoUrl,
-            rol = _uiState.value.rolUsuario
+            rol = rolFinal
         )
 
         db.collection("usuarios")
@@ -152,6 +158,30 @@ class RegistroUsuarioViewModel: ViewModel() {
                         rol = userMap.rol
                     )
                 )
+
+                if (_uiState.value.rolUsuario == RolUsuario.ALMACENERO) {
+                    // Crear la solicitud en la colección 'solicitudes'
+                    val solicitudMap = mapOf(
+                        "usuarioId" to uid,
+                        "nombreUsuario" to _uiState.value.name,
+                        "correo" to _uiState.value.email,
+                        "celular" to _uiState.value.phone,
+                        "fotoUri" to (_uiState.value.imageUri?.toString() ?: ""),
+                        "rolSolicitado" to RolUsuario.ALMACENERO.name,
+                        "estado" to "pendiente"
+                    )
+                    db.collection("solicitudes")
+                        .add(solicitudMap)
+                        .addOnSuccessListener {
+                            Log.d("TAG", "Solicitud de almacenero registrada")
+                            _uiState.update {
+                                it.copy(registerSuccessful = true)
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("TAG", "Error al registrar solicitud: ${e.message}")
+                        }
+                }
 
                 _uiState.update { it.copy(registerSuccessful = true) }
             }

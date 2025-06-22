@@ -12,6 +12,7 @@ object AppRoutes {
     object Auth {
         const val WELCOME = "welcome"
         const val SELECT_ROLE = "select_role"
+        //const val SELECT_BUSINESS = "select_business"
         const val REGISTER_BUSINESS = "register_business"
         const val LOGIN = "login"
         const val RECOVER_PASSWORD = "recover_password"
@@ -19,6 +20,7 @@ object AppRoutes {
 
         @Serializable
         data class REGISTER_USER(val rolUsuario: RolUsuario)
+        data class SELECT_BUSINESS(val rolUsuario: RolUsuario)
     }
 
     // Rutas de Admin
@@ -119,6 +121,7 @@ object AppRoutes {
         const val CHANGE_QR = "config_change_qr"
         const val CHANGE_PASSWORD = "config_change_password"
         const val CONFIRM_LOGOUT = "config_confirm_logout"
+        const val SOLICITUDES = "config_solicitudes"
     }
 
     // Función helper para construir rutas con parámetros
