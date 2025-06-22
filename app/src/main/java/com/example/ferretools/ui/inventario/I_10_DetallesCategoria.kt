@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
@@ -45,11 +46,12 @@ fun I_10_DetallesCategoria(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF22D366))
-                .padding(vertical = 12.dp, horizontal = 8.dp),
+                .padding(vertical = 12.dp, horizontal = 8.dp)
+                .padding(top = 40.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color.Black)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = Color.Black)
             }
             Text(
                 text = "Ver Categorias",
@@ -76,7 +78,12 @@ fun I_10_DetallesCategoria(
                 .background(Color(0xFFEDE7F6), RoundedCornerShape(24.dp)),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Menu, contentDescription = null, tint = Color.Gray, modifier = Modifier.padding(start = 8.dp))
+            Icon(
+                Icons.Default.Menu,
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier.padding(start = 8.dp)
+            )
             TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -92,7 +99,12 @@ fun I_10_DetallesCategoria(
                     focusedIndicatorColor = Color.Transparent
                 )
             )
-            Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.Gray, modifier = Modifier.padding(end = 8.dp))
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "Buscar",
+                tint = Color.Gray,
+                modifier = Modifier.padding(end = 8.dp)
+            )
         }
 
         // Lista de productos mock

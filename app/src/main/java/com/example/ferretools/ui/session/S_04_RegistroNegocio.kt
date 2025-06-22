@@ -50,7 +50,6 @@ import com.example.ferretools.viewmodel.session.RegistroNegocioViewModel
 fun S_04_RegistroNegocio(
     navController: NavController,
     isLoading: Boolean = false,
-    errorMessage: String? = null,
     registroNegocioViewModel: RegistroNegocioViewModel = viewModel()
 ) {
 
@@ -167,18 +166,9 @@ fun S_04_RegistroNegocio(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        errorMessage?.let {
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.onError,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
 
         Button(
             onClick = {

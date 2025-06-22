@@ -58,7 +58,6 @@ fun S_03_RegistroUsuario(
     navController: NavController,
     rolUsuario: RolUsuario,
     isLoading: Boolean = false,
-    errorMessage: String? = null,
     registroUsuarioViewModel: RegistroUsuarioViewModel = viewModel()
 ) {
     val registroUsuarioUiState = registroUsuarioViewModel.uiState.collectAsState()
@@ -238,18 +237,9 @@ fun S_03_RegistroUsuario(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        errorMessage?.let {
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.onError,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
 
         Button(
             onClick = {

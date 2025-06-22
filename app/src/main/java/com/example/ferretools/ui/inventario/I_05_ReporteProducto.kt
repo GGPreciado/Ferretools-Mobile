@@ -1,33 +1,63 @@
 package com.example.ferretools.ui.inventario
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.ferretools.R
 import com.example.ferretools.ui.components.SelectorOpciones
 import com.example.ferretools.ui.components.TopNavBar
 import com.example.ferretools.ui.components.reporte.ResumenBox
-import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.viewmodel.inventario.ReporteProductoViewModel
+import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
+import com.patrykandpatrick.vico.core.common.data.ExtraStore
+import java.time.LocalDate
 
 @Composable
 fun I_05_ReporteProducto(
     navController: NavController,
-    // viewModel: ReporteProductoViewModel = viewModel() // Para uso futuro
+    productoId: String,
+    productoNombre: String,
+    reporteProductoViewModel: ReporteProductoViewModel = viewModel()
 ) {
+    val reporteProductoUiState = reporteProductoViewModel.uiState.collectAsState()
+
+    LaunchedEffect(productoId) {
+        reporteProductoViewModel.cargarVentasDeProducto(productoId)
+    }
+
     Scaffold(
         topBar = { TopNavBar(navController, "Reporte por Producto") }
     ) { padding ->
@@ -35,11 +65,12 @@ fun I_05_ReporteProducto(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
                 .fillMaxSize()
                 .background(Color.White),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(32.dp)) // Espacio adicional arriba de los elementos
+
             // Botón de fecha
             Button(
                 onClick = { /* Acción seleccionar fecha */ },
@@ -47,7 +78,7 @@ fun I_05_ReporteProducto(
                     .fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B))
             ) {
-                Text("Reporte de {compras/ventas} del producto XXXX", color = Color.Black)
+                Text("Reporte de {compra/venta} del producto $productoNombre", color = Color.Black)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -65,7 +96,7 @@ fun I_05_ReporteProducto(
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .height(240.dp)
+                    .height(300.dp)
                     .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
@@ -86,31 +117,21 @@ fun I_05_ReporteProducto(
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    // Placeholder del gráfico
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Imagen de gráfico como placeholder
-                        Image(
-                            painter = painterResource(R.drawable.grafico),
-                            contentDescription = "Gráfico",
-                            modifier = Modifier.size(400.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // Botón PDF
-                    Button(
-                        onClick = { /* Acción PDF */ },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B))
-                    ) {
-                        Text("Convertir a PDF", color = Color.Black)
+                    if (reporteProductoUiState.value.ventas != null) {
+                        if (reporteProductoUiState.value.ventas!!.isNotEmpty()) {
+                            val (valores, fechas) = reporteProductoViewModel.
+                                agruparUnidadesPorPeriodo(
+                                    productoId = productoId
+                                )
+
+                            GraficoVentasPorPeriodo(
+                                datos = valores,
+                                fechas = fechas,
+                            )
+                        } else {
+                            CircularProgressIndicator()
+                        }
                     }
                 }
             }
@@ -158,9 +179,63 @@ fun I_05_ReporteProducto(
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun I_05_ReporteProductoPreview() {
-    val navController = rememberNavController()
-    I_05_ReporteProducto(navController = navController)
+fun GraficoVentasPorPeriodo(
+    datos: List<Int>,
+    fechas: List<LocalDate>
+) {
+    val modelProducer = remember { CartesianChartModelProducer() }
+
+    val mapa: Map<LocalDate, Int> = fechas.zip(datos).toMap()
+
+    val xToDateMapKey = ExtraStore.Key<Map<Float, LocalDate>>()
+    val xToDates = mapa.keys.associateBy { it.toEpochDay().toFloat() }
+
+    LaunchedEffect(fechas, datos) {
+        modelProducer.runTransaction {
+            columnSeries { series(xToDates.keys, mapa.values) }
+            extras { it[xToDateMapKey] = xToDates }
+        }
+    }
+
+//    val dateFormatter = DateTimeFormatter.ofPattern("dd MMM")
+//    val bottomFormatter = CartesianValueFormatter { context, x, _ ->
+//        (context.model.extraStore[xToDateMapKey]?.get(x)
+//            ?: LocalDate.ofEpochDay(x.toLong()))
+//            .format(dateFormatter)
+//    }
+
+    CartesianChartHost(
+        chart = rememberCartesianChart(
+            rememberColumnCartesianLayer(),
+            startAxis = VerticalAxis.rememberStart(),
+            bottomAxis = HorizontalAxis.rememberBottom(
+//                valueFormatter = bottomFormatter
+            )
+        ),
+        modelProducer = modelProducer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(240.dp)
+    )
 }
+
+
+
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun I_05_ReporteProductoPreview() {
+//    val navController = rememberNavController()
+//    I_05_ReporteProducto(navController = navController)
+//}
+
+//                    Botón PDF
+//                    Button(
+//                        onClick = { /* Acción PDF */ },
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(44.dp),
+//                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B))
+//                    ) {
+//                        Text("Convertir a PDF", color = Color.Black)
+//                    }
