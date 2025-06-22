@@ -1,61 +1,101 @@
 package com.example.ferretools.ui.inventario
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.ferretools.ui.components.*
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.ui.components.AdminBottomNavBar
+import com.example.ferretools.ui.components.SummaryCard
+
 
 @Composable
 fun I_01_ListaProductos(
     navController: NavController,
-//    viewModel: InventarioViewModel = viewModel()
+    viewModel: InventarioFirestoreViewModel = viewModel()
 ) {
+    val productos = viewModel.productos.collectAsState().value
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+           .background(MaterialTheme.colorScheme.background)
     ) {
         // Header (fijo)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF22D366))
-                .padding(12.dp),
+                .background(Color(0xFF00E676))
+                .padding(vertical = 10.dp, horizontal = 8.dp)
+                .padding(top = 40.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .align(Alignment.CenterVertically)
             ) {
-                Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.align(Alignment.Center))
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column {
-                Text("Nombre de Usuario", color = Color.White, fontWeight = FontWeight.Bold)
-                Text("Nombre de la Tienda", color = Color.White, fontSize = 13.sp)
+                Text(
+                    text = "Nombre de Usuario", 
+                    color = MaterialTheme.colorScheme.onPrimary, 
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Nombre de la Tienda", 
+                    color = MaterialTheme.colorScheme.onPrimary, 
+                    fontSize = 13.sp
+                )
             }
         }
         // Botón de reportes (fijo)
@@ -65,13 +105,22 @@ fun I_01_ListaProductos(
         ) {
             Button(
                 onClick = { navController.navigate(AppRoutes.Inventory.INVENTORY_REPORT) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF5F5F5)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ),
                 shape = RoundedCornerShape(6.dp),
                 contentPadding = PaddingValues(horizontal = 18.dp, vertical = 4.dp)
             ) {
-                Icon(Icons.Default.List, contentDescription = "Reportes", tint = Color.Black)
+                Icon(
+                    Icons.AutoMirrored.Filled.List,
+                    contentDescription = "Reportes",
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Reportes", color = Color.Black)
+                Text(
+                    "Reportes", 
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             }
         }
         // Contenido desplazable
@@ -87,13 +136,14 @@ fun I_01_ListaProductos(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceAround
-//                    .spacedBy(12.dp)
             ) {
-                SummaryCard(title = "Total de Productos", value = "0")
-                SummaryCard(title = "Total de Productos", value = "0 PEN")
+                SummaryCard(title = "Total de Productos", value = productos.size.toString())
+
+                val valorTotal = productos.sumOf { it.precio * it.cantidad_disponible }
+                SummaryCard(title = "Valor Total", value = "${valorTotal} PEN")
             }
             Spacer(modifier = Modifier.height(10.dp))
-            // Chips de categorías
+            // Chips de categorías (puedes adaptar para que sean dinámicas)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -102,24 +152,37 @@ fun I_01_ListaProductos(
             ) {
                 AssistChip(
                     onClick = { /* TODO */ },
-                    label = { Text("Todas las categorías", color = Color.White) },
-                    colors = AssistChipDefaults.assistChipColors(containerColor = Color(0xFF7B6CA7))
+                    label = { 
+                        Text(
+                            "Todas las categorías", 
+                            color = MaterialTheme.colorScheme.onPrimary
+                        ) 
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 )
-                AssistChip(
-                    onClick = { /* TODO */ },
-                    label = { Text("Categoría 1", color = Color.White) },
-                    colors = AssistChipDefaults.assistChipColors(containerColor = Color(0xFFB6A7E6))
-                )
+                // Puedes agregar más chips dinámicamente aquí
             }
             Spacer(modifier = Modifier.height(10.dp))
-            // Lista de productos
+            // Lista de productos desde Firestore
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                repeat(2) {
+                productos.forEach { producto ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                            .padding(vertical = 6.dp)
+                            .clickable {
+                                navController.navigate(
+                                    AppRoutes.Inventory.PRODUCT_REPORT(
+                                        productoId = producto.producto_id,
+                                        productoNombre = producto.nombre
+                                    )
+                                )
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Row(
@@ -130,16 +193,21 @@ fun I_01_ListaProductos(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.LightGray),
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Person, contentDescription = "Imagen producto", tint = Color.DarkGray)
+                                // Aquí podrías cargar la imagen si tienes una URL
+                                Icon(
+                                    Icons.Default.Person, 
+                                    contentDescription = "Imagen producto", 
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text("{Nombre del Producto}", fontWeight = FontWeight.Bold)
-                                Text("S/ {precio}")
-                                Text("{cantidad} disponibles", fontSize = 13.sp)
+                                Text(producto.nombre, fontWeight = FontWeight.Bold)
+                                Text("S/ ${producto.precio}", color = Color.Gray)
+                                Text("Stock: ${producto.cantidad_disponible}", color = Color.Gray)
                             }
                         }
                     }
@@ -152,8 +220,7 @@ fun I_01_ListaProductos(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = 32.dp,
-                    vertical= 20.dp
+                    horizontal = 32.dp, vertical = 20.dp
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -162,10 +229,16 @@ fun I_01_ListaProductos(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Agregar producto", color = Color.White, fontSize = 18.sp)
+                Text(
+                    "Agregar producto", 
+                    color = MaterialTheme.colorScheme.onPrimary, 
+                    fontSize = 18.sp
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
@@ -173,10 +246,16 @@ fun I_01_ListaProductos(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Categorías", color = Color.White, fontSize = 18.sp)
+                Text(
+                    "Categorías", 
+                    color = MaterialTheme.colorScheme.onSecondary, 
+                    fontSize = 18.sp
+                )
             }
         }
         // Barra de navegación inferior (fija)
@@ -184,9 +263,10 @@ fun I_01_ListaProductos(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun I_01_ListaProductosPreview() {
     val navController = rememberNavController()
     I_01_ListaProductos(navController = navController)
 }
+

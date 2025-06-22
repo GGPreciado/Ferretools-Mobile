@@ -1,23 +1,37 @@
 package com.example.ferretools.ui.inventario
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.ferretools.navigation.AppRoutes
 
 @Composable
 fun I_09_CrearCategoria(
@@ -37,11 +51,16 @@ fun I_09_CrearCategoria(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF22D366))
-                .padding(vertical = 12.dp, horizontal = 8.dp),
+                .padding(vertical = 12.dp, horizontal = 8.dp)
+                .padding(top = 40.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Atrás", tint = Color.Black)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Atrás",
+                    tint = Color.Black
+                )
             }
             Text(
                 text = "Crear Categoría",
@@ -64,7 +83,10 @@ fun I_09_CrearCategoria(
                 onValueChange = { nombreCategoria.value = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                colors = TextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFE0E0E0), focusedContainerColor = Color(0xFFE0E0E0))
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFE0E0E0),
+                    focusedContainerColor = Color(0xFFE0E0E0)
+                )
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(

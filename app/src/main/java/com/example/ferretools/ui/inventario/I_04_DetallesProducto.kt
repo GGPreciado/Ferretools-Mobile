@@ -1,5 +1,6 @@
 package com.example.ferretools.ui.inventario
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,12 +16,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Subject
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -28,12 +29,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.ferretools.R
 import com.example.ferretools.navigation.AppRoutes
 
 @Composable
@@ -51,39 +54,62 @@ fun I_04_DetallesProducto(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF00E676))
-                .padding(vertical = 12.dp, horizontal = 8.dp),
+                .padding(vertical = 12.dp, horizontal = 8.dp)
+                .padding(top = 40.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = Color.Black)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Atrás",
+                    tint = Color.Black
+                )
             }
             Text(
                 text = "Detalles de Producto",
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-                modifier = Modifier.padding(start = 4.dp)
+                modifier = Modifier.padding(start = 4.dp),
+
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
         // Imagen
-        Box(
+        Button(
+            onClick = { /* TODO */ },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             modifier = Modifier
-                .size(80.dp)
-                .align(Alignment.CenterHorizontally)
-                .background(Color.LightGray, RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.AutoMirrored.Filled.Subject, contentDescription = null, tint = Color.Black, modifier = Modifier.size(48.dp))
+                .size(width = 300.dp, height = 100.dp)
+                .align(Alignment.CenterHorizontally),
+            shape = RoundedCornerShape(8.dp),
+
+
+            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Image(
+                painter = painterResource(id = R.drawable.cargar_imagen), // Cambia el nombre según tu archivo
+                contentDescription = "Cambiar imagen",
+                modifier = Modifier.size(64.dp)
+            )
+            Text(
+                text = "Cambiar imagen",
+                color = Color.Black,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            }
         }
         Spacer(modifier = Modifier.height(16.dp))
+
         // Campos
         DetalleCampo("Codigo de barras", codigoBarras)
         DetalleCampo("Nombre de Producto", nombre)
@@ -103,6 +129,7 @@ fun I_04_DetallesProducto(
             Text("Realizar análisis por producto", color = Color.Black)
         }
         Spacer(modifier = Modifier.height(16.dp))
+
         // Botones de acción
         Row(
             modifier = Modifier
@@ -127,6 +154,7 @@ fun I_04_DetallesProducto(
             }
         }
     }
+
     // Diálogo de confirmación
     if (showDialog.value) {
         AlertDialog(
@@ -185,7 +213,7 @@ fun DetalleCampo(label: String, value: String, multiline: Boolean = false) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewEditarProductoScreen() {
     val navController = rememberNavController()
