@@ -85,7 +85,7 @@ class MiSolicitudViewModel : ViewModel() {
             "nombreUsuario" to usuario.nombre,
             "correo" to usuario.correo,
             "celular" to usuario.celular,
-            "fotoUri" to (usuario.fotoUri?.toString() ?: ""),
+            "fotoUrl" to (usuario.fotoUrl?.toString() ?: ""),
             "rolSolicitado" to "ALMACENERO",
             "estado" to "pendiente"
         )

@@ -48,7 +48,6 @@ import com.example.ferretools.ui.pedido.PedidoDetalle
 import com.example.ferretools.ui.pedido.PedidoHistorial
 import com.example.ferretools.ui.session.S_01_PortadaBienvenida
 import com.example.ferretools.ui.session.S_02_SeleccionRol
-import com.example.ferretools.ui.session.S_03_02_ElegirNegocio
 import com.example.ferretools.ui.session.S_03_RegistroUsuario
 import com.example.ferretools.ui.session.S_04_RegistroNegocio
 import com.example.ferretools.ui.session.S_05_IniciarSesion
@@ -176,7 +175,7 @@ fun AppNavigation(navController: NavHostController) {
             val categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
             I_02_AgregarProducto(
                 navController = navController,
-                viewModel = viewModel,
+                productoViewModel = viewModel,
                 firestoreViewModel = firestoreViewModel,
                 categoriaViewModel = categoriaViewModel
             )

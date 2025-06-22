@@ -48,8 +48,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.ferretools.R
 import com.example.ferretools.model.database.Producto
-import com.example.ferretools.ui.inventario.InventarioFirestoreViewModel
-import com.example.ferretools.ui.inventario.CategoriaFirestoreViewModel
 import androidx.compose.runtime.collectAsState
 import com.example.ferretools.theme.primaryContainerLight
 import com.example.ferretools.utils.SesionUsuario
@@ -57,9 +55,9 @@ import com.example.ferretools.utils.SesionUsuario
 @Composable
 fun I_02_AgregarProducto(
     navController: NavController,
-    viewModel: ProductoViewModel,
+    productoViewModel: ProductoViewModel,
     firestoreViewModel: InventarioFirestoreViewModel,
-    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+    categoriaViewModel: CategoriaFirestoreViewModel
 ) {
     val categorias = categoriaViewModel.categorias.collectAsState().value
     val scrollState = rememberScrollState()
@@ -131,8 +129,8 @@ fun I_02_AgregarProducto(
             Text("Codigo de barras", fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextField(
-                    value = viewModel.codigoBarras.value,
-                    onValueChange = { viewModel.codigoBarras.value = it },
+                    value = productoViewModel.codigoBarras.value,
+                    onValueChange = { productoViewModel.codigoBarras.value = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -155,8 +153,8 @@ fun I_02_AgregarProducto(
             // Nombre de producto
             Text("Nombre de Producto", fontWeight = FontWeight.Bold)
             TextField(
-                value = viewModel.nombreProducto.value,
-                onValueChange = { viewModel.nombreProducto.value = it },
+                value = productoViewModel.nombreProducto.value,
+                onValueChange = { productoViewModel.nombreProducto.value = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -169,8 +167,8 @@ fun I_02_AgregarProducto(
             // Precio
             Text("Precio", fontWeight = FontWeight.Bold)
             TextField(
-                value = viewModel.precio.value,
-                onValueChange = { viewModel.precio.value = it },
+                value = productoViewModel.precio.value,
+                onValueChange = { productoViewModel.precio.value = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -186,8 +184,8 @@ fun I_02_AgregarProducto(
             // Cantidad disponible
             Text("Cantidad disponible", fontWeight = FontWeight.Bold)
             TextField(
-                value = viewModel.cantidad.value,
-                onValueChange = { viewModel.cantidad.value = it },
+                value = productoViewModel.cantidad.value,
+                onValueChange = { productoViewModel.cantidad.value = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -209,10 +207,10 @@ fun I_02_AgregarProducto(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        if (viewModel.categoriaSeleccionada.value.isEmpty()) "Selecciona una categoría"
+                        if (productoViewModel.categoriaSeleccionada.value.isEmpty()) "Selecciona una categoría"
                         else {
-                            val categoria = categorias.find { it.id == viewModel.categoriaSeleccionada.value }
-                            categoria?.nombre ?: viewModel.categoriaSeleccionada.value
+                            val categoria = categorias.find { it.id == productoViewModel.categoriaSeleccionada.value }
+                            categoria?.nombre ?: productoViewModel.categoriaSeleccionada.value
                         }
                     )
                 }
@@ -233,7 +231,7 @@ fun I_02_AgregarProducto(
                         DropdownMenuItem(
                             text = { Text(cat.nombre) },
                             onClick = {
-                                viewModel.categoriaSeleccionada.value = cat.id
+                                productoViewModel.categoriaSeleccionada.value = cat.id
                                 expanded = false
                             }
                         )
@@ -244,8 +242,8 @@ fun I_02_AgregarProducto(
             // Descripción
             Text("Descripcion", fontWeight = FontWeight.Bold)
             TextField(
-                value = viewModel.descripcion.value,
-                onValueChange = { viewModel.descripcion.value = it },
+                value = productoViewModel.descripcion.value,
+                onValueChange = { productoViewModel.descripcion.value = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp),
@@ -267,12 +265,12 @@ fun I_02_AgregarProducto(
             Button(
                 onClick = {
                     // Validación básica
-                    val nombre = viewModel.nombreProducto.value.trim()
-                    val precio = viewModel.precio.value.toDoubleOrNull() ?: 0.0
-                    val cantidad = viewModel.cantidad.value.toIntOrNull() ?: 0
-                    val descripcion = viewModel.descripcion.value.trim()
-                    val codigoBarras = viewModel.codigoBarras.value.trim()
-                    val categoriaSeleccionada = viewModel.categoriaSeleccionada.value.trim()
+                    val nombre = productoViewModel.nombreProducto.value.trim()
+                    val precio = productoViewModel.precio.value.toDoubleOrNull() ?: 0.0
+                    val cantidad = productoViewModel.cantidad.value.toIntOrNull() ?: 0
+                    val descripcion = productoViewModel.descripcion.value.trim()
+                    val codigoBarras = productoViewModel.codigoBarras.value.trim()
+                    val categoriaSeleccionada = productoViewModel.categoriaSeleccionada.value.trim()
                     
                     if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoriaSeleccionada.isNotEmpty()) {
                         // Si la categoría seleccionada es un ID (categoría existente)
@@ -286,14 +284,15 @@ fun I_02_AgregarProducto(
                                 cantidad_disponible = cantidad,
                                 codigo_barras = codigoBarras,
                                 imagen_url = null,
-                                categoria_id = categoriaSeleccionada
+                                categoria_id = categoriaSeleccionada,
+                                negocio_id = SesionUsuario.usuario?.negocioId!!
                             )
                             println("DEBUG: Producto a guardar (categoría existente) - categoria_id: ${producto.categoria_id}")
                             firestoreViewModel.agregarProducto(producto) { exito ->
                                 if (exito) {
                                     println("DEBUG: Producto agregado exitosamente, mostrando diálogo de confirmación")
                                     showDialog.value = true
-                                    viewModel.limpiarFormulario()
+                                    productoViewModel.limpiarFormulario()
                                 } else {
                                     println("ERROR: Error al agregar producto")
                                     showErrorDialog.value = true
@@ -319,7 +318,7 @@ fun I_02_AgregarProducto(
                                         if (exito) {
                                             println("DEBUG: Producto agregado exitosamente (nueva categoría), mostrando diálogo de confirmación")
                                             showDialog.value = true
-                                            viewModel.limpiarFormulario()
+                                            productoViewModel.limpiarFormulario()
                                         } else {
                                             println("ERROR: Error al agregar producto (nueva categoría)")
                                             showErrorDialog.value = true
@@ -396,7 +395,7 @@ fun I_02_AgregarProducto(
                     Button(
                         onClick = {
                             if (nuevaCategoria.trim().isNotEmpty()) {
-                                viewModel.categoriaSeleccionada.value = nuevaCategoria.trim()
+                                productoViewModel.categoriaSeleccionada.value = nuevaCategoria.trim()
                                 showCategoriaDialog.value = false
                             }
                         }

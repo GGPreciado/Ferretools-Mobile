@@ -29,6 +29,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.R
 import com.example.ferretools.model.database.Producto
 import androidx.compose.foundation.layout.Arrangement
+import com.example.ferretools.utils.ProductoDisplay
 
 @Composable
 fun I_06_EditarProducto(
@@ -286,7 +287,7 @@ fun I_06_EditarProducto(
                     
                     if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoriaId != null) {
                         // Crear producto editado
-                        val productoEditado = Producto(
+                        val productoEditado = ProductoDisplay(
                             nombre = nombre,
                             descripcion = if (descripcion.isNotEmpty()) descripcion else null,
                             precio = precio,

@@ -11,14 +11,14 @@ import kotlinx.coroutines.flow.StateFlow
 
 // Objeto singleton temporal para compartir el producto seleccionado
 object ProductoSeleccionadoManager {
-    private var productoSeleccionado: Producto? = null
+    private var productoSeleccionado: ProductoDisplay? = null
     
-    fun seleccionarProducto(producto: Producto) {
+    fun seleccionarProducto(producto: ProductoDisplay) {
         println("DEBUG: ProductoSeleccionadoManager - Seleccionando: ${producto.nombre}")
         productoSeleccionado = producto
     }
     
-    fun obtenerProducto(): Producto? {
+    fun obtenerProducto(): ProductoDisplay? {
         println("DEBUG: ProductoSeleccionadoManager - Obteniendo: ${productoSeleccionado?.nombre}")
         return productoSeleccionado
     }
@@ -87,10 +87,22 @@ class InventarioFirestoreViewModel : ViewModel() {
             .add(producto)
             .addOnSuccessListener { documentReference ->
                 println("DEBUG: Producto agregado exitosamente con ID: ${documentReference.id}")
-                
+
+                // Construyo un ProductDisplay
+                val nuevoProducto = ProductoDisplay(
+                    producto_id = documentReference.id,
+                    nombre = producto.nombre,
+                    descripcion = producto.descripcion,
+                    precio = producto.precio,
+                    cantidad_disponible = producto.cantidad_disponible,
+                    codigo_barras = producto.codigo_barras,
+                    imagen_url = producto.imagen_url,
+                    categoria_id = producto.categoria_id
+                )
+
                 // Actualizar inmediatamente el estado local
                 val listaActual = _productos.value.toMutableList()
-                listaActual.add(producto)
+                listaActual.add(nuevoProducto)
                 _productos.value = listaActual
                 
                 println("DEBUG: Estado local actualizado. Total productos: ${_productos.value.size}")
@@ -119,7 +131,7 @@ class InventarioFirestoreViewModel : ViewModel() {
     }
 
     // Función para obtener productos de una categoría específica
-    fun obtenerProductosCategoria(categoriaId: String): List<Producto> {
+    fun obtenerProductosCategoria(categoriaId: String): List<ProductoDisplay> {
         return _productos.value.filter { it.categoria_id == categoriaId }
     }
 
@@ -145,7 +157,7 @@ class InventarioFirestoreViewModel : ViewModel() {
     }
 
     // Función para eliminar un producto
-    fun eliminarProducto(producto: Producto, onResult: (Boolean) -> Unit) {
+    fun eliminarProducto(producto: ProductoDisplay, onResult: (Boolean) -> Unit) {
         println("DEBUG: Intentando eliminar producto: ${producto.nombre}")
         
         // Buscar el documento por código de barras
@@ -184,7 +196,7 @@ class InventarioFirestoreViewModel : ViewModel() {
     }
 
     // Función para editar un producto
-    fun editarProducto(productoOriginal: Producto, productoEditado: Producto, onResult: (Boolean) -> Unit) {
+    fun editarProducto(productoOriginal: ProductoDisplay, productoEditado: ProductoDisplay, onResult: (Boolean) -> Unit) {
         println("DEBUG: Intentando editar producto: ${productoOriginal.nombre}")
         
         // Buscar el documento por código de barras
@@ -199,7 +211,7 @@ class InventarioFirestoreViewModel : ViewModel() {
                         .set(productoEditado)
                         .addOnSuccessListener {
                             println("DEBUG: Producto editado exitosamente")
-                            
+
                             // Actualizar estado local
                             val listaActual = _productos.value.toMutableList()
                             val index = listaActual.indexOfFirst { it.codigo_barras == productoOriginal.codigo_barras }
