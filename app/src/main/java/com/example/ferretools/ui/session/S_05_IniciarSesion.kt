@@ -42,6 +42,9 @@ import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
 import com.example.ferretools.utils.SesionUsuario
 import com.example.ferretools.viewmodel.session.IniciarSesionViewModel
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.firestore.FirebaseFirestore
+import com.example.ferretools.utils.NotificationHelper
 
 
 @Composable
@@ -53,6 +56,36 @@ fun S_05_IniciarSesion(
     val iniciarSesionUiState = iniciarSesionViewModel.uiState.collectAsState()
 
     LaunchedEffect(iniciarSesionUiState.value.loginSuccessful) {
+        if (iniciarSesionUiState.value.loginSuccessful) {
+            // Guardar el token FCM en Firestore al iniciar sesión
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    SesionUsuario.usuario?.let { user ->
+                        val db = FirebaseFirestore.getInstance()
+                        db.collection("usuarios").document(user.uid)
+                            .update("fcmToken", token)
+                    }
+                }
+            }
+            // Listener de notificaciones locales SOLO para admin y SOLO una vez por sesión
+            if (SesionUsuario.usuario?.rol == RolUsuario.ADMIN) {
+                val context = navController.context
+                val db = FirebaseFirestore.getInstance()
+                val notificationHelper = NotificationHelper(context)
+                db.collection("solicitudes")
+                    .whereEqualTo("estado", "pendiente")
+                    .addSnapshotListener { snapshot, _ ->
+                        val count = snapshot?.size() ?: 0
+                        if (count > 0) {
+                            notificationHelper.mostrarNotificacionSolicitud(
+                                "Nueva Solicitud de Empleo",
+                                "Tienes $count solicitud(es) pendiente(s) de revisión"
+                            )
+                        }
+                    }
+            }
+        }
         when (SesionUsuario.usuario?.rol) {
             RolUsuario.ADMIN -> {
                 navController.navigate(AppRoutes.Admin.DASHBOARD)

@@ -9,14 +9,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.model.database.Usuario
 import com.example.ferretools.model.enums.RolUsuario
 import com.example.ferretools.navigation.AppNavigation
 import com.example.ferretools.theme.FerretoolsTheme
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import com.example.ferretools.utils.NotificationHelper
 
 class MainActivity : ComponentActivity() {
 

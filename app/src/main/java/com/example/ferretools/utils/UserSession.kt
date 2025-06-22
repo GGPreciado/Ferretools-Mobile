@@ -9,7 +9,8 @@ data class UsuarioActual(
     val celular: String = "",
     val fotoUrl: String? = null,
     val rol: RolUsuario = RolUsuario.CLIENTE,
-    val negocioId: String? = null
+    val negocioId: String? = null,
+  val notificacionSolicitudes: Boolean = true
 )
 
 object SesionUsuario {

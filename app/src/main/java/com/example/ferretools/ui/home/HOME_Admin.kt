@@ -12,11 +12,13 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,12 +27,31 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ferretools.ui.components.*
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.utils.NotificationHelper
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun HOME_Admin(
     navController: NavController,
     // viewModel: HomeAdminViewModel = viewModel() // Para uso futuro
 ) {
+    val context = LocalContext.current
+    /*
+    LaunchedEffect(Unit) {
+        val db = FirebaseFirestore.getInstance()
+        val notificationHelper = NotificationHelper(context)
+        db.collection("solicitudes")
+            .whereEqualTo("estado", "pendiente")
+            .addSnapshotListener { snapshot, _ ->
+                val count = snapshot?.size() ?: 0
+                if (count > 0) {
+                    notificationHelper.mostrarNotificacionSolicitud(
+                        "Nueva Solicitud de Empleo",
+                        "Tienes $count solicitud(es) pendiente(s) de revisión"
+                    )
+                }
+            }
+    }*/
     Column(
         modifier = Modifier
             .fillMaxSize()
