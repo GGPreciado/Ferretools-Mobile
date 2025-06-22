@@ -1,4 +1,4 @@
-package com.example.ferretools.model.registro
+package com.example.ferretools.model.states.registro
 
 data class IniciarSesionUiState(
     val email: String = "",

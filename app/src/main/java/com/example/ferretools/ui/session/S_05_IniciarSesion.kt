@@ -51,7 +51,6 @@ import com.example.ferretools.utils.NotificationHelper
 fun S_05_IniciarSesion(
     navController: NavController,
     isLoading: Boolean = false,
-    errorMessage: String? = null,
     iniciarSesionViewModel: IniciarSesionViewModel = viewModel()
 ) {
     val iniciarSesionUiState = iniciarSesionViewModel.uiState.collectAsState()
@@ -148,19 +147,14 @@ fun S_05_IniciarSesion(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        ForgotPasswordLink(onClick = { navController.navigate(AppRoutes.Auth.RECOVER_PASSWORD) })
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Spacer(modifier = Modifier.height(24.dp))
 
-        errorMessage?.let {
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.onError,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        ForgotPasswordLink(onClick = { navController.navigate(AppRoutes.Auth.RECOVER_PASSWORD) })
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         LoginButton(iniciarSesionUiState.value.isFormValid && !isLoading) {
             // Iniciar sesión
@@ -287,5 +281,4 @@ fun S_05_IniciarSesionPreview() {
         val navController = rememberNavController()
         S_05_IniciarSesion(navController = navController)
     }
-
 }

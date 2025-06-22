@@ -35,29 +35,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen() {
-    val context = LocalContext.current
-
-    /*
-    // --- LISTENER GLOBAL DE NOTIFICACIONES DE SOLICITUDES ---
-    // Puedes comentar este bloque para desactivar las notificaciones locales globales
-    LaunchedEffect(Unit) {
-        val db = FirebaseFirestore.getInstance()
-        val notificationHelper = NotificationHelper(context)
-        db.collection("solicitudes")
-            .whereEqualTo("estado", "pendiente")
-            .addSnapshotListener { snapshot, _ ->
-                val count = snapshot?.size() ?: 0
-                if (count > 0) {
-                    notificationHelper.mostrarNotificacionSolicitud(
-                        "Nueva Solicitud de Empleo",
-                        "Tienes $count solicitud(es) pendiente(s) de revisión"
-                    )
-                }
-            }
-    }
-    */
-
-    FerretoolsTheme {
+    FerretoolsTheme{
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
