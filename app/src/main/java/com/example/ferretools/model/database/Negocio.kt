@@ -7,4 +7,5 @@ data class Negocio(
     val ruc: String = "",
     val logoUrl: String? = null,
     val gerenteId: String? = null,
+    val qrYapeUri: Uri? = null
 )
