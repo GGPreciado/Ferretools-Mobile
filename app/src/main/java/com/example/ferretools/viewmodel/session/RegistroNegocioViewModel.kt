@@ -4,10 +4,12 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.ferretools.model.database.Negocio
-import com.example.ferretools.model.registro.RegistroNegocioUiState
+import com.example.ferretools.model.states.registro.RegistroNegocioUiState
+import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -18,6 +20,7 @@ class RegistroNegocioViewModel: ViewModel() {
 
     private val auth = Firebase.auth
     private val db = Firebase.firestore
+    private val storage =  Firebase.storage
 
     // Función para comprobar la validez del forms después de cambiar cualquier valor
     private fun updateState(transform: (RegistroNegocioUiState) -> RegistroNegocioUiState) {
@@ -57,25 +60,88 @@ class RegistroNegocioViewModel: ViewModel() {
         }
     }
 
-    fun registerBusiness() {
+    private fun uploadImage(
+        uri: Uri,
+        ownerId: String,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val imageRef = storage.reference.child("negocios_logos/$ownerId/logo.jpg")
+
+        imageRef.putFile(uri)
+            .continueWithTask { task ->
+                if (!task.isSuccessful) throw task.exception ?: Exception("Error al subir logo")
+                imageRef.downloadUrl
+            }
+            .addOnSuccessListener { downloadUrl ->
+                onSuccess(downloadUrl.toString())
+            }
+            .addOnFailureListener { e ->
+                onError(e)
+            }
+    }
+
+    private fun updateUserBusiness(uid: String, negocio_id: String) {
+        db.collection("usuarios")
+            .document(uid)
+            .update("negocio_id", negocio_id)
+            .addOnSuccessListener {
+                Log.e("FIREBASE", "Usuario actualizado correctamente")
+                SesionUsuario.actualizarDatos(negocioId = negocio_id)
+
+            }
+            .addOnFailureListener {
+                Log.e("FIREBASE", "Error: ${it.message}")
+            }
+    }
+
+    private fun saveBusiness(uid: String, logoUrl: String?) {
         val newBusiness = Negocio(
             nombre = _uiState.value.businessName,
             tipo = _uiState.value.businessType,
             direccion = _uiState.value.address,
             ruc = _uiState.value.ruc,
-            gerenteId = auth.currentUser?.uid,
-            logoUri = _uiState.value.logoUri
+            gerenteId = uid,
+            logoUrl = logoUrl
         )
 
         val docRef = db.collection("negocios").document()
 
         docRef.set(newBusiness)
             .addOnSuccessListener {
-                Log.e("FIREBASE", "Documento creado correctamente")
+                Log.e("FIREBASE", "Negocio registrado correctamente")
+                updateUserBusiness(uid, docRef.id)
             }
             .addOnFailureListener {
                 Log.e("FIREBASE", "Error: ${it.message}")
             }
+    }
+
+    fun registerBusiness() {
+        val uid = auth.currentUser?.uid
+        val logoUri = _uiState.value.logoUri
+
+        if (uid == null) {
+            Log.e("FIREBASE", "Usuario no autenticado")
+            return
+        }
+
+        if (logoUri != null) {
+            // Si el logo fue seleccionado, subirlo primero
+            uploadImage(
+                uri = logoUri,
+                ownerId = uid,
+                onSuccess = { logoUrl ->
+                    saveBusiness(uid, logoUrl)
+                },
+                onError = { e ->
+                    Log.e("FIREBASE", "Error al subir logo: ${e.message}")
+                }
+            )
+        } else {
+            // Si no se seleccionó logo, se guarda null
+            saveBusiness(uid, null)
+        }
     }
 
     fun isFormValid(state: RegistroNegocioUiState): Boolean {

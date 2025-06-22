@@ -9,5 +9,6 @@ data class Compra(
     val total: Double,
     val metodo_pago: MetodosPago,
     val lista_productos: List<ItemUnitario>,
+    val negocio_id: DocumentReference,
     val proveedor_id: DocumentReference? = null
 )

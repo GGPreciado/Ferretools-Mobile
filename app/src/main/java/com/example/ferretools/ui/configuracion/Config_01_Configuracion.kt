@@ -2,43 +2,59 @@ package com.example.ferretools.ui.configuracion
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Warehouse
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.ferretools.navigation.AppRoutes
-import com.example.ferretools.utils.SesionUsuario
 import com.example.ferretools.model.enums.RolUsuario
+import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.theme.FerretoolsTheme
+import com.example.ferretools.utils.SesionUsuario
 
 @Composable
 fun Config_01_Configuracion(
     navController: NavController,
-    userName: String,
-    userLastName: String,
-    userPhone: String,
-    userEmail: String,
-    isAdmin: Boolean = true,
     darkModeEnabled: Boolean,
     stockNotificationEnabled: Boolean,
     // viewModel: ConfiguracionViewModel = viewModel() // Para uso futuro
 ) {
-    val usuarioActual = SesionUsuario.usuario
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 24.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -49,39 +65,50 @@ fun Config_01_Configuracion(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color(0xFF333333))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             }
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = { navController.navigate(AppRoutes.Config.EDIT_PROFILE) }) {
-                Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar perfil", tint = Color(0xFF2E7D32))
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Editar perfil",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // User Info
+        // Información de Usuario
         Text(
-            text = "$userName $userLastName",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF333333),
+            text = SesionUsuario.usuario!!.nombre,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        UserContactInfo(icon = Icons.Default.Phone, value = userPhone)
-        UserContactInfo(icon = Icons.Default.Email, value = userEmail)
+        UserContactInfo(icon = Icons.Default.Phone, value = SesionUsuario.usuario!!.celular)
+        UserContactInfo(icon = Icons.Default.Email, value = SesionUsuario.usuario!!.correo)
 
-        Divider(color = Color(0xFFE0E0E0), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant,
+            thickness = 1.dp,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
 
         Column(modifier = Modifier.fillMaxWidth()) {
 
-            if (usuarioActual?.rol == RolUsuario.ADMIN) {
+            if (SesionUsuario.usuario!!.rol == RolUsuario.ADMIN) {
                 SettingsItem(
                     icon = Icons.Default.Warehouse,
                     text = "Editar datos del negocio",
-                    color = Color(0xFF2E7D32),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     onClick = { navController.navigate(AppRoutes.Config.EDIT_BUSINESS) }
                 )
                 Spacer(modifier = Modifier.height(20.dp))
@@ -107,7 +134,7 @@ fun Config_01_Configuracion(
             SettingsItem(
                 icon = Icons.Default.QrCode,
                 text = "Cambiar QR de Yape",
-                color = Color(0xFF16A34A),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
                 onClick = { navController.navigate(AppRoutes.Config.CHANGE_QR) }
             )
             Spacer(modifier = Modifier.height(20.dp))
@@ -131,15 +158,15 @@ fun Config_01_Configuracion(
             SettingsItem(
                 icon = Icons.Default.Lock,
                 text = "Cambiar Contraseña",
-                color = Color(0xFF2563EB),
+                color = MaterialTheme.colorScheme.tertiary,
                 onClick = { navController.navigate(AppRoutes.Config.CHANGE_PASSWORD) }
             )
             Spacer(modifier = Modifier.height(20.dp))
 
             SettingsItem(
-                icon = Icons.Default.ExitToApp,
+                icon = Icons.AutoMirrored.Filled.ExitToApp,
                 text = "Cerrar Sesión",
-                color = Color(0xFFDC2626),
+                color = MaterialTheme.colorScheme.error,
                 onClick = { navController.navigate(AppRoutes.Config.CONFIRM_LOGOUT) }
             )
             Spacer(modifier = Modifier.height(20.dp))
@@ -165,9 +192,8 @@ fun SettingsItem(
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
-            fontSize = 16.sp,
-            color = color,
-            fontWeight = FontWeight.Medium
+            style = MaterialTheme.typography.labelSmall,
+            color = color
         )
     }
 }
@@ -185,21 +211,25 @@ fun SettingsSwitchItem(
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = icon, contentDescription = text, tint = Color(0xFF333333), modifier = Modifier.size(24.dp))
+        Icon(
+            imageVector = icon,
+            contentDescription = text,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(24.dp)
+        )
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
-            fontSize = 16.sp,
-            color = Color(0xFF333333),
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color(0xFF16A34A),
-                checkedTrackColor = Color(0xFFBBF7D0)
+                checkedThumbColor = MaterialTheme.colorScheme.secondary,
+                checkedTrackColor = MaterialTheme.colorScheme.secondaryContainer
             )
         )
     }
@@ -214,14 +244,14 @@ fun UserContactInfo(icon: ImageVector, value: String) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color(0xFF757575),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = value,
-            fontSize = 15.sp,
-            color = Color(0xFF757575)
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -229,15 +259,13 @@ fun UserContactInfo(icon: ImageVector, value: String) {
 @Preview(showBackground = true)
 @Composable
 fun Config_01_ConfiguracionPreview() {
-    val navController = rememberNavController()
-    Config_01_Configuracion(
-        navController = navController,
-        userName = "Juan",
-        userLastName = "Pérez",
-        userPhone = "987654321",
-        userEmail = "juan.perez@email.com",
-        isAdmin = true,
-        darkModeEnabled = false,
-        stockNotificationEnabled = true
-    )
+    FerretoolsTheme {
+        val navController = rememberNavController()
+        Config_01_Configuracion(
+            navController = navController,
+            darkModeEnabled = false,
+            stockNotificationEnabled = true
+        )
+    }
+
 }

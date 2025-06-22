@@ -42,14 +42,16 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         }
         composable(AppRoutes.Inventory.ADD_PRODUCT) {
             val viewModel: ProductoViewModel = viewModel()
+            val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
             I_02_AgregarProducto(
                 navController = navController,
-                viewModel = viewModel
+                viewModel = viewModel,
+                firestoreViewModel = firestoreViewModel
             )
         }
-        composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
-            I_05_ReporteProducto(navController = navController)
-        }
+//        composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
+//            I_05_ReporteProducto(navController = navController)
+//        }
         composable(AppRoutes.Inventory.LIST_CATEGORIES) {
             I_08_ListaCategorias(navController = navController)
         }
