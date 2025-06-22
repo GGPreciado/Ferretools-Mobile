@@ -29,10 +29,16 @@ fun NavGraph(navController: NavHostController) {
         composable("categorias") {
             I_08_ListaCategorias(navController)
         }
-        composable("productos_categoria/{categoria}") { backStackEntry ->
+        composable(
+            route = "productos_categoria/{categoriaId}",
+            arguments = listOf(
+                androidx.navigation.navArgument("categoriaId") { type = androidx.navigation.NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val categoriaId = backStackEntry.arguments?.getString("categoriaId") ?: ""
             I_10_DetallesCategoria(
                 navController = navController,
-                categoria = backStackEntry.arguments?.getString("categoria") ?: ""
+                categoriaId = categoriaId
             )
         }
         composable("agregar_producto") {

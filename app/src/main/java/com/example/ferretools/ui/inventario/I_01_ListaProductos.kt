@@ -53,7 +53,7 @@ fun I_01_ListaProductos(
     navController: NavController,
     viewModel: InventarioFirestoreViewModel = viewModel()
 ) {
-    val productos = viewModel.productos.collectAsState().value
+   val productos = viewModel.productos.collectAsState().value
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -167,7 +167,7 @@ fun I_01_ListaProductos(
             Spacer(modifier = Modifier.height(10.dp))
             // Lista de productos desde Firestore
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                productos.forEach { producto ->
+               productos.forEach { producto ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()

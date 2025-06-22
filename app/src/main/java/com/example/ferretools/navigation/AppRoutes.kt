@@ -62,7 +62,7 @@ object AppRoutes {
         const val DELETE_PRODUCT = "inventory_delete"
         const val LIST_CATEGORIES = "inventory_categories"
         const val ADD_CATEGORY = "inventory_add_category"
-        const val CATEGORY_DETAILS = "inventory_category_details"
+        const val CATEGORY_DETAILS = "inventory_category_details/{categoriaId}"
         const val CATEGORY_ADDED = "inventory_category_added"
         const val INVENTORY_REPORT = "inventory_report"
         const val SHARE_REPORT = "inventory_share_report"

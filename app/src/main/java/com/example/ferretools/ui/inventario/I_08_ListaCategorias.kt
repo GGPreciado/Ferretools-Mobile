@@ -17,20 +17,26 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowRightAlt
-import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,13 +48,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.ui.inventario.CategoriaFirestoreViewModel
+import com.example.ferretools.model.database.Categoria
 
 @Composable
 fun I_08_ListaCategorias(
     navController: NavController,
-    viewModel: InventarioViewModel = viewModel()
+    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
 ) {
+    val categorias = categoriaViewModel.categorias.collectAsState().value
     val scrollState = rememberScrollState()
+    val showEditDialog = remember { mutableStateOf(false) }
+    val showDeleteDialog = remember { mutableStateOf(false) }
+    val categoriaSeleccionada = remember { mutableStateOf<Categoria?>(null) }
+    val nuevoNombre = remember { mutableStateOf("") }
+    val showSuccessDialog = remember { mutableStateOf(false) }
+    val showErrorDialog = remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -129,13 +144,15 @@ fun I_08_ListaCategorias(
                 .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp)
         ) {
-            viewModel.categorias.forEach { categoria ->
+            categorias.forEach { categoria ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
-                        .clickable { navController.navigate(AppRoutes.Inventory.CATEGORY_DETAILS) },
-//                        .clickable { navController.navigate("${AppRoutes.Inventory.LIST_PRODUCTS}/${categoria}") },
+                        .clickable { 
+                            val route = AppRoutes.Inventory.CATEGORY_DETAILS.replace("{categoriaId}", categoria.id)
+                            navController.navigate(route)
+                        },
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -150,12 +167,142 @@ fun I_08_ListaCategorias(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(categoria, fontWeight = FontWeight.Bold)
+                        Text(categoria.nombre, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.weight(1f))
 
+                        // Botón Editar
+                        IconButton(
+                            onClick = {
+                                categoriaSeleccionada.value = categoria
+                                nuevoNombre.value = categoria.nombre
+                                showEditDialog.value = true
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Editar",
+                                tint = Color.Blue,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        
+                        // Botón Eliminar
+                        IconButton(
+                            onClick = {
+                                categoriaSeleccionada.value = categoria
+                                showDeleteDialog.value = true
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Eliminar",
+                                tint = Color.Red,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
+        }
+        
+        // Diálogo de editar categoría
+        if (showEditDialog.value && categoriaSeleccionada.value != null) {
+            AlertDialog(
+                onDismissRequest = { showEditDialog.value = false },
+                title = { Text("Editar Categoría") },
+                text = {
+                    TextField(
+                        value = nuevoNombre.value,
+                        onValueChange = { nuevoNombre.value = it },
+                        label = { Text("Nombre de la categoría") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            categoriaSeleccionada.value?.let { categoria ->
+                                categoriaViewModel.editarCategoria(categoria.id, nuevoNombre.value) { exito ->
+                                    if (exito) {
+                                        showSuccessDialog.value = true
+                                        showEditDialog.value = false
+                                    } else {
+                                        showErrorDialog.value = true
+                                    }
+                                }
+                            }
+                        }
+                    ) {
+                        Text("Guardar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showEditDialog.value = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+        
+        // Diálogo de confirmación para eliminar
+        if (showDeleteDialog.value && categoriaSeleccionada.value != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog.value = false },
+                title = { Text("Eliminar Categoría") },
+                text = { Text("¿Estás seguro de que quieres eliminar la categoría '${categoriaSeleccionada.value?.nombre}'?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            categoriaSeleccionada.value?.let { categoria ->
+                                categoriaViewModel.eliminarCategoria(categoria.id) { exito ->
+                                    if (exito) {
+                                        showSuccessDialog.value = true
+                                        showDeleteDialog.value = false
+                                    } else {
+                                        showErrorDialog.value = true
+                                    }
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Eliminar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showDeleteDialog.value = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+        
+        // Diálogo de éxito
+        if (showSuccessDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showSuccessDialog.value = false },
+                title = { Text("Éxito") },
+                text = { Text("Operación completada correctamente.") },
+                confirmButton = {
+                    Button(onClick = { showSuccessDialog.value = false }) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
+        
+        // Diálogo de error
+        if (showErrorDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showErrorDialog.value = false },
+                title = { Text("Error") },
+                text = { Text("No se pudo completar la operación. Inténtalo de nuevo.") },
+                confirmButton = {
+                    Button(onClick = { showErrorDialog.value = false }) {
+                        Text("OK")
+                    }
+                }
+            )
         }
     }
 }

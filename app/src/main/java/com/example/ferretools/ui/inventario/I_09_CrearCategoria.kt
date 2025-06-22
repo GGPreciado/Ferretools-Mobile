@@ -32,13 +32,15 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.ferretools.ui.inventario.CategoriaFirestoreViewModel
 
 @Composable
 fun I_09_CrearCategoria(
     navController: NavController,
-    viewModel: InventarioViewModel = viewModel()
+    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
 ) {
     val showDialog = remember { mutableStateOf(false) }
+    val showErrorDialog = remember { mutableStateOf(false) }
     val nombreCategoria = remember { mutableStateOf("") }
 
     Column(
@@ -91,9 +93,18 @@ fun I_09_CrearCategoria(
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = {
-                    if (nombreCategoria.value.isNotBlank()) {
-                        viewModel.agregarCategoria(nombreCategoria.value)
-                        showDialog.value = true
+                    val nombre = nombreCategoria.value.trim()
+                    if (nombre.isNotEmpty()) {
+                        categoriaViewModel.agregarCategoriaSiNoExiste(nombre) { categoriaId ->
+                            if (categoriaId != null) {
+                                showDialog.value = true
+                                nombreCategoria.value = ""
+                            } else {
+                                showErrorDialog.value = true
+                            }
+                        }
+                    } else {
+                        showErrorDialog.value = true
                     }
                 },
                 modifier = Modifier
@@ -119,6 +130,19 @@ fun I_09_CrearCategoria(
                         }
                     ) {
                         Text("Aceptar")
+                    }
+                }
+            )
+        }
+        // Diálogo de error
+        if (showErrorDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showErrorDialog.value = false },
+                title = { Text("Error") },
+                text = { Text("Por favor, ingresa un nombre válido para la categoría.") },
+                confirmButton = {
+                    Button(onClick = { showErrorDialog.value = false }) {
+                        Text("OK")
                     }
                 }
             )
