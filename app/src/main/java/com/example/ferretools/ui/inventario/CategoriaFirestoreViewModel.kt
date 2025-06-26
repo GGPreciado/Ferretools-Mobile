@@ -2,6 +2,7 @@ package com.example.ferretools.ui.inventario
 
 import androidx.lifecycle.ViewModel
 import com.example.ferretools.model.database.Categoria
+import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ class CategoriaFirestoreViewModel : ViewModel() {
 
     private fun escucharCategorias() {
         listenerRegistration = db.collection("categorias")
+            .whereEqualTo("negocio_id", SesionUsuario.usuario?.negocioId!!)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     return@addSnapshotListener
@@ -49,7 +51,10 @@ class CategoriaFirestoreViewModel : ViewModel() {
         }
 
         // Agregar nueva categoría
-        val nuevaCategoria = Categoria(nombre = nombreLimpio)
+        val nuevaCategoria = Categoria(
+            nombre = nombreLimpio,
+            negocio_id = SesionUsuario.usuario?.negocioId!!
+        )
         db.collection("categorias")
             .add(nuevaCategoria)
             .addOnSuccessListener { documentReference ->
