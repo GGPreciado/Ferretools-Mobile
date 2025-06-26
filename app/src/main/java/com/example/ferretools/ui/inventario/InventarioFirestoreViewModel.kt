@@ -29,21 +29,26 @@ object ProductoSeleccionadoManager {
     }
 }
 
+// ViewModel para gestionar productos de inventario directamente con Firestore
 class InventarioFirestoreViewModel : ViewModel() {
+    // Instancia de Firestore
     private val db = FirebaseFirestore.getInstance()
-    private val _productos = MutableStateFlow<List<ProductoDisplay>>(emptyList())
-    val productos: StateFlow<List<ProductoDisplay>> = _productos
+    // StateFlow para la lista de productos
+    private val _productos = MutableStateFlow<List<Producto>>(emptyList())
+    val productos: StateFlow<List<Producto>> = _productos
 
     // Estado para el producto seleccionado
     private val _productoSeleccionado = MutableStateFlow<Producto?>(null)
     val productoSeleccionado: StateFlow<Producto?> = _productoSeleccionado
 
+    // Listener para cambios en la colección de productos
     private var listenerRegistration: ListenerRegistration? = null
 
     init {
-        escucharProductos()
+        escucharProductos() // Al crear el ViewModel, empieza a escuchar cambios
     }
 
+    // Escucha cambios en la colección "productos" de Firestore
     private fun escucharProductos() {
         val negocioId = SesionUsuario.usuario?.negocioId
         listenerRegistration = db.collection("productos")
@@ -75,11 +80,13 @@ class InventarioFirestoreViewModel : ViewModel() {
             }
     }
 
+    // Cancela el listener cuando el ViewModel se destruye
     override fun onCleared() {
         super.onCleared()
         listenerRegistration?.remove()
     }
 
+    // Agrega un producto a Firestore
     fun agregarProducto(producto: Producto, onResult: (Boolean) -> Unit) {
         println("DEBUG: Intentando agregar producto: ${producto.nombre} con categoria_id: ${producto.categoria_id}")
         
