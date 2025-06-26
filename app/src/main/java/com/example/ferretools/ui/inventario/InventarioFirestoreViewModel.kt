@@ -62,7 +62,10 @@ class InventarioFirestoreViewModel : ViewModel() {
                                 precio = it.precio,
                                 descripcion = it.descripcion,
                                 cantidad_disponible = it.cantidad_disponible,
-                                producto_id = doc.id
+                                producto_id = doc.id,
+                                categoria_id = it.categoria_id,
+                                codigo_barras = it.codigo_barras,
+                                imagen_url = it.imagen_url
                             )
                         }
                     }

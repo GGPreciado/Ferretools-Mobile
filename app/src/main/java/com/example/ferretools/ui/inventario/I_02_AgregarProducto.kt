@@ -311,7 +311,8 @@ fun I_02_AgregarProducto(
                                         cantidad_disponible = cantidad,
                                         codigo_barras = codigoBarras,
                                         imagen_url = null,
-                                        categoria_id = categoriaId
+                                        categoria_id = categoriaId,
+                                        negocio_id = SesionUsuario.usuario?.negocioId!!
                                     )
                                     println("DEBUG: Producto a guardar - categoria_id: ${producto.categoria_id}")
                                     firestoreViewModel.agregarProducto(producto) { exito ->
