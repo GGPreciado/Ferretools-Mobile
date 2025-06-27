@@ -56,30 +56,72 @@ class AgregarProductoViewModel(
     // Función para guardar el producto en Firestore
     fun guardarProducto() {
         val state = _uiState.value
-        // Validación básica de campos
-        if (state.nombre.isBlank() || state.precio.isBlank() || state.cantidad.isBlank() || state.categoriaId.isBlank()) {
-            _uiState.update { it.copy(error = "Completa todos los campos") }
+        val nombre = state.nombre.trim()
+        val precio = state.precio.toDoubleOrNull() ?: 0.0
+        val cantidad = state.cantidad.toIntOrNull() ?: 0
+        val descripcion = state.descripcion.trim()
+        val codigoBarras = state.codigoBarras.trim()
+        val categoriaSeleccionada = state.categoriaId.trim()
+        val categorias = state.categorias
+        val negocioId = SesionUsuario.usuario?.negocioId
+
+        // Validación básica
+        if (nombre.isEmpty() || precio <= 0.0 || cantidad < 0 || categoriaSeleccionada.isEmpty() || negocioId.isNullOrEmpty()) {
+            _uiState.update { it.copy(error = "Completa todos los campos obligatorios correctamente.") }
             return
         }
+
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) } // Muestra loading
-            // Crea el objeto Producto a partir del estado
-            val producto = Producto(
-                producto_id = "", // Se asignará automáticamente por Firestore
-                nombre = state.nombre,
-                precio = state.precio.toDoubleOrNull() ?: 0.0,
-                cantidad_disponible = state.cantidad.toIntOrNull() ?: 0,
-                categoria_id = state.categoriaId,
-                descripcion = state.descripcion,
-                codigo_barras = state.codigoBarras,
-                negocio_id = SesionUsuario.usuario?.negocioId ?: ""
-            )
-            // Llama al repositorio para guardar el producto
-            val result = productoRepo.agregarProducto(producto)
-            // Actualiza el estado según el resultado
-            _uiState.update {
-                if (result is Result.Success) it.copy(isLoading = false, exito = true)
-                else it.copy(isLoading = false, error = (result as Result.Error).message)
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            // Si la categoría ya existe
+            val categoriaExistente = categorias.find { it.id == categoriaSeleccionada }
+            if (categoriaExistente != null) {
+                val producto = Producto(
+                    nombre = nombre,
+                    descripcion = if (descripcion.isNotEmpty()) descripcion else null,
+                    precio = precio,
+                    cantidad_disponible = cantidad,
+                    codigo_barras = codigoBarras,
+                    imagen_url = null,
+                    categoria_id = categoriaSeleccionada,
+                    negocio_id = negocioId
+                )
+                val result = productoRepo.agregarProducto(producto)
+                _uiState.update {
+                    if (result is Result.Success) it.copy(isLoading = false, exito = true)
+                    else it.copy(isLoading = false, error = (result as Result.Error).message)
+                }
+            } else {
+                // Si la categoría no existe, crearla primero
+                val resultCategoria = categoriaRepo.agregarCategoria(categoriaSeleccionada)
+                if (resultCategoria is Result.Success) {
+                    // Esperar a que el stream de categorías se actualice y obtener el nuevo ID
+                    kotlinx.coroutines.delay(500)
+                    val categoriasActualizadas = _uiState.value.categorias
+                    val nuevaCategoria = categoriasActualizadas.find { it.nombre.equals(categoriaSeleccionada, ignoreCase = true) }
+                    val categoriaId = nuevaCategoria?.id
+                    if (categoriaId != null) {
+                        val producto = Producto(
+                            nombre = nombre,
+                            descripcion = if (descripcion.isNotEmpty()) descripcion else null,
+                            precio = precio,
+                            cantidad_disponible = cantidad,
+                            codigo_barras = codigoBarras,
+                            imagen_url = null,
+                            categoria_id = categoriaId,
+                            negocio_id = negocioId
+                        )
+                        val result = productoRepo.agregarProducto(producto)
+                        _uiState.update {
+                            if (result is Result.Success) it.copy(isLoading = false, exito = true)
+                            else it.copy(isLoading = false, error = (result as Result.Error).message)
+                        }
+                    } else {
+                        _uiState.update { it.copy(isLoading = false, error = "Error al obtener la nueva categoría.") }
+                    }
+                } else {
+                    _uiState.update { it.copy(isLoading = false, error = "Error al crear la categoría.") }
+                }
             }
         }
     }

@@ -65,6 +65,14 @@ fun I_02_AgregarProducto(
     val showErrorDialog = remember { mutableStateOf(false) }
     val showCategoriaDialog = remember { mutableStateOf(false) }
 
+    // Mostrar diálogos según el estado del ViewModel
+    if (uiState.exito) {
+        showDialog.value = true
+    }
+    if (uiState.error != null) {
+        showErrorDialog.value = true
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -264,76 +272,7 @@ fun I_02_AgregarProducto(
         ) {
             Button(
                 onClick = {
-                    // Validación básica
-                    val nombre = uiState.nombre.trim()
-                    val precio = uiState.precio.toDoubleOrNull() ?: 0.0
-                    val cantidad = uiState.cantidad.toIntOrNull() ?: 0
-                    val descripcion = uiState.descripcion.trim()
-                    val codigoBarras = uiState.codigoBarras.trim()
-                    val categoriaSeleccionada = uiState.categoriaId.trim()
-                    
-                    if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoriaSeleccionada.isNotEmpty()) {
-                        // Si la categoría seleccionada es un ID (categoría existente)
-                        if (uiState.categorias.any { it.id == categoriaSeleccionada }) {
-                            // Es una categoría existente, guardar directamente
-                            println("DEBUG: Categoría existente seleccionada - ID: $categoriaSeleccionada")
-                            val producto = Producto(
-                                nombre = nombre,
-                                descripcion = if (descripcion.isNotEmpty()) descripcion else null,
-                                precio = precio,
-                                cantidad_disponible = cantidad,
-                                codigo_barras = codigoBarras,
-                                imagen_url = null,
-                                categoria_id = categoriaSeleccionada,
-                                negocio_id = SesionUsuario.usuario?.negocioId!!
-                            )
-                            println("DEBUG: Producto a guardar (categoría existente) - categoria_id: ${producto.categoria_id}")
-                            viewModel.agregarProducto(producto) { exito ->
-                                if (exito) {
-                                    println("DEBUG: Producto agregado exitosamente, mostrando diálogo de confirmación")
-                                    showDialog.value = true
-                                    viewModel.limpiarFormulario()
-                                } else {
-                                    println("ERROR: Error al agregar producto")
-                                    showErrorDialog.value = true
-                                }
-                            }
-                        } else {
-                            // Es una nueva categoría, crearla primero
-                            viewModel.agregarCategoriaSiNoExiste(categoriaSeleccionada) { categoriaId ->
-                                if (categoriaId != null) {
-                                    println("DEBUG: Nueva categoría creada - Nombre: $categoriaSeleccionada, ID: $categoriaId")
-                                    
-                                    val producto = Producto(
-                                        nombre = nombre,
-                                        descripcion = if (descripcion.isNotEmpty()) descripcion else null,
-                                        precio = precio,
-                                        cantidad_disponible = cantidad,
-                                        codigo_barras = codigoBarras,
-                                        imagen_url = null,
-                                        categoria_id = categoriaId,
-                                        negocio_id = SesionUsuario.usuario?.negocioId!!
-                                    )
-                                    println("DEBUG: Producto a guardar - categoria_id: ${producto.categoria_id}")
-                                    viewModel.agregarProducto(producto) { exito ->
-                                        if (exito) {
-                                            println("DEBUG: Producto agregado exitosamente (nueva categoría), mostrando diálogo de confirmación")
-                                            showDialog.value = true
-                                            viewModel.limpiarFormulario()
-                                        } else {
-                                            println("ERROR: Error al agregar producto (nueva categoría)")
-                                            showErrorDialog.value = true
-                                        }
-                                    }
-                                } else {
-                                    println("ERROR: Error al crear categoría")
-                                    showErrorDialog.value = true
-                                }
-                            }
-                        }
-                    } else {
-                        showErrorDialog.value = true
-                    }
+                    viewModel.guardarProducto()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -347,16 +286,18 @@ fun I_02_AgregarProducto(
         // Diálogo de confirmación
         if (showDialog.value) {
             AlertDialog(
-                onDismissRequest = { showDialog.value = false },
+                onDismissRequest = {
+                    showDialog.value = false
+                    viewModel.limpiarFormulario()
+                    navController.popBackStack()
+                },
                 title = { Text("Producto Agregado") },
                 text = { Text("El producto ha sido agregado correctamente.") },
                 confirmButton = {
                     Button(
                         onClick = {
-                            println("DEBUG: Cerrando diálogo y navegando hacia atrás")
                             showDialog.value = false
-                            // Forzar recarga antes de navegar
-                            viewModel.recargarProductos()
+                            viewModel.limpiarFormulario()
                             navController.popBackStack()
                         }
                     ) {
@@ -370,9 +311,12 @@ fun I_02_AgregarProducto(
             AlertDialog(
                 onDismissRequest = { showErrorDialog.value = false },
                 title = { Text("Error") },
-                text = { Text("Por favor, completa todos los campos obligatorios correctamente.") },
+                text = { Text(uiState.error ?: "Por favor, completa todos los campos obligatorios correctamente.") },
                 confirmButton = {
-                    Button(onClick = { showErrorDialog.value = false }) {
+                    Button(onClick = {
+                        showErrorDialog.value = false
+                        viewModel.limpiarFormulario()
+                    }) {
                         Text("OK")
                     }
                 }
