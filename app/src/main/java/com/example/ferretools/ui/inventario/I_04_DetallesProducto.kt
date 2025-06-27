@@ -45,23 +45,21 @@ import androidx.compose.foundation.verticalScroll
 //import androidx.compose.foundation.layout.weight
 //import androidx.compose.foundation.layout.rememberScrollState
 import androidx.compose.foundation.rememberScrollState
+import com.example.ferretools.viewmodel.inventario.DetallesProductoViewModel
 
 @Composable
 fun I_04_DetallesProducto(
     navController: NavController,
-    inventarioViewModel: InventarioFirestoreViewModel = viewModel()
+    viewModel: DetallesProductoViewModel = viewModel()
 ) {
+    val eliminado = viewModel.eliminado.collectAsState().value
     val showDialog = remember { mutableStateOf(false) }
     val showSuccess = remember { mutableStateOf(false) }
     val showErrorDialog = remember { mutableStateOf(false) }
     
-    // Obtener productos del ViewModel
-    val productos = inventarioViewModel.productos.collectAsState().value
-    
     // Obtener el producto seleccionado del manager
     val producto = ProductoSeleccionadoManager.obtenerProducto()
     
-    println("DEBUG: I_04_DetallesProducto - Total productos: ${productos.size}")
     println("DEBUG: I_04_DetallesProducto - Producto seleccionado: ${producto?.nombre}")
     
     if (producto == null) {
@@ -77,12 +75,6 @@ fun I_04_DetallesProducto(
             Text(
                 text = "No hay producto seleccionado",
                 fontSize = 18.sp,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Productos disponibles: ${productos.size}",
-                fontSize = 14.sp,
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -187,7 +179,9 @@ fun I_04_DetallesProducto(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = { showDialog.value = true },
+                    onClick = { 
+                        showDialog.value = true
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -199,7 +193,7 @@ fun I_04_DetallesProducto(
                         // Navegar a la pantalla de editar producto
                         navController.navigate(AppRoutes.Inventory.EDIT_PRODUCT)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Editar", color = Color.White)
@@ -214,23 +208,15 @@ fun I_04_DetallesProducto(
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
             title = { Text("Confirmar eliminación") },
-            text = { Text("¿Estás seguro de que deseas eliminar este producto?") },
+            text = { Text("¿Estás seguro de que quieres eliminar este producto?") },
             confirmButton = {
                 Button(
                     onClick = {
+                        viewModel.eliminarProducto(producto.producto_id)
                         showDialog.value = false
-                        // Eliminar el producto
-                        inventarioViewModel.eliminarProducto(producto) { exito ->
-                            if (exito) {
-                                showSuccess.value = true
-                            } else {
-                                showErrorDialog.value = true
-                            }
-                        }
-                    }, 
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    }
                 ) {
-                    Text("Eliminar", color = Color.White)
+                    Text("Eliminar")
                 }
             },
             dismissButton = {
@@ -241,21 +227,20 @@ fun I_04_DetallesProducto(
         )
     }
     
-    // Mensaje de éxito
+    // Diálogo de éxito
     if (showSuccess.value) {
         AlertDialog(
-            onDismissRequest = {
-                showSuccess.value = false
-                navController.popBackStack()
-            },
-            title = { Text("Producto eliminado") },
-            text = { Text("El producto ha sido eliminado correctamente.") },
+            onDismissRequest = { showSuccess.value = false },
+            title = { Text("Éxito") },
+            text = { Text("Producto eliminado correctamente") },
             confirmButton = {
-                Button(onClick = {
-                    showSuccess.value = false
-                    navController.popBackStack()
-                }) {
-                    Text("Aceptar")
+                Button(
+                    onClick = {
+                        showSuccess.value = false
+                        navController.popBackStack()
+                    }
+                ) {
+                    Text("OK")
                 }
             }
         )
@@ -266,13 +251,22 @@ fun I_04_DetallesProducto(
         AlertDialog(
             onDismissRequest = { showErrorDialog.value = false },
             title = { Text("Error") },
-            text = { Text("No se pudo eliminar el producto. Inténtalo de nuevo.") },
+            text = { Text("No se pudo eliminar el producto") },
             confirmButton = {
                 Button(onClick = { showErrorDialog.value = false }) {
                     Text("OK")
                 }
             }
         )
+    }
+    
+    // Observar el estado de eliminación
+    eliminado?.let { exito ->
+        if (exito) {
+            showSuccess.value = true
+        } else {
+            showErrorDialog.value = true
+        }
     }
 }
 

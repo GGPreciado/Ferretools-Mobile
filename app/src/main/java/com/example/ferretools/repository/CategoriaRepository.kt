@@ -1,7 +1,7 @@
 package com.example.ferretools.repository
 
 import com.example.ferretools.model.database.Categoria
-import com.example.ferretools.viewmodel.inventario.Result
+import com.example.ferretools.model.Result
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -45,6 +45,32 @@ class CategoriaRepository(
         } catch (e: Exception) {
             // Si ocurre un error, retorna Result.Error con el mensaje
             Result.Error(e.message ?: "Error al agregar categoría")
+        }
+    }
+
+    // Edita el nombre de una categoría existente
+    suspend fun editarCategoria(id: String, nuevoNombre: String): Boolean {
+        return try {
+            db.collection("categorias")
+                .document(id)
+                .update("nombre", nuevoNombre)
+                .await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    // Elimina una categoría existente
+    suspend fun eliminarCategoria(id: String): Boolean {
+        return try {
+            db.collection("categorias")
+                .document(id)
+                .delete()
+                .await()
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 } 

@@ -23,8 +23,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ferretools.navigation.AppRoutes
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ferretools.ui.inventario.InventarioFirestoreViewModel
-import com.example.ferretools.ui.inventario.CategoriaFirestoreViewModel
+import com.example.ferretools.viewmodel.inventario.ReporteInventarioViewModel
+import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,16 +32,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 @Composable
 fun I_12_ReporteInventario(
     navController: NavController? = null,
-    viewModel: InventarioFirestoreViewModel = viewModel(),
-    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+    reporteViewModel: ReporteInventarioViewModel = viewModel(),
+    categoriaViewModel: ListaCategoriasViewModel = viewModel()
 ) {
     var showModal by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }
 
-    // Obtener productos reales del ViewModel
-    val productos = viewModel.productos.collectAsState().value
-    // Obtener categorías reales
-    val categoriasList = categoriaViewModel.categorias.collectAsState().value
+    // Obtener productos y categorías de los ViewModels
+    val productos = reporteViewModel.productosFiltrados.collectAsState().value
+    val categoriasList = categoriaViewModel.uiState.collectAsState().value.categorias
     // Lista de nombres de categorías para los chips
     val categorias = listOf("Todas las categorías") + categoriasList.map { it.nombre }
 
@@ -51,7 +50,8 @@ fun I_12_ReporteInventario(
     } else {
         // Buscar el id de la categoría seleccionada por nombre
         val categoriaId = categoriasList.find { it.nombre == selectedCategory }?.id
-        productos.filter { it.categoria_id == categoriaId }
+        reporteViewModel.filtrarPorCategoria(categoriaId ?: "")
+        productos
     }
 
     Column(

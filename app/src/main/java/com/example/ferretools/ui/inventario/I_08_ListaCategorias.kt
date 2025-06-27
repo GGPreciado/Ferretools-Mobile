@@ -48,15 +48,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
-import com.example.ferretools.ui.inventario.CategoriaFirestoreViewModel
+import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
 import com.example.ferretools.model.database.Categoria
 
 @Composable
 fun I_08_ListaCategorias(
     navController: NavController,
-    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+    viewModel: ListaCategoriasViewModel = viewModel()
 ) {
-    val categorias = categoriaViewModel.categorias.collectAsState().value
+    val uiState = viewModel.uiState.collectAsState().value
     val scrollState = rememberScrollState()
     val showEditDialog = remember { mutableStateOf(false) }
     val showDeleteDialog = remember { mutableStateOf(false) }
@@ -144,7 +144,7 @@ fun I_08_ListaCategorias(
                 .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp)
         ) {
-            categorias.forEach { categoria ->
+            uiState.categorias.forEach { categoria ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -222,7 +222,7 @@ fun I_08_ListaCategorias(
                     Button(
                         onClick = {
                             categoriaSeleccionada.value?.let { categoria ->
-                                categoriaViewModel.editarCategoria(categoria.id, nuevoNombre.value) { exito ->
+                                viewModel.editarCategoria(categoria.id, nuevoNombre.value) { exito ->
                                     if (exito) {
                                         showSuccessDialog.value = true
                                         showEditDialog.value = false
@@ -254,7 +254,7 @@ fun I_08_ListaCategorias(
                     Button(
                         onClick = {
                             categoriaSeleccionada.value?.let { categoria ->
-                                categoriaViewModel.eliminarCategoria(categoria.id) { exito ->
+                                viewModel.eliminarCategoria(categoria.id) { exito ->
                                     if (exito) {
                                         showSuccessDialog.value = true
                                         showDeleteDialog.value = false

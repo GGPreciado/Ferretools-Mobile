@@ -9,12 +9,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import com.example.ferretools.model.database.Producto
 import com.example.ferretools.repository.ProductoRepository
-
-// Clase sellada para representar el resultado de una operación (éxito o error)
-sealed class Result<out T> {
-    data class Success<T>(val data: T): Result<T>() // Éxito con datos
-    data class Error(val message: String): Result<Nothing>() // Error con mensaje
-}
+import com.example.ferretools.model.Result
 
 // Estado de la UI para la lista de productos
 // Incluye loading, lista de productos y error
@@ -52,5 +47,18 @@ class ListaProductosViewModel(
                 }
             }
         }
+    }
+
+    // Función para eliminar un producto por ID
+    fun eliminarProducto(productoId: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = repo.eliminarProducto(productoId)
+            onResult(result)
+        }
+    }
+
+    // Función para filtrar productos por categoría (en memoria)
+    fun filtrarPorCategoria(categoriaId: String): List<Producto> {
+        return uiState.value.productos.filter { it.categoria_id == categoriaId }
     }
 } 

@@ -8,12 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.example.ferretools.model.database.Categoria
 import com.example.ferretools.repository.CategoriaRepository
-
-// Clase sellada para representar el resultado de una operación (éxito o error)
-sealed class Result<out T> {
-    data class Success<T>(val data: T): Result<T>() // Éxito con datos
-    data class Error(val message: String): Result<Nothing>() // Error con mensaje
-}
+import com.example.ferretools.model.Result
 
 // Estado de la UI para la lista de categorías
 // Incluye loading, lista de categorías y error
@@ -56,6 +51,22 @@ class ListaCategoriasViewModel(
     fun agregarCategoria(nombre: String) {
         viewModelScope.launch {
             repo.agregarCategoria(nombre) // Llama al repositorio para agregar
+        }
+    }
+
+    // Función para editar una categoría existente
+    fun editarCategoria(id: String, nuevoNombre: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = repo.editarCategoria(id, nuevoNombre)
+            onResult(result)
+        }
+    }
+
+    // Función para eliminar una categoría existente
+    fun eliminarCategoria(id: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = repo.eliminarCategoria(id)
+            onResult(result)
         }
     }
 } 

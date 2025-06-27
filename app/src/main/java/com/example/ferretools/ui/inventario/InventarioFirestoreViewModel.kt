@@ -2,7 +2,6 @@ package com.example.ferretools.ui.inventario
 
 import androidx.lifecycle.ViewModel
 import com.example.ferretools.model.database.Producto
-import com.example.ferretools.utils.ProductoDisplay
 import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -11,14 +10,14 @@ import kotlinx.coroutines.flow.StateFlow
 
 // Objeto singleton temporal para compartir el producto seleccionado
 object ProductoSeleccionadoManager {
-    private var productoSeleccionado: ProductoDisplay? = null
+    private var productoSeleccionado: Producto? = null
     
-    fun seleccionarProducto(producto: ProductoDisplay) {
+    fun seleccionarProducto(producto: Producto) {
         println("DEBUG: ProductoSeleccionadoManager - Seleccionando: ${producto.nombre}")
         productoSeleccionado = producto
     }
     
-    fun obtenerProducto(): ProductoDisplay? {
+    fun obtenerProducto(): Producto? {
         println("DEBUG: ProductoSeleccionadoManager - Obteniendo: ${productoSeleccionado?.nombre}")
         return productoSeleccionado
     }
@@ -62,13 +61,7 @@ class InventarioFirestoreViewModel : ViewModel() {
                     val lista = snapshot.documents.mapNotNull { doc ->
                         val producto = doc.toObject(Producto::class.java)
                         producto?.let {
-                            ProductoDisplay(
-                                nombre = it.nombre,
-                                precio = it.precio,
-                                descripcion = it.descripcion,
-                                cantidad_disponible = it.cantidad_disponible,
-                                producto_id = doc.id
-                            )
+                            it.copy(producto_id = doc.id) // Asignar el ID del documento
                         }
                     }
                     println("DEBUG: Productos actualizados desde Firestore: ${lista.size} productos")
@@ -95,17 +88,8 @@ class InventarioFirestoreViewModel : ViewModel() {
             .addOnSuccessListener { documentReference ->
                 println("DEBUG: Producto agregado exitosamente con ID: ${documentReference.id}")
 
-                // Construyo un ProductDisplay
-                val nuevoProducto = ProductoDisplay(
-                    producto_id = documentReference.id,
-                    nombre = producto.nombre,
-                    descripcion = producto.descripcion,
-                    precio = producto.precio,
-                    cantidad_disponible = producto.cantidad_disponible,
-                    codigo_barras = producto.codigo_barras,
-                    imagen_url = producto.imagen_url,
-                    categoria_id = producto.categoria_id
-                )
+                // Construyo un Producto con el ID asignado
+                val nuevoProducto = producto.copy(producto_id = documentReference.id)
 
                 // Actualizar inmediatamente el estado local
                 val listaActual = _productos.value.toMutableList()
@@ -138,7 +122,7 @@ class InventarioFirestoreViewModel : ViewModel() {
     }
 
     // Función para obtener productos de una categoría específica
-    fun obtenerProductosCategoria(categoriaId: String): List<ProductoDisplay> {
+    fun obtenerProductosCategoria(categoriaId: String): List<Producto> {
         return _productos.value.filter { it.categoria_id == categoriaId }
     }
 
@@ -164,7 +148,7 @@ class InventarioFirestoreViewModel : ViewModel() {
     }
 
     // Función para eliminar un producto
-    fun eliminarProducto(producto: ProductoDisplay, onResult: (Boolean) -> Unit) {
+    fun eliminarProducto(producto: Producto, onResult: (Boolean) -> Unit) {
         println("DEBUG: Intentando eliminar producto: ${producto.nombre}")
         
         // Buscar el documento por código de barras
@@ -203,7 +187,7 @@ class InventarioFirestoreViewModel : ViewModel() {
     }
 
     // Función para editar un producto
-    fun editarProducto(productoOriginal: ProductoDisplay, productoEditado: ProductoDisplay, onResult: (Boolean) -> Unit) {
+    fun editarProducto(productoOriginal: Producto, productoEditado: Producto, onResult: (Boolean) -> Unit) {
         println("DEBUG: Intentando editar producto: ${productoOriginal.nombre}")
         
         // Buscar el documento por código de barras
@@ -213,25 +197,29 @@ class InventarioFirestoreViewModel : ViewModel() {
             .addOnSuccessListener { documents ->
                 if (!documents.isEmpty) {
                     val documentId = documents.documents[0].id
+                    val productoParaGuardar = productoEditado.copy(
+                        producto_id = documentId,
+                        negocio_id = productoOriginal.negocio_id
+                    )
+                    
                     db.collection("productos")
                         .document(documentId)
-                        .set(productoEditado)
+                        .set(productoParaGuardar)
                         .addOnSuccessListener {
                             println("DEBUG: Producto editado exitosamente")
-
+                            
                             // Actualizar estado local
                             val listaActual = _productos.value.toMutableList()
                             val index = listaActual.indexOfFirst { it.codigo_barras == productoOriginal.codigo_barras }
                             if (index != -1) {
-                                listaActual[index] = productoEditado
+                                listaActual[index] = productoParaGuardar
                                 _productos.value = listaActual
-                                println("DEBUG: Estado local actualizado con producto editado")
                             }
                             
                             // Actualizar ProductoSeleccionadoManager si el producto editado es el seleccionado
                             val productoSeleccionado = ProductoSeleccionadoManager.obtenerProducto()
                             if (productoSeleccionado?.codigo_barras == productoOriginal.codigo_barras) {
-                                ProductoSeleccionadoManager.seleccionarProducto(productoEditado)
+                                ProductoSeleccionadoManager.seleccionarProducto(productoParaGuardar)
                                 println("DEBUG: ProductoSeleccionadoManager actualizado con producto editado")
                             }
                             

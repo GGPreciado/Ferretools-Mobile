@@ -46,14 +46,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.ui.components.AdminBottomNavBar
 import com.example.ferretools.ui.components.SummaryCard
-
+import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 
 @Composable
 fun I_01_ListaProductos(
     navController: NavController,
-    viewModel: InventarioFirestoreViewModel = viewModel()
+    viewModel: ListaProductosViewModel = viewModel()
 ) {
-   val productos = viewModel.productos.collectAsState().value
+   val uiState = viewModel.uiState.collectAsState().value
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -137,9 +137,9 @@ fun I_01_ListaProductos(
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                SummaryCard(title = "Total de Productos", value = productos.size.toString())
+                SummaryCard(title = "Total de Productos", value = uiState.productos.size.toString())
 
-                val valorTotal = productos.sumOf { it.precio * it.cantidad_disponible }
+                val valorTotal = uiState.productos.sumOf { it.precio * it.cantidad_disponible }
                 SummaryCard(title = "Valor Total", value = "${valorTotal} PEN")
             }
             Spacer(modifier = Modifier.height(10.dp))
@@ -167,7 +167,7 @@ fun I_01_ListaProductos(
             Spacer(modifier = Modifier.height(10.dp))
             // Lista de productos desde Firestore
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-               productos.forEach { producto ->
+               uiState.productos.forEach { producto ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -175,7 +175,7 @@ fun I_01_ListaProductos(
                             .clickable {
                                 navController.navigate(
                                     AppRoutes.Inventory.PRODUCT_REPORT(
-                                        productoId = producto.producto_id,
+                                        productoId = producto.codigo_barras,
                                         productoNombre = producto.nombre
                                     )
                                 )

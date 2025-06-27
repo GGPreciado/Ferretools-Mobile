@@ -32,12 +32,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.ferretools.ui.inventario.CategoriaFirestoreViewModel
+import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
 
 @Composable
 fun I_09_CrearCategoria(
     navController: NavController,
-    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+    viewModel: ListaCategoriasViewModel = viewModel()
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val showErrorDialog = remember { mutableStateOf(false) }
@@ -95,14 +95,9 @@ fun I_09_CrearCategoria(
                 onClick = {
                     val nombre = nombreCategoria.value.trim()
                     if (nombre.isNotEmpty()) {
-                        categoriaViewModel.agregarCategoriaSiNoExiste(nombre) { categoriaId ->
-                            if (categoriaId != null) {
-                                showDialog.value = true
-                                nombreCategoria.value = ""
-                            } else {
-                                showErrorDialog.value = true
-                            }
-                        }
+                        viewModel.agregarCategoria(nombre)
+                        showDialog.value = true
+                        nombreCategoria.value = ""
                     } else {
                         showErrorDialog.value = true
                     }

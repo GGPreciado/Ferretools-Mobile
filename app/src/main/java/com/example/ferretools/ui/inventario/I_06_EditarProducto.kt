@@ -29,15 +29,17 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.R
 import com.example.ferretools.model.database.Producto
 import androidx.compose.foundation.layout.Arrangement
-import com.example.ferretools.utils.ProductoDisplay
+import com.example.ferretools.viewmodel.inventario.AgregarProductoViewModel
+import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
 
 @Composable
 fun I_06_EditarProducto(
     navController: NavController,
-    inventarioViewModel: InventarioFirestoreViewModel = viewModel(),
-    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+    viewModel: AgregarProductoViewModel = viewModel(),
+    categoriaViewModel: ListaCategoriasViewModel = viewModel()
 ) {
-    val categorias = categoriaViewModel.categorias.collectAsState().value
+    val uiState = viewModel.uiState.collectAsState().value
+    val categorias = categoriaViewModel.uiState.collectAsState().value.categorias
     val scrollState = rememberScrollState()
     val showDialog = remember { mutableStateOf(false) }
     val showErrorDialog = remember { mutableStateOf(false) }
@@ -287,18 +289,20 @@ fun I_06_EditarProducto(
                     
                     if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoriaId != null) {
                         // Crear producto editado
-                        val productoEditado = ProductoDisplay(
+                        val productoEditado = Producto(
+                            producto_id = productoOriginal.producto_id,
                             nombre = nombre,
                             descripcion = if (descripcion.isNotEmpty()) descripcion else null,
                             precio = precio,
                             cantidad_disponible = cantidad,
                             codigo_barras = productoOriginal.codigo_barras,
                             imagen_url = null,
-                            categoria_id = categoriaId
+                            categoria_id = categoriaId,
+                            negocio_id = productoOriginal.negocio_id
                         )
                         
                         println("DEBUG: Guardando cambios del producto: ${productoEditado.nombre}")
-                        inventarioViewModel.editarProducto(productoOriginal, productoEditado) { exito ->
+                        viewModel.editarProducto(productoOriginal, productoEditado) { exito ->
                             if (exito) {
                                 showDialog.value = true
                             } else {

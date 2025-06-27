@@ -51,15 +51,15 @@ import com.example.ferretools.model.database.Producto
 import androidx.compose.runtime.collectAsState
 import com.example.ferretools.theme.primaryContainerLight
 import com.example.ferretools.utils.SesionUsuario
+import com.example.ferretools.viewmodel.inventario.AgregarProductoViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun I_02_AgregarProducto(
     navController: NavController,
-    productoViewModel: ProductoViewModel,
-    firestoreViewModel: InventarioFirestoreViewModel,
-    categoriaViewModel: CategoriaFirestoreViewModel
+    viewModel: AgregarProductoViewModel = viewModel()
 ) {
-    val categorias = categoriaViewModel.categorias.collectAsState().value
+    val uiState = viewModel.uiState.collectAsState().value
     val scrollState = rememberScrollState()
     val showDialog = remember { mutableStateOf(false) }
     val showErrorDialog = remember { mutableStateOf(false) }
@@ -129,8 +129,8 @@ fun I_02_AgregarProducto(
             Text("Codigo de barras", fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextField(
-                    value = productoViewModel.codigoBarras.value,
-                    onValueChange = { productoViewModel.codigoBarras.value = it },
+                    value = uiState.codigoBarras,
+                    onValueChange = { viewModel.onCodigoBarrasChanged(it) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -153,8 +153,8 @@ fun I_02_AgregarProducto(
             // Nombre de producto
             Text("Nombre de Producto", fontWeight = FontWeight.Bold)
             TextField(
-                value = productoViewModel.nombreProducto.value,
-                onValueChange = { productoViewModel.nombreProducto.value = it },
+                value = uiState.nombre,
+                onValueChange = { viewModel.onNombreChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -167,8 +167,8 @@ fun I_02_AgregarProducto(
             // Precio
             Text("Precio", fontWeight = FontWeight.Bold)
             TextField(
-                value = productoViewModel.precio.value,
-                onValueChange = { productoViewModel.precio.value = it },
+                value = uiState.precio,
+                onValueChange = { viewModel.onPrecioChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -184,8 +184,8 @@ fun I_02_AgregarProducto(
             // Cantidad disponible
             Text("Cantidad disponible", fontWeight = FontWeight.Bold)
             TextField(
-                value = productoViewModel.cantidad.value,
-                onValueChange = { productoViewModel.cantidad.value = it },
+                value = uiState.cantidad,
+                onValueChange = { viewModel.onCantidadChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -207,10 +207,10 @@ fun I_02_AgregarProducto(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        if (productoViewModel.categoriaSeleccionada.value.isEmpty()) "Selecciona una categoría"
+                        if (uiState.categoriaId.isEmpty()) "Selecciona una categoría"
                         else {
-                            val categoria = categorias.find { it.id == productoViewModel.categoriaSeleccionada.value }
-                            categoria?.nombre ?: productoViewModel.categoriaSeleccionada.value
+                            val categoria = uiState.categorias.find { it.id == uiState.categoriaId }
+                            categoria?.nombre ?: uiState.categoriaId
                         }
                     )
                 }
@@ -227,11 +227,11 @@ fun I_02_AgregarProducto(
                         }
                     )
                     // Lista de categorías existentes
-                    categorias.forEach { cat ->
+                    uiState.categorias.forEach { cat ->
                         DropdownMenuItem(
                             text = { Text(cat.nombre) },
                             onClick = {
-                                productoViewModel.categoriaSeleccionada.value = cat.id
+                                viewModel.onCategoriaSeleccionadaChanged(cat.id)
                                 expanded = false
                             }
                         )
@@ -242,8 +242,8 @@ fun I_02_AgregarProducto(
             // Descripción
             Text("Descripcion", fontWeight = FontWeight.Bold)
             TextField(
-                value = productoViewModel.descripcion.value,
-                onValueChange = { productoViewModel.descripcion.value = it },
+                value = uiState.descripcion,
+                onValueChange = { viewModel.onDescripcionChanged(it) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp),
@@ -265,16 +265,16 @@ fun I_02_AgregarProducto(
             Button(
                 onClick = {
                     // Validación básica
-                    val nombre = productoViewModel.nombreProducto.value.trim()
-                    val precio = productoViewModel.precio.value.toDoubleOrNull() ?: 0.0
-                    val cantidad = productoViewModel.cantidad.value.toIntOrNull() ?: 0
-                    val descripcion = productoViewModel.descripcion.value.trim()
-                    val codigoBarras = productoViewModel.codigoBarras.value.trim()
-                    val categoriaSeleccionada = productoViewModel.categoriaSeleccionada.value.trim()
+                    val nombre = uiState.nombre.trim()
+                    val precio = uiState.precio.toDoubleOrNull() ?: 0.0
+                    val cantidad = uiState.cantidad.toIntOrNull() ?: 0
+                    val descripcion = uiState.descripcion.trim()
+                    val codigoBarras = uiState.codigoBarras.trim()
+                    val categoriaSeleccionada = uiState.categoriaId.trim()
                     
                     if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoriaSeleccionada.isNotEmpty()) {
                         // Si la categoría seleccionada es un ID (categoría existente)
-                        if (categorias.any { it.id == categoriaSeleccionada }) {
+                        if (uiState.categorias.any { it.id == categoriaSeleccionada }) {
                             // Es una categoría existente, guardar directamente
                             println("DEBUG: Categoría existente seleccionada - ID: $categoriaSeleccionada")
                             val producto = Producto(
@@ -288,11 +288,11 @@ fun I_02_AgregarProducto(
                                 negocio_id = SesionUsuario.usuario?.negocioId!!
                             )
                             println("DEBUG: Producto a guardar (categoría existente) - categoria_id: ${producto.categoria_id}")
-                            firestoreViewModel.agregarProducto(producto) { exito ->
+                            viewModel.agregarProducto(producto) { exito ->
                                 if (exito) {
                                     println("DEBUG: Producto agregado exitosamente, mostrando diálogo de confirmación")
                                     showDialog.value = true
-                                    productoViewModel.limpiarFormulario()
+                                    viewModel.limpiarFormulario()
                                 } else {
                                     println("ERROR: Error al agregar producto")
                                     showErrorDialog.value = true
@@ -300,7 +300,7 @@ fun I_02_AgregarProducto(
                             }
                         } else {
                             // Es una nueva categoría, crearla primero
-                            categoriaViewModel.agregarCategoriaSiNoExiste(categoriaSeleccionada) { categoriaId ->
+                            viewModel.agregarCategoriaSiNoExiste(categoriaSeleccionada) { categoriaId ->
                                 if (categoriaId != null) {
                                     println("DEBUG: Nueva categoría creada - Nombre: $categoriaSeleccionada, ID: $categoriaId")
                                     
@@ -311,14 +311,15 @@ fun I_02_AgregarProducto(
                                         cantidad_disponible = cantidad,
                                         codigo_barras = codigoBarras,
                                         imagen_url = null,
-                                        categoria_id = categoriaId
+                                        categoria_id = categoriaId,
+                                        negocio_id = SesionUsuario.usuario?.negocioId!!
                                     )
                                     println("DEBUG: Producto a guardar - categoria_id: ${producto.categoria_id}")
-                                    firestoreViewModel.agregarProducto(producto) { exito ->
+                                    viewModel.agregarProducto(producto) { exito ->
                                         if (exito) {
                                             println("DEBUG: Producto agregado exitosamente (nueva categoría), mostrando diálogo de confirmación")
                                             showDialog.value = true
-                                            productoViewModel.limpiarFormulario()
+                                            viewModel.limpiarFormulario()
                                         } else {
                                             println("ERROR: Error al agregar producto (nueva categoría)")
                                             showErrorDialog.value = true
@@ -355,7 +356,7 @@ fun I_02_AgregarProducto(
                             println("DEBUG: Cerrando diálogo y navegando hacia atrás")
                             showDialog.value = false
                             // Forzar recarga antes de navegar
-                            firestoreViewModel.recargarProductos()
+                            viewModel.recargarProductos()
                             navController.popBackStack()
                         }
                     ) {
@@ -395,7 +396,7 @@ fun I_02_AgregarProducto(
                     Button(
                         onClick = {
                             if (nuevaCategoria.trim().isNotEmpty()) {
-                                productoViewModel.categoriaSeleccionada.value = nuevaCategoria.trim()
+                                viewModel.onCategoriaSeleccionadaChanged(nuevaCategoria.trim())
                                 showCategoriaDialog.value = false
                             }
                         }

@@ -19,6 +19,12 @@ import com.example.ferretools.ui.venta.*
 import com.example.ferretools.ui.inventario.I_04_DetallesProducto
 import com.example.ferretools.ui.inventario.I_06_EditarProducto
 
+import com.example.ferretools.viewmodel.inventario.AgregarProductoViewModel
+import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
+import com.example.ferretools.viewmodel.inventario.DetallesProductoViewModel
+import com.example.ferretools.viewmodel.inventario.ReporteInventarioViewModel
+import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
+
 fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
     navigation(
         startDestination = AppRoutes.Admin.DASHBOARD,
@@ -45,30 +51,28 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
             I_01_ListaProductos(navController = navController)
         }
         composable(AppRoutes.Inventory.ADD_PRODUCT) {
-            val viewModel: ProductoViewModel = viewModel()
-            val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
-            val categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+            val viewModel: AgregarProductoViewModel = viewModel()
+            //val categoriaViewModel: ListaCategoriasViewModel = viewModel()
             I_02_AgregarProducto(
                 navController = navController,
-                productoViewModel = viewModel,
-                firestoreViewModel = firestoreViewModel,
-                categoriaViewModel = categoriaViewModel
+                viewModel = viewModel
+                //categoriaViewModel = categoriaViewModel
             )
         }
         
         composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
-            val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
+            val viewModel: DetallesProductoViewModel = viewModel()
             I_04_DetallesProducto(
                 navController = navController,
-                inventarioViewModel = firestoreViewModel
+                viewModel = viewModel
             )
         }
         composable(AppRoutes.Inventory.EDIT_PRODUCT) {
-            val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
-            val categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+            val viewModel: AgregarProductoViewModel = viewModel()
+            val categoriaViewModel: ListaCategoriasViewModel = viewModel()
             I_06_EditarProducto(
                 navController = navController,
-                inventarioViewModel = firestoreViewModel,
+                viewModel = viewModel,
                 categoriaViewModel = categoriaViewModel
             )
         }
@@ -86,15 +90,23 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
             )
         ) { backStackEntry ->
             val categoriaId = backStackEntry.arguments?.getString("categoriaId") ?: ""
-            val firestoreViewModel: InventarioFirestoreViewModel = viewModel()
+            val productosViewModel: ListaProductosViewModel = viewModel()
+            val categoriaViewModel: ListaCategoriasViewModel = viewModel()
             I_10_DetallesCategoria(
                 navController = navController,
                 categoriaId = categoriaId,
-                inventarioViewModel = firestoreViewModel
+                productosViewModel = productosViewModel,
+                categoriaViewModel = categoriaViewModel
             )
         }
         composable(AppRoutes.Inventory.INVENTORY_REPORT) {
-            I_12_ReporteInventario(navController = navController)
+            val reporteViewModel: ReporteInventarioViewModel = viewModel()
+            val categoriaViewModel: ListaCategoriasViewModel = viewModel()
+            I_12_ReporteInventario(
+                navController = navController,
+                reporteViewModel = reporteViewModel,
+                categoriaViewModel = categoriaViewModel
+            )
         }
 
         // Compras
