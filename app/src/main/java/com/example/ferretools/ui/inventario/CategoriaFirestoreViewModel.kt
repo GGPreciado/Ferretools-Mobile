@@ -2,6 +2,7 @@ package com.example.ferretools.ui.inventario
 
 import androidx.lifecycle.ViewModel
 import com.example.ferretools.model.database.Categoria
+import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,7 @@ class CategoriaFirestoreViewModel : ViewModel() {
     // Escucha cambios en la colección "categorias" de Firestore
     private fun escucharCategorias() {
         listenerRegistration = db.collection("categorias")
+            .whereEqualTo("negocio_id", SesionUsuario.usuario?.negocioId!!)
             .addSnapshotListener { snapshot, error ->
                 // Si ocurre un error, no hace nada (podrías agregar manejo de error)
                 if (error != null) {

@@ -1,5 +1,6 @@
 package com.example.ferretools.viewmodel.inventario
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +51,8 @@ class ListaCategoriasViewModel(
     // Función para agregar una nueva categoría a Firestore
     fun agregarCategoria(nombre: String) {
         viewModelScope.launch {
-            repo.agregarCategoria(nombre) // Llama al repositorio para agregar
+            val result = repo.agregarCategoria(nombre) // Llama al repositorio para agregar
+            Log.e("DEBUG", result.toString())
         }
     }
 

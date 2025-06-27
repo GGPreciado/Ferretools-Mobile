@@ -2,6 +2,7 @@ package com.example.ferretools.repository
 
 import com.example.ferretools.model.database.Categoria
 import com.example.ferretools.model.Result
+import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -13,23 +14,27 @@ class CategoriaRepository(
     // Instancia de la base de datos Firestore (por defecto, la instancia global)
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
-    // Obtiene un flujo (Flow) en tiempo real de la lista de categorías
     fun getCategoriasStream(): Flow<Result<List<Categoria>>> = callbackFlow {
-        // Listener para escuchar cambios en la colección "categorias"
+        val negocioId = SesionUsuario.usuario?.negocioId
+        if (negocioId.isNullOrEmpty()) {
+            trySend(Result.Error("No hay sesión de usuario o negocio activo"))
+            close() // Cierra el flujo inmediatamente
+            return@callbackFlow
+        }
         val listener = db.collection("categorias")
+            .whereEqualTo("negocio_id", negocioId)
             .addSnapshotListener { snapshot, error ->
-                // Si ocurre un error, lo envía al flujo como Result.Error
                 if (error != null) {
                     trySend(Result.Error(error.message ?: "Error desconocido"))
                     return@addSnapshotListener
                 }
-                // Si hay datos, los convierte a objetos Categoria y los envía como Result.Success
                 if (snapshot != null) {
-                    val categorias = snapshot.documents.mapNotNull { it.toObject(Categoria::class.java) }
+                    val categorias = snapshot.documents.mapNotNull {
+                        it.toObject(Categoria::class.java)?.copy(id = it.id)
+                    }
                     trySend(Result.Success(categorias))
                 }
             }
-        // Cuando se cierra el flujo, elimina el listener para evitar fugas de memoria
         awaitClose { listener.remove() }
     }
 
@@ -37,9 +42,14 @@ class CategoriaRepository(
     suspend fun agregarCategoria(nombre: String): Result<Unit> {
         return try {
             // Crea un objeto Categoria con el nombre proporcionado
-            val categoria = Categoria(nombre = nombre)
+            val categoria = Categoria(
+                nombre = nombre,
+                negocio_id = SesionUsuario.usuario?.negocioId!!
+            )
             // Intenta agregar la categoría a la colección "categorias"
-            db.collection("categorias").add(categoria).await()
+            val documentReference = db.collection("categorias").document()
+            val categoriaParaGuardar = categoria.copy(id = documentReference.id)
+            documentReference.set(categoriaParaGuardar).await()
             // Si tiene éxito, retorna Result.Success
             Result.Success(Unit)
         } catch (e: Exception) {

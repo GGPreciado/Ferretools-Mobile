@@ -48,7 +48,6 @@ class AgregarProductoViewModel(
     fun onNombreChanged(nombre: String) { _uiState.update { it.copy(nombre = nombre) } }
     fun onPrecioChanged(precio: String) { _uiState.update { it.copy(precio = precio) } }
     fun onCantidadChanged(cantidad: String) { _uiState.update { it.copy(cantidad = cantidad) } }
-    fun onCategoriaChanged(id: String) { _uiState.update { it.copy(categoriaId = id) } }
     fun onCategoriaSeleccionadaChanged(id: String) { _uiState.update { it.copy(categoriaId = id) } }
     fun onDescripcionChanged(desc: String) { _uiState.update { it.copy(descripcion = desc) } }
     fun onCodigoBarrasChanged(codigo: String) { _uiState.update { it.copy(codigoBarras = codigo) } }
@@ -72,7 +71,7 @@ class AgregarProductoViewModel(
                 categoria_id = state.categoriaId,
                 descripcion = state.descripcion,
                 codigo_barras = state.codigoBarras,
-                negocio_id = SesionUsuario.usuario?.negocioId ?: ""
+                negocio_id = SesionUsuario.usuario?.negocioId ?: "",
             )
             // Llama al repositorio para guardar el producto
             val result = productoRepo.agregarProducto(producto)

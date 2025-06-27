@@ -46,6 +46,7 @@ fun I_12_ReporteInventario(
 
     // Filtrar productos por categoría seleccionada
     val productosFiltrados = if (selectedCategory == "Todas las categorías") {
+        reporteViewModel.filtrarPorCategoria("")
         productos
     } else {
         // Buscar el id de la categoría seleccionada por nombre

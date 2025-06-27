@@ -2,6 +2,7 @@ package com.example.ferretools.repository
 
 import com.example.ferretools.model.database.Producto
 import com.example.ferretools.model.Result
+import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -13,23 +14,25 @@ class ProductoRepository(
     // Instancia de la base de datos Firestore (por defecto, la instancia global)
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
-    // Obtiene un flujo (Flow) en tiempo real de la lista de productos
     fun getProductosStream(): Flow<Result<List<Producto>>> = callbackFlow {
-        // Listener para escuchar cambios en la colección "productos"
+        val negocioId = SesionUsuario.usuario?.negocioId
+        if (negocioId.isNullOrEmpty()) {
+            trySend(Result.Error("No hay sesión de usuario o negocio activo"))
+            close() // Cierra el flujo inmediatamente
+            return@callbackFlow
+        }
         val listener = db.collection("productos")
+            .whereEqualTo("negocio_id", negocioId)
             .addSnapshotListener { snapshot, error ->
-                // Si ocurre un error, lo envía al flujo como Result.Error
                 if (error != null) {
                     trySend(Result.Error(error.message ?: "Error desconocido"))
                     return@addSnapshotListener
                 }
-                // Si hay datos, los convierte a objetos Producto y los envía como Result.Success
                 if (snapshot != null) {
                     val productos = snapshot.documents.mapNotNull { it.toObject(Producto::class.java) }
                     trySend(Result.Success(productos))
                 }
             }
-        // Cuando se cierra el flujo, elimina el listener para evitar fugas de memoria
         awaitClose { listener.remove() }
     }
 
@@ -37,9 +40,11 @@ class ProductoRepository(
     suspend fun agregarProducto(producto: Producto): Result<Unit> {
         return try {
             // Crear un mapa sin producto_id para guardar en Firestore
-            val productoParaGuardar = producto.copy(producto_id = "")
+//            val productoParaGuardar = producto.copy(producto_id = "")
             // Intenta agregar el producto a la colección "productos"
-            val documentReference = db.collection("productos").add(productoParaGuardar).await()
+            val documentReference = db.collection("productos").document()
+            val productoParaGuardar = producto.copy(producto_id = documentReference.id)
+            documentReference.set(productoParaGuardar).await()
             // Si tiene éxito, retorna Result.Success
             Result.Success(Unit)
         } catch (e: Exception) {
