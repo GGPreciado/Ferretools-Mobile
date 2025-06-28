@@ -56,9 +56,9 @@ object AppRoutes {
         const val LIST_PRODUCTS = "inventory_list"
         const val ADD_PRODUCT = "inventory_add"
         const val PRODUCT_ADDED = "inventory_product_added"
-        const val PRODUCT_DETAILS = "inventory_product_details"
+//        const val PRODUCT_DETAILS = "inventory_product_details"
 //        const val PRODUCT_REPORT = "inventory_product_report"
-        const val EDIT_PRODUCT = "inventory_edit"
+//        const val EDIT_PRODUCT = "inventory_edit"
         const val DELETE_PRODUCT = "inventory_delete"
         const val LIST_CATEGORIES = "inventory_categories"
         const val ADD_CATEGORY = "inventory_add_category"
@@ -69,6 +69,12 @@ object AppRoutes {
 
         @Serializable
         data class PRODUCT_REPORT(val productoId: String, val productoNombre: String)
+
+        @Serializable
+        data class PRODUCT_DETAILS(val productoId: String)
+
+        @Serializable
+        data class EDIT_PRODUCT(val productoId: String)
     }
 
     // Rutas de Compras

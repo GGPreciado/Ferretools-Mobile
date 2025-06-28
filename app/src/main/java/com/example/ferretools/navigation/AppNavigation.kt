@@ -59,6 +59,7 @@ import com.example.ferretools.ui.venta.V_01_CarritoVenta
 import com.example.ferretools.ui.venta.V_02_ResumenCarritoVenta
 import com.example.ferretools.ui.venta.V_04_VentaExitosa
 import com.example.ferretools.ui.venta.V_05_BoletaVenta
+import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -180,18 +181,23 @@ fun AppNavigation(navController: NavHostController) {
                 //categoriaViewModel = categoriaViewModel
             )
         }
-        composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
+        composable<AppRoutes.Inventory.PRODUCT_DETAILS> { backStackEntry ->
+            val args: AppRoutes.Inventory.PRODUCT_DETAILS = backStackEntry.toRoute()
             val viewModel: DetallesProductoViewModel = viewModel()
             I_04_DetallesProducto(
                 navController = navController,
+                productoId = args.productoId,
                 viewModel = viewModel
             )
         }
-        composable(AppRoutes.Inventory.EDIT_PRODUCT) {
-            val viewModel: AgregarProductoViewModel = viewModel()
+
+        composable<AppRoutes.Inventory.EDIT_PRODUCT> { backStackEntry ->
+            val args: AppRoutes.Inventory.EDIT_PRODUCT = backStackEntry.toRoute()
+            val viewModel: EditarProductoViewModel = viewModel()
             val categoriaViewModel: ListaCategoriasViewModel = viewModel()
             I_06_EditarProducto(
                 navController = navController,
+                productoId = args.productoId,
                 viewModel = viewModel,
                 categoriaViewModel = categoriaViewModel
             )

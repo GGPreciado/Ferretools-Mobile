@@ -70,17 +70,27 @@ class ProductoRepository(
     suspend fun actualizarProducto(producto: Producto): Result<Unit> {
         return try {
             // Crear un mapa sin producto_id para guardar en Firestore
-            val productoParaGuardar = producto.copy(producto_id = "")
+//            val productoParaGuardar = producto.copy(producto_id = "")
             // Intenta actualizar el producto en la colección "productos"
             db.collection("productos")
                 .document(producto.producto_id)
-                .set(productoParaGuardar)
+                .set(producto)
                 .await()
             // Si tiene éxito, retorna Result.Success
             Result.Success(Unit)
         } catch (e: Exception) {
             // Si ocurre un error, retorna Result.Error con el mensaje
             Result.Error(e.message ?: "Error al actualizar producto")
+        }
+    }
+
+    // Obtiene un producto por su ID
+    suspend fun obtenerProductoPorId(productoId: String): Producto? {
+        return try {
+            val doc = db.collection("productos").document(productoId).get().await()
+            doc.toObject(Producto::class.java)?.copy(producto_id = doc.id)
+        } catch (e: Exception) {
+            null
         }
     }
 } 

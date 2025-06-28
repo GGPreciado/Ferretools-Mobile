@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.NavHostController
 import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 
 import com.example.ferretools.ui.home.HOME_Admin
 import com.example.ferretools.ui.balance.*
@@ -22,6 +23,7 @@ import com.example.ferretools.ui.inventario.I_06_EditarProducto
 import com.example.ferretools.viewmodel.inventario.AgregarProductoViewModel
 import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
 import com.example.ferretools.viewmodel.inventario.DetallesProductoViewModel
+import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
 import com.example.ferretools.viewmodel.inventario.ReporteInventarioViewModel
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 
@@ -59,19 +61,24 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
                 //categoriaViewModel = categoriaViewModel
             )
         }
-        
-        composable(AppRoutes.Inventory.PRODUCT_DETAILS) {
+
+        composable<AppRoutes.Inventory.PRODUCT_DETAILS> { backStackEntry ->
+            val args: AppRoutes.Inventory.PRODUCT_DETAILS = backStackEntry.toRoute()
             val viewModel: DetallesProductoViewModel = viewModel()
             I_04_DetallesProducto(
                 navController = navController,
+                productoId = args.productoId,
                 viewModel = viewModel
             )
         }
-        composable(AppRoutes.Inventory.EDIT_PRODUCT) {
-            val viewModel: AgregarProductoViewModel = viewModel()
+
+        composable<AppRoutes.Inventory.EDIT_PRODUCT> { backStackEntry ->
+            val args: AppRoutes.Inventory.EDIT_PRODUCT = backStackEntry.toRoute()
+            val viewModel: EditarProductoViewModel = viewModel()
             val categoriaViewModel: ListaCategoriasViewModel = viewModel()
             I_06_EditarProducto(
                 navController = navController,
+                productoId = args.productoId,
                 viewModel = viewModel,
                 categoriaViewModel = categoriaViewModel
             )

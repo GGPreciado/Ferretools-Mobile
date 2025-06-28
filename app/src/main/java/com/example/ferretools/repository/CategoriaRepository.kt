@@ -83,4 +83,14 @@ class CategoriaRepository(
             false
         }
     }
+
+    // Obtiene una categoría por su ID
+    suspend fun obtenerCategoriaPorId(categoriaId: String): Categoria? {
+        return try {
+            val doc = db.collection("categorias").document(categoriaId).get().await()
+            doc.toObject(Categoria::class.java)?.copy(id = doc.id)
+        } catch (e: Exception) {
+            null
+        }
+    }
 } 

@@ -91,14 +91,6 @@ class AgregarProductoViewModel(
         }
     }
 
-    // Función para editar producto (usado en EditarProducto)
-    fun editarProducto(productoOriginal: Producto, productoEditado: Producto, onResult: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            val result = productoRepo.actualizarProducto(productoEditado)
-            onResult(result is Result.Success)
-        }
-    }
-
     // Función para agregar una categoría si no existe (usado en AgregarProducto)
     fun agregarCategoriaSiNoExiste(nombre: String, onResult: (String?) -> Unit) {
         viewModelScope.launch {

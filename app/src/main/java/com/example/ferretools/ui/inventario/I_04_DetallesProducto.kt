@@ -46,10 +46,12 @@ import androidx.compose.foundation.verticalScroll
 //import androidx.compose.foundation.layout.rememberScrollState
 import androidx.compose.foundation.rememberScrollState
 import com.example.ferretools.viewmodel.inventario.DetallesProductoViewModel
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun I_04_DetallesProducto(
     navController: NavController,
+    productoId: String,
     viewModel: DetallesProductoViewModel = viewModel()
 ) {
     val eliminado = viewModel.eliminado.collectAsState().value
@@ -58,10 +60,17 @@ fun I_04_DetallesProducto(
     val showErrorDialog = remember { mutableStateOf(false) }
     
     // Obtener el producto seleccionado del manager
-    val producto = ProductoSeleccionadoManager.obtenerProducto()
-    
+//    val producto = ProductoSeleccionadoManager.obtenerProducto()
+
+    // Cargar el producto por ID al entrar a la pantalla
+    LaunchedEffect(productoId) {
+        viewModel.cargarProductoPorId(productoId)
+    }
+    val producto = viewModel.producto.collectAsState().value
+    val categoriaNombre = viewModel.categoriaNombre.collectAsState().value
+
     println("DEBUG: I_04_DetallesProducto - Producto seleccionado: ${producto?.nombre}")
-    
+
     if (producto == null) {
         // Mostrar mensaje si no hay producto seleccionado
         Column(
@@ -155,13 +164,15 @@ fun I_04_DetallesProducto(
             DetalleCampo("Nombre de Producto", producto.nombre)
             DetalleCampo("Precio", "S/ ${producto.precio}")
             DetalleCampo("Cantidad disponible", producto.cantidad_disponible.toString())
-            DetalleCampo("Categoria", "Categoría del producto") // TODO: Obtener nombre de categoría
+            DetalleCampo("Categoria", categoriaNombre ?: "Sin categoría")
             DetalleCampo("Descripcion", producto.descripcion ?: "Sin descripción", multiline = true)
             Spacer(modifier = Modifier.height(24.dp))
             
             // Botón de análisis
             Button(
-                onClick = { navController.navigate(AppRoutes.Inventory.PRODUCT_REPORT) },
+                onClick = {
+//                    navController.navigate(AppRoutes.Inventory.PRODUCT_REPORT)
+                          },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
@@ -191,7 +202,7 @@ fun I_04_DetallesProducto(
                 Button(
                     onClick = { 
                         // Navegar a la pantalla de editar producto
-                        navController.navigate(AppRoutes.Inventory.EDIT_PRODUCT)
+                        navController.navigate(AppRoutes.Inventory.EDIT_PRODUCT(producto.producto_id))
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
                     modifier = Modifier.weight(1f)
@@ -286,9 +297,9 @@ fun DetalleCampo(label: String, value: String, multiline: Boolean = false) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewEditarProductoScreen() {
-    val navController = rememberNavController()
-    I_04_DetallesProducto(navController = navController)
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun PreviewEditarProductoScreen() {
+//    val navController = rememberNavController()
+//    I_04_DetallesProducto(navController = navController)
+//}
