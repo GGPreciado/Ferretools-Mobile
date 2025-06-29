@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,13 +37,12 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.ferretools.model.enums.RolUsuario
+import com.example.ferretools.model.database.Negocio
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
 import com.example.ferretools.viewmodel.session.ElegirNegocioViewModel
 import com.example.ferretools.viewmodel.session.NegociosUiState
-
-// Modelo simple para negocio
-data class NegocioUi(val id: String, val nombre: String, val logoUrl: String?)
+import kotlin.collections.find
 
 @Composable
 fun S_03_02_ElegirNegocio(
@@ -59,162 +60,214 @@ fun S_03_02_ElegirNegocio(
     // Navegación tras afiliarse
     fun navegarADashboard() {
         when (rolUsuario) {
-            RolUsuario.ADMIN -> navController.navigate(AppRoutes.Admin.DASHBOARD) { popUpTo(AppRoutes.Auth.WELCOME) { inclusive = true } }
-            RolUsuario.CLIENTE -> navController.navigate(AppRoutes.Client.DASHBOARD) { popUpTo(AppRoutes.Auth.WELCOME) { inclusive = true } }
-            RolUsuario.ALMACENERO -> navController.navigate(AppRoutes.Employee.DASHBOARD) { popUpTo(AppRoutes.Auth.WELCOME) { inclusive = true } }
+            RolUsuario.ADMIN -> navController.navigate(AppRoutes.Admin.DASHBOARD) {
+                popUpTo(AppRoutes.Auth.WELCOME) {
+                    inclusive = true
+                }
+            }
+            RolUsuario.CLIENTE -> navController.navigate(AppRoutes.Client.DASHBOARD) {
+                popUpTo(AppRoutes.Auth.WELCOME) {
+                    inclusive = true
+                }
+            }
+            RolUsuario.ALMACENERO -> navController.navigate(AppRoutes.Employee.DASHBOARD) {
+                popUpTo(AppRoutes.Auth.WELCOME) {
+                    inclusive = true
+                }
+            }
         }
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(MaterialTheme.colorScheme.background)
     ) {
+        // Header
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Atrás",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
-            Spacer(modifier = Modifier.weight(1f))
-            if (rolUsuario == RolUsuario.ADMIN) {
-                Button(
-                    onClick = { navController.navigate(AppRoutes.Auth.REGISTER_BUSINESS) },
-                    modifier = Modifier.height(36.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiary,
-                        contentColor = MaterialTheme.colorScheme.onTertiary
-                    ),
-                    shape = MaterialTheme.shapes.small,
-                    elevation = ButtonDefaults.buttonElevation(2.dp)
-                ) {
-                    Icon(Icons.Filled.AddBusiness, contentDescription = "Agregar Negocio")
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Agregar Negocio", style = MaterialTheme.typography.labelSmall)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Elegir Negocio",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            placeholder = { Text("Buscar negocio", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        when (negociosState) {
-            is NegociosUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-            is NegociosUiState.Error -> {
-                Text(
-                    text = (negociosState as NegociosUiState.Error).message,
-                    color = MaterialTheme.colorScheme.onError,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.padding(vertical = 32.dp)
-                )
-            }
-            is NegociosUiState.Success -> {
-                val negocios = (negociosState as NegociosUiState.Success).negocios
-                val negociosFiltrados = negocios.filter {
-                    it.nombre.contains(searchQuery.text, ignoreCase = true)
-                }
-                if (negociosFiltrados.isEmpty()) {
-                    Text(
-                        text = "No se encontraron negocios",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(vertical = 32.dp)
-                    )
-                } else {
-                    Column(modifier = Modifier.weight(1f, fill = false)) {
-                        negociosFiltrados.forEach { negocio ->
-                            NegocioListItem(
-                                negocio = negocio,
-                                selected = negocio.id == selectedNegocioId,
-                                onClick = { selectedNegocioId = negocio.id }
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        errorMessage?.let {
             Text(
-                text = it,
-                color = MaterialTheme.colorScheme.onError,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(bottom = 8.dp)
+                text = "Elegir Negocio",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.padding(start = 8.dp)
             )
         }
 
-        Button(
-            onClick = {
-                val negocios = (negociosState as? NegociosUiState.Success)?.negocios ?: emptyList()
-                val negocioSeleccionado = negocios.find { it.id == selectedNegocioId }
-                if (negocioSeleccionado != null) {
-                    isLoadingAfiliar = true
-                    errorMessage = null
-                    elegirNegocioViewModel.afiliarUsuarioANegocio(
-                        negocioId = negocioSeleccionado.id,
-                        onSuccess = {
-                            isLoadingAfiliar = false
-                            navegarADashboard()
-                        },
-                        onError = {
-                            isLoadingAfiliar = false
-                            errorMessage = it
-                        }
-                    )
-                }
-            },
-            enabled = selectedNegocioId != null && !isLoadingAfiliar && negociosState is NegociosUiState.Success,
+        // Contenido
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            shape = MaterialTheme.shapes.small,
-            elevation = ButtonDefaults.buttonElevation(4.dp)
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            if (isLoadingAfiliar) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
-            } else {
-                Text("AFILIARSE", style = MaterialTheme.typography.labelSmall)
+            // Header con botón para ADMIN
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Selecciona el negocio al que deseas afiliarte:",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Botón "Agregar Negocio" solo para ADMIN
+                if (rolUsuario == RolUsuario.ADMIN) {
+                    Button(
+                        onClick = { navController.navigate(AppRoutes.Auth.REGISTER_BUSINESS) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        ),
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.AddBusiness,
+                            contentDescription = "Agregar Negocio",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Agregar Negocio", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Barra de búsqueda
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Buscar negocio") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                singleLine = true
+            )
+
+            // Lista de negocios
+            when (val state = negociosState) {
+                is NegociosUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                is NegociosUiState.Success -> {
+                    val negociosFiltrados = if (searchQuery.text.isNotEmpty()) {
+                        state.negocios.filter {
+                            it.nombre.contains(searchQuery.text, ignoreCase = true)
+                        }
+                    } else {
+                        state.negocios
+                    }
+
+                    if (negociosFiltrados.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (searchQuery.text.isNotEmpty())
+                                    "No se encontraron negocios"
+                                else
+                                    "No hay negocios disponibles",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(negociosFiltrados) { negocio ->
+                                NegocioListItem(
+                                    negocio = negocio,
+                                    selected = selectedNegocioId == negocio.id,
+                                    onClick = { selectedNegocioId = negocio.id }
+                                )
+                            }
+                        }
+                    }
+                }
+                is NegociosUiState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = state.message,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+            // Mensaje de error
+            errorMessage?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Botón de afiliación
+            Button(
+                onClick = {
+                    val negocios = (negociosState as? NegociosUiState.Success)?.negocios ?: emptyList()
+                    val negocioSeleccionado = negocios.find { it.id == selectedNegocioId }
+                    if (negocioSeleccionado != null) {
+                        isLoadingAfiliar = true
+                        errorMessage = null
+                        elegirNegocioViewModel.afiliarUsuarioANegocio(
+                            negocioId = negocioSeleccionado.id,
+                            onSuccess = {
+                                isLoadingAfiliar = false
+                                navegarADashboard()
+                            },
+                            onError = {
+                                isLoadingAfiliar = false
+                                errorMessage = it
+                            }
+                        )
+                    }
+                },
+                enabled = selectedNegocioId != null && !isLoadingAfiliar && negociosState is NegociosUiState.Success,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = MaterialTheme.shapes.small,
+                elevation = ButtonDefaults.buttonElevation(4.dp)
+            ) {
+                if (isLoadingAfiliar) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("AFILIARSE", style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
     }
@@ -222,7 +275,7 @@ fun S_03_02_ElegirNegocio(
 
 @Composable
 fun NegocioListItem(
-    negocio: NegocioUi,
+    negocio: Negocio,
     selected: Boolean,
     onClick: () -> Unit
 ) {
@@ -263,12 +316,20 @@ fun NegocioListItem(
             }
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = negocio.nombre,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = negocio.nombre,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (negocio.tipo.isNotEmpty()) {
+                Text(
+                    text = negocio.tipo,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
         if (selected) {
             Icon(
                 imageVector = Icons.Filled.Visibility,

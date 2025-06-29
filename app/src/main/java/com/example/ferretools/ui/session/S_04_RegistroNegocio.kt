@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +46,8 @@ import coil.request.ImageRequest
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
 import com.example.ferretools.viewmodel.session.RegistroNegocioViewModel
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun S_04_RegistroNegocio(
@@ -60,9 +63,19 @@ fun S_04_RegistroNegocio(
 
     val registroNegocioUiState = registroNegocioViewModel.uiState.collectAsState()
 
+    // Navegar al dashboard cuando el registro sea exitoso
+    LaunchedEffect(registroNegocioUiState.value.registerSuccessful) {
+        if (registroNegocioUiState.value.registerSuccessful) {
+            navController.navigate(AppRoutes.Admin.DASHBOARD) {
+                popUpTo(AppRoutes.Auth.WELCOME) { inclusive = true }
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -164,6 +177,16 @@ fun S_04_RegistroNegocio(
             placeholder = "R.U.C."
         )
 
+        // Mostrar error si existe
+        registroNegocioUiState.value.error?.let { error ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -174,10 +197,12 @@ fun S_04_RegistroNegocio(
             onClick = {
                 // Guardar negocio
                 registroNegocioViewModel.registerBusiness()
+                /*
                 // Ir a la pantalla de HOME administrador
                 navController.navigate(AppRoutes.Admin.DASHBOARD)
+                 */
             },
-            enabled = registroNegocioUiState.value.isFormValid && !isLoading,
+            enabled = registroNegocioUiState.value.isFormValid && !isLoading && !registroNegocioUiState.value.registerSuccessful,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
@@ -186,7 +211,8 @@ fun S_04_RegistroNegocio(
             elevation = ButtonDefaults.buttonElevation(4.dp)
         ) {
             Text(
-                text = "FINALIZAR REGISTRO",
+                //text = "FINALIZAR REGISTRO",
+                text = if (registroNegocioUiState.value.registerSuccessful) "REGISTRO EXITOSO" else "FINALIZAR REGISTRO",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onPrimary
             )
