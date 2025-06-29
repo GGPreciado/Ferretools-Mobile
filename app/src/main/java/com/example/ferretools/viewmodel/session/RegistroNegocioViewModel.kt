@@ -3,6 +3,8 @@ package com.example.ferretools.viewmodel.session
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.ferretools.model.Result
 import com.example.ferretools.model.database.Negocio
 import com.example.ferretools.model.states.registro.RegistroNegocioUiState
 import com.example.ferretools.utils.SesionUsuario
@@ -13,6 +15,8 @@ import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.example.ferretools.repository.NegocioRepository
+import kotlinx.coroutines.launch
 
 class RegistroNegocioViewModel: ViewModel() {
     private val _uiState = MutableStateFlow(RegistroNegocioUiState())
@@ -21,6 +25,7 @@ class RegistroNegocioViewModel: ViewModel() {
     private val auth = Firebase.auth
     private val db = Firebase.firestore
     private val storage =  Firebase.storage
+    private val negocioRepository = NegocioRepository()
 
     // Función para comprobar la validez del forms después de cambiar cualquier valor
     private fun updateState(transform: (RegistroNegocioUiState) -> RegistroNegocioUiState) {
@@ -88,10 +93,12 @@ class RegistroNegocioViewModel: ViewModel() {
             .addOnSuccessListener {
                 Log.e("FIREBASE", "Usuario actualizado correctamente")
                 SesionUsuario.actualizarDatos(negocioId = negocio_id)
-
+                // Marcar como exitoso
+                _uiState.update { it.copy(registerSuccessful = true) }
             }
-            .addOnFailureListener {
-                Log.e("FIREBASE", "Error: ${it.message}")
+            .addOnFailureListener { exception ->
+                Log.e("FIREBASE", "Error: ${exception.message}")
+                _uiState.update { it.copy(error = exception.message) }
             }
     }
 
@@ -105,6 +112,7 @@ class RegistroNegocioViewModel: ViewModel() {
             logoUrl = logoUrl
         )
 
+        /*
         val docRef = db.collection("negocios").document()
 
         docRef.set(newBusiness)
@@ -112,9 +120,24 @@ class RegistroNegocioViewModel: ViewModel() {
                 Log.e("FIREBASE", "Negocio registrado correctamente")
                 updateUserBusiness(uid, docRef.id)
             }
-            .addOnFailureListener {
-                Log.e("FIREBASE", "Error: ${it.message}")
+            .addOnFailureListener { exception ->
+                Log.e("FIREBASE", "Error: ${exception.message}")
+                _uiState.update { it.copy(error = exception.message) }
             }
+         */
+
+        // Usar el repositorio para crear el negocio y asegurar el campo id
+        viewModelScope.launch {
+            val result = negocioRepository.crearNegocio(newBusiness)
+            when (result) {
+                is Result.Success -> {
+                    updateUserBusiness(uid, result.data)
+                }
+                is Result.Error -> {
+                    _uiState.update { it.copy(error = result.message) }
+                }
+            }
+        }
     }
 
     fun registerBusiness() {
@@ -123,8 +146,12 @@ class RegistroNegocioViewModel: ViewModel() {
 
         if (uid == null) {
             Log.e("FIREBASE", "Usuario no autenticado")
+            _uiState.update { it.copy(error = "Usuario no autenticado") }
             return
         }
+
+        // Limpiar error anterior
+        _uiState.update { it.copy(error = null) }
 
         if (logoUri != null) {
             // Si el logo fue seleccionado, subirlo primero
@@ -136,6 +163,7 @@ class RegistroNegocioViewModel: ViewModel() {
                 },
                 onError = { e ->
                     Log.e("FIREBASE", "Error al subir logo: ${e.message}")
+                    _uiState.update { it.copy(error = e.message) }
                 }
             )
         } else {

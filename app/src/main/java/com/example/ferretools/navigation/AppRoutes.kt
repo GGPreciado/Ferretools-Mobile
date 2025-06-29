@@ -20,6 +20,7 @@ object AppRoutes {
 
         @Serializable
         data class REGISTER_USER(val rolUsuario: RolUsuario)
+        @Serializable
         data class SELECT_BUSINESS(val rolUsuario: RolUsuario)
     }
 

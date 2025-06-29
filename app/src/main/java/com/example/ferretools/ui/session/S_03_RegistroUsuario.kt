@@ -75,6 +75,7 @@ fun S_03_RegistroUsuario(
 
     // Cambia de pantalla cuando se confirma que el registro es exitoso
     LaunchedEffect(registroUsuarioUiState.value.registerSuccessful) {
+        /*
         when (registroUsuarioUiState.value.rolUsuario) {
             RolUsuario.ADMIN -> {
                 if (registroUsuarioUiState.value.isFormValid) {
@@ -103,6 +104,11 @@ fun S_03_RegistroUsuario(
                     )
                 }
             }
+        }
+         */
+        if (registroUsuarioUiState.value.registerSuccessful) {
+            // Todos los usuarios van a seleccionar negocio después del registro
+            navController.navigate(AppRoutes.Auth.SELECT_BUSINESS(rolUsuario))
         }
     }
 

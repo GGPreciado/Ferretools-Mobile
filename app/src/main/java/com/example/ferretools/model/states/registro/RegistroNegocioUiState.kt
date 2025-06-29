@@ -9,5 +9,7 @@ data class RegistroNegocioUiState(
     val ruc: String = "",
     val ownerId: String = "",
     val logoUri: Uri? = null,
-    val isFormValid: Boolean = false
+    val isFormValid: Boolean = false,
+    val registerSuccessful: Boolean = false,
+    val error: String? = null
 )
