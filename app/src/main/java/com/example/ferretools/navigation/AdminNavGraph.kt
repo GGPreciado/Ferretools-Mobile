@@ -108,11 +108,9 @@ fun NavGraphBuilder.adminNavGraph(navController: NavHostController) {
         }
         composable(AppRoutes.Inventory.INVENTORY_REPORT) {
             val reporteViewModel: ReporteInventarioViewModel = viewModel()
-            val categoriaViewModel: ListaCategoriasViewModel = viewModel()
             I_12_ReporteInventario(
                 navController = navController,
-                reporteViewModel = reporteViewModel,
-                categoriaViewModel = categoriaViewModel
+                reporteViewModel = reporteViewModel
             )
         }
 
