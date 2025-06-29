@@ -1,5 +1,6 @@
 package com.example.ferretools.ui.inventario
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,17 +24,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,14 +52,16 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.ui.components.AdminBottomNavBar
 import com.example.ferretools.ui.components.SummaryCard
-
+import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 
 @Composable
 fun I_01_ListaProductos(
     navController: NavController,
-    viewModel: InventarioFirestoreViewModel = viewModel()
+    listaProductosViewModel: ListaProductosViewModel = viewModel()
 ) {
-   val productos = viewModel.productos.collectAsState().value
+    var selectedCategory by remember { mutableStateOf("Todas las categorías") }
+
+    val uiState = listaProductosViewModel.uiState.collectAsState().value
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -123,51 +131,54 @@ fun I_01_ListaProductos(
                 )
             }
         }
+        Spacer(modifier = Modifier.height(10.dp))
+        // Resumen
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            SummaryCard(title = "Total de Productos", value = uiState.productos.size.toString())
+
+            val valorTotal = uiState.productos.sumOf { it.precio * it.cantidad_disponible }
+            SummaryCard(title = "Valor Total", value = "${valorTotal} PEN")
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        LazyRow(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Log.e("DEBUG", "Cat: ${uiState.categoriasName}")
+            items(uiState.categoriasName) { cat ->
+                FilterChip(
+                    selected = selectedCategory == cat,
+                    onClick = {
+                        selectedCategory = cat
+                        if (selectedCategory == "Todas las categorías") {
+                            listaProductosViewModel.filtrarPorCategoria("")
+                        } else {
+                            // Buscar el id de la categoría seleccionada por nombre
+                            val categoriaId = uiState.categorias.find { it.nombre == selectedCategory }?.id
+                            listaProductosViewModel.filtrarPorCategoria(categoriaId ?: "")
+                        }
+                    },
+                    label = { Text(cat) },
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         // Contenido desplazable
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(scrollState)
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            // Resumen
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                SummaryCard(title = "Total de Productos", value = productos.size.toString())
-
-                val valorTotal = productos.sumOf { it.precio * it.cantidad_disponible }
-                SummaryCard(title = "Valor Total", value = "${valorTotal} PEN")
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-            // Chips de categorías (puedes adaptar para que sean dinámicas)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AssistChip(
-                    onClick = { /* TODO */ },
-                    label = { 
-                        Text(
-                            "Todas las categorías", 
-                            color = MaterialTheme.colorScheme.onPrimary
-                        ) 
-                    },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-                // Puedes agregar más chips dinámicamente aquí
-            }
-            Spacer(modifier = Modifier.height(10.dp))
             // Lista de productos desde Firestore
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-               productos.forEach { producto ->
+               uiState.productosFiltrados.forEach { producto ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -175,7 +186,7 @@ fun I_01_ListaProductos(
                             .clickable {
                                 navController.navigate(
                                     AppRoutes.Inventory.PRODUCT_REPORT(
-                                        productoId = producto.producto_id,
+                                        productoId = producto.codigo_barras,
                                         productoNombre = producto.nombre
                                     )
                                 )

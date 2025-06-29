@@ -29,24 +29,33 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.R
 import com.example.ferretools.model.database.Producto
 import androidx.compose.foundation.layout.Arrangement
-import com.example.ferretools.utils.ProductoDisplay
+import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
+import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
 
 @Composable
 fun I_06_EditarProducto(
     navController: NavController,
-    inventarioViewModel: InventarioFirestoreViewModel = viewModel(),
-    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+    productoId: String,
+    viewModel: EditarProductoViewModel = viewModel(),
+    categoriaViewModel: ListaCategoriasViewModel = viewModel()
 ) {
-    val categorias = categoriaViewModel.categorias.collectAsState().value
+    val categorias = categoriaViewModel.uiState.collectAsState().value.categorias
     val scrollState = rememberScrollState()
     val showDialog = remember { mutableStateOf(false) }
     val showErrorDialog = remember { mutableStateOf(false) }
     val showCategoriaDialog = remember { mutableStateOf(false) }
 
-    // Obtener el producto seleccionado del manager
-    val productoSeleccionado = ProductoSeleccionadoManager.obtenerProducto()
+    LaunchedEffect(productoId) {
+        // Aquí deberías usar un ViewModel adecuado para cargar el producto por ID
+        // y exponerlo como StateFlow, igual que en I_04_DetallesProducto
+        // Por simplicidad, aquí solo se muestra el patrón:
+        // producto = viewModel.cargarProductoPorId(productoId)
+        viewModel.cargarProductoPorId(productoId)
+    }
 
-    if (productoSeleccionado == null) {
+    val producto = viewModel.producto.collectAsState().value
+
+    if (producto == null) {
         // Mostrar mensaje si no hay producto seleccionado
         Column(
             modifier = Modifier
@@ -69,16 +78,16 @@ fun I_06_EditarProducto(
         return
     }
 
-    // Estados para los campos del formulario
-    var nombreProducto by remember { mutableStateOf(productoSeleccionado.nombre) }
-    var precioProducto by remember { mutableStateOf(productoSeleccionado.precio.toString()) }
-    var cantidadProducto by remember { mutableStateOf(productoSeleccionado.cantidad_disponible.toString()) }
-    var descripcionProducto by remember { mutableStateOf(productoSeleccionado.descripcion ?: "") }
-    var categoriaSeleccionada by remember { mutableStateOf("") } // TODO: Obtener nombre de categoría
+    // Estados para los campos del formulario, inicializados con los datos del producto
+    var nombreProducto by remember(producto) { mutableStateOf(producto.nombre) }
+    var precioProducto by remember(producto) { mutableStateOf(producto.precio.toString()) }
+    var cantidadProducto by remember(producto) { mutableStateOf(producto.cantidad_disponible.toString()) }
+    var descripcionProducto by remember(producto) { mutableStateOf(producto.descripcion ?: "") }
+    var categoriaSeleccionada by remember(producto) { mutableStateOf("") } // TODO: Obtener nombre de categoría
     var expanded by remember { mutableStateOf(false) }
 
     // Producto original para comparar cambios
-    val productoOriginal = productoSeleccionado
+    val productoOriginal = producto
 
     Column(
         modifier = Modifier
@@ -287,18 +296,20 @@ fun I_06_EditarProducto(
                     
                     if (nombre.isNotEmpty() && precio > 0 && cantidad >= 0 && categoriaId != null) {
                         // Crear producto editado
-                        val productoEditado = ProductoDisplay(
+                        val productoEditado = Producto(
+                            producto_id = productoOriginal.producto_id,
                             nombre = nombre,
                             descripcion = if (descripcion.isNotEmpty()) descripcion else null,
                             precio = precio,
                             cantidad_disponible = cantidad,
                             codigo_barras = productoOriginal.codigo_barras,
                             imagen_url = null,
-                            categoria_id = categoriaId
+                            categoria_id = categoriaId,
+                            negocio_id = productoOriginal.negocio_id
                         )
                         
                         println("DEBUG: Guardando cambios del producto: ${productoEditado.nombre}")
-                        inventarioViewModel.editarProducto(productoOriginal, productoEditado) { exito ->
+                        viewModel.editarProducto(productoEditado) { exito ->
                             if (exito) {
                                 showDialog.value = true
                             } else {
@@ -388,11 +399,11 @@ fun I_06_EditarProducto(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun I_06_EditarProductoPreview() {
-    val navController = rememberNavController()
-    I_06_EditarProducto(
-        navController = navController
-    )
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun I_06_EditarProductoPreview() {
+//    val navController = rememberNavController()
+//    I_06_EditarProducto(
+//        navController = navController
+//    )
+//}

@@ -24,21 +24,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
-import com.example.ferretools.model.database.Categoria
-import com.example.ferretools.model.database.Producto
-import com.example.ferretools.ui.inventario.ProductoSeleccionadoManager
+import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
+import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 
 @Composable
 fun I_10_DetallesCategoria(
     navController: NavController,
     categoriaId: String,
-    inventarioViewModel: InventarioFirestoreViewModel = viewModel(),
-    categoriaViewModel: CategoriaFirestoreViewModel = viewModel()
+    productosViewModel: ListaProductosViewModel = viewModel(),
+    categoriaViewModel: ListaCategoriasViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
     
-    val productos = inventarioViewModel.productos.collectAsState().value
-    val categorias = categoriaViewModel.categorias.collectAsState().value
+    val productos = productosViewModel.uiState.collectAsState().value.productos
+    val categorias = categoriaViewModel.uiState.collectAsState().value.categorias
     
     // Filtrar productos por categoría
     val productosFiltrados = productos.filter { it.categoria_id == categoriaId }
@@ -182,8 +181,11 @@ fun I_10_DetallesCategoria(
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
                                 .clickable {
-                                    ProductoSeleccionadoManager.seleccionarProducto(producto)
-                                    navController.navigate(AppRoutes.Inventory.PRODUCT_DETAILS)
+                                    navController.navigate(
+                                        AppRoutes.Inventory.PRODUCT_DETAILS(producto.producto_id)
+                                    )
+//                                    ProductoSeleccionadoManager.seleccionarProducto(producto)
+//                                    navController.navigate(AppRoutes.Inventory.PRODUCT_DETAILS)
                                 },
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
                             shape = RoundedCornerShape(8.dp)
