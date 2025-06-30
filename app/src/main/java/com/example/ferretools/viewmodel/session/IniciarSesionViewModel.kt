@@ -99,7 +99,7 @@ class IniciarSesionViewModel: ViewModel() {
                                             celular = usuario.celular,
                                             fotoUrl = usuario.fotoUrl,
                                             rol = usuario.rol,
-                                            negocioId = usuario.negocio_id
+                                            negocioId = usuario.negocioId
                                         )
                                     )
                                 } else {

@@ -8,7 +8,7 @@ data class Venta(
     val total: Double? = 0.0,
     val metodo_pago: MetodosPago = MetodosPago.Efectivo,
     val lista_productos: List<ItemUnitario> = emptyList(),
-    val negocio_id: String? = null,
+    val negocioId: String? = null,
     val cliente_id: String? = null
 )
 

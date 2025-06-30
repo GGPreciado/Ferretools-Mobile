@@ -305,7 +305,7 @@ fun I_06_EditarProducto(
                             codigo_barras = productoOriginal.codigo_barras,
                             imagen_url = null,
                             categoria_id = categoriaId,
-                            negocio_id = productoOriginal.negocio_id
+                            negocioId = productoOriginal.negocioId
                         )
                         
                         println("DEBUG: Guardando cambios del producto: ${productoEditado.nombre}")

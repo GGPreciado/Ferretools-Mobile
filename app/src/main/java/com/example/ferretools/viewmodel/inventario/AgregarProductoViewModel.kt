@@ -71,7 +71,7 @@ class AgregarProductoViewModel(
                 categoria_id = state.categoriaId,
                 descripcion = state.descripcion,
                 codigo_barras = state.codigoBarras,
-                negocio_id = SesionUsuario.usuario?.negocioId ?: "",
+                negocioId = SesionUsuario.usuario?.negocioId ?: "",
             )
             // Llama al repositorio para guardar el producto
             val result = productoRepo.agregarProducto(producto)

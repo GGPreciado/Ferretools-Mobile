@@ -25,7 +25,7 @@ class ReporteProductoViewModel: ViewModel() {
 
         if (negocioId != null) {
             db.collection("ventas")
-                .whereEqualTo("negocio_id", negocioId)
+                .whereEqualTo("negocioId", negocioId)
                 .get()
                 .addOnSuccessListener { snapshot ->
                     val ventas = snapshot.documents.mapNotNull { it.toObject(Venta::class.java) }

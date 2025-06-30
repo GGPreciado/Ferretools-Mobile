@@ -22,7 +22,7 @@ class ProductoRepository(
             return@callbackFlow
         }
         val listener = db.collection("productos")
-            .whereEqualTo("negocio_id", negocioId)
+            .whereEqualTo("negocioId", negocioId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     trySend(Result.Error(error.message ?: "Error desconocido"))

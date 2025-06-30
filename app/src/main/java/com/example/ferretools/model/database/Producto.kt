@@ -12,5 +12,5 @@ data class Producto(
     val codigo_barras: String = "",
     val imagen_url: String? = null,
     val categoria_id: String? = null,
-    val negocio_id: String = ""        // ID del negocio (para persistencia y filtrado)
+    val negocioId: String = ""        // ID del negocio (para persistencia y filtrado)
 )
