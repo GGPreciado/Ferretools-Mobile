@@ -1,5 +1,6 @@
 package com.example.ferretools.ui.configuracion
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,7 @@ fun Config_01_Configuracion(
     stockNotificationEnabled: Boolean,
     // viewModel: ConfiguracionViewModel = viewModel() // Para uso futuro
 ) {
+    Log.e("DEBUG", "Pantalla Configuración - rol actual: ${SesionUsuario.usuario?.rol}, rol deseado: ${SesionUsuario.rolDeseado}")
     val usuarioActual = SesionUsuario.usuario
     var notificacionSolicitudesEnabled by remember { mutableStateOf(usuarioActual?.rol == RolUsuario.ADMIN && (usuarioActual?.let { it.notificacionSolicitudes } ?: true)) }
 

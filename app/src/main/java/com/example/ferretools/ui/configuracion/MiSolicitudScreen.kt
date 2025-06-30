@@ -16,8 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.ferretools.viewmodel.session.MiSolicitudUiState
-import com.example.ferretools.viewmodel.session.MiSolicitudViewModel
+import com.example.ferretools.viewmodel.configuracion.MiSolicitudUiState
+import com.example.ferretools.viewmodel.configuracion.MiSolicitudViewModel
 
 @Composable
 fun MiSolicitudScreen(

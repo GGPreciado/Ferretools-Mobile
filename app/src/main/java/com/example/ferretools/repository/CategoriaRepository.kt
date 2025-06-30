@@ -22,7 +22,7 @@ class CategoriaRepository(
             return@callbackFlow
         }
         val listener = db.collection("categorias")
-            .whereEqualTo("negocio_id", negocioId)
+            .whereEqualTo("negocioId", negocioId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     trySend(Result.Error(error.message ?: "Error desconocido"))
@@ -44,7 +44,7 @@ class CategoriaRepository(
             // Crea un objeto Categoria con el nombre proporcionado
             val categoria = Categoria(
                 nombre = nombre,
-                negocio_id = SesionUsuario.usuario?.negocioId!!
+                negocioId = SesionUsuario.usuario?.negocioId!!
             )
             // Intenta agregar la categoría a la colección "categorias"
             val documentReference = db.collection("categorias").document()

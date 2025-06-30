@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ferretools.model.Result
 import com.example.ferretools.model.database.Negocio
+import com.example.ferretools.model.enums.RolUsuario
 import com.example.ferretools.model.states.registro.RegistroNegocioUiState
 import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.Firebase
@@ -86,13 +87,13 @@ class RegistroNegocioViewModel: ViewModel() {
             }
     }
 
-    private fun updateUserBusiness(uid: String, negocio_id: String) {
+    private fun updateUserBusiness(uid: String, negocioId: String) {
         db.collection("usuarios")
             .document(uid)
-            .update("negocio_id", negocio_id)
+            .update("negocioId", negocioId)
             .addOnSuccessListener {
                 Log.e("FIREBASE", "Usuario actualizado correctamente")
-                SesionUsuario.actualizarDatos(negocioId = negocio_id)
+                SesionUsuario.actualizarDatos(negocioId = negocioId)
                 // Marcar como exitoso
                 _uiState.update { it.copy(registerSuccessful = true) }
             }
@@ -131,7 +132,40 @@ class RegistroNegocioViewModel: ViewModel() {
             val result = negocioRepository.crearNegocio(newBusiness)
             when (result) {
                 is Result.Success -> {
-                    updateUserBusiness(uid, result.data)
+                    val negocioIdCreado = result.data
+                    // Actualizar usuario: rol = ADMIN, negocioId = nuevo negocio
+                    db.collection("usuarios").document(uid)
+                        .update(mapOf("rol" to "ADMIN", "negocioId" to negocioIdCreado))
+                        .addOnSuccessListener {
+                            /*
+                            SesionUsuario.actualizarDatos(rol = RolUsuario.ADMIN, negocioId = negocioIdCreado)
+                            _uiState.update { it.copy(registerSuccessful = true) }
+                             */
+                            // Leer usuario actualizado y actualizar sesión local
+                            db.collection("usuarios").document(uid).get()
+                                .addOnSuccessListener { doc ->
+                                    val usuarioActualizado = doc.toObject(com.example.ferretools.model.database.Usuario::class.java)
+                                    if (usuarioActualizado != null) {
+                                        SesionUsuario.iniciarSesion(
+                                            com.example.ferretools.utils.UsuarioActual(
+                                                uid = uid,
+                                                nombre = usuarioActualizado.nombre,
+                                                correo = SesionUsuario.usuario?.correo ?: "",
+                                                celular = usuarioActualizado.celular,
+                                                fotoUrl = usuarioActualizado.fotoUrl,
+                                                rol = usuarioActualizado.rol,
+                                                negocioId = usuarioActualizado.negocioId,
+                                                notificacionSolicitudes = SesionUsuario.usuario?.notificacionSolicitudes ?: true
+                                            )
+                                        )
+                                    }
+                                    _uiState.update { it.copy(registerSuccessful = true) }
+                                }
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("FIREBASE", "Error al actualizar usuario: ${exception.message}")
+                            _uiState.update { it.copy(error = exception.message) }
+                        }
                 }
                 is Result.Error -> {
                     _uiState.update { it.copy(error = result.message) }

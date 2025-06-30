@@ -27,7 +27,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.example.ferretools.viewmodel.session.CambiarQRYapeViewModel
+import com.example.ferretools.viewmodel.configuracion.CambiarQRYapeViewModel
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
