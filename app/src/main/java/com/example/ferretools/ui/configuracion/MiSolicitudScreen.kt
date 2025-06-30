@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.ferretools.model.enums.RolUsuario
 import com.example.ferretools.viewmodel.configuracion.MiSolicitudUiState
 import com.example.ferretools.viewmodel.configuracion.MiSolicitudViewModel
 
@@ -78,8 +79,9 @@ fun MiSolicitudScreen(
                         Button(
                             onClick = {
                                 viewModel.crearSolicitud(
+                                    rolSolicitado = RolUsuario.ALMACENERO,
                                     onSuccess = {
-                                        successMessage = "Solicitud creada exitosamente"
+                                        successMessage = "Solicitud de Almacenero creada exitosamente"
                                     },
                                     onError = {
                                         errorMessage = it
@@ -90,6 +92,24 @@ fun MiSolicitudScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Solicitar ser Almacenero", fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                viewModel.crearSolicitud(
+                                    rolSolicitado = RolUsuario.ADMIN,
+                                    onSuccess = {
+                                        successMessage = "Solicitud de Administrador creada exitosamente"
+                                    },
+                                    onError = {
+                                        errorMessage = it
+                                    }
+                                )
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Solicitar ser Administrador", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
