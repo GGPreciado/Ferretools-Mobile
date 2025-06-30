@@ -35,7 +35,7 @@ class MiSolicitudViewModel : ViewModel() {
         }
         db.collection("solicitudes")
             .whereEqualTo("usuarioId", usuario.uid)
-            .whereEqualTo("rolSolicitado", "ALMACENERO")
+            .whereIn("rolSolicitado", listOf("ALMACENERO", "ADMIN"))
             .whereEqualTo("estado", "pendiente")
             .get()
             .addOnSuccessListener { result ->
@@ -48,9 +48,13 @@ class MiSolicitudViewModel : ViewModel() {
                     val celular = doc.getString("celular") ?: ""
                     val fotoUriString = doc.getString("fotoUri")
                     val fotoUri = fotoUriString?.let { Uri.parse(it) }
-                    val rolSolicitado = RolUsuario.ALMACENERO
+                    val rolSolicitado = when(doc.getString("rolSolicitado")) {
+                        "ADMIN" -> RolUsuario.ADMIN
+                        else -> RolUsuario.ALMACENERO
+                    }
                     val estado = doc.getString("estado") ?: "pendiente"
-                    val solicitud = Solicitud(id, usuarioId, nombreUsuario, correo, celular, fotoUri, rolSolicitado, estado)
+                    val negocioId = doc.getString("negocioId") ?: ""
+                    val solicitud = Solicitud(id, usuarioId, nombreUsuario, correo, celular, fotoUri, rolSolicitado, estado, negocioId)
                     _uiState.value = MiSolicitudUiState.Success(solicitud)
                 } else {
                     _uiState.value = MiSolicitudUiState.Empty
@@ -76,7 +80,11 @@ class MiSolicitudViewModel : ViewModel() {
         }
     }
 
-    fun crearSolicitud(onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun crearSolicitud(
+        rolSolicitado: RolUsuario,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         val usuario = SesionUsuario.usuario
         if (usuario == null) {
             onError("No hay usuario en sesión")
@@ -88,19 +96,38 @@ class MiSolicitudViewModel : ViewModel() {
             "correo" to usuario.correo,
             "celular" to usuario.celular,
             "fotoUrl" to (usuario.fotoUrl?.toString() ?: ""),
-            "rolSolicitado" to "ALMACENERO",
-            "estado" to "pendiente"
+            "rolSolicitado" to rolSolicitado.name,
+            "estado" to "pendiente",
+            "negocioId" to (usuario.negocioId ?: "")
         )
         db.collection("solicitudes")
             .add(solicitudMap)
             .addOnSuccessListener {
-                // Enviar notificación push a los administradores
                 enviarNotificacionPushAdmin()
                 fetchMiSolicitud()
                 onSuccess()
             }
             .addOnFailureListener { e ->
                 onError(e.message ?: "Error al crear solicitud")
+            }
+    }
+
+    fun tieneSolicitudPendiente(rol: RolUsuario, callback: (Boolean) -> Unit) {
+        val usuario = SesionUsuario.usuario
+        if (usuario == null) {
+            callback(false)
+            return
+        }
+        db.collection("solicitudes")
+            .whereEqualTo("usuarioId", usuario.uid)
+            .whereEqualTo("rolSolicitado", rol.name)
+            .whereEqualTo("estado", "pendiente")
+            .get()
+            .addOnSuccessListener { result ->
+                callback(result.documents.isNotEmpty())
+            }
+            .addOnFailureListener { _ ->
+                callback(false)
             }
     }
 
