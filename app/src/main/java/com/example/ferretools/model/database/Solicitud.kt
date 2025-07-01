@@ -14,5 +14,6 @@ data class Solicitud(
     val celular: String = "",
     val fotoUri: Uri? = null,
     val rolSolicitado: RolUsuario = RolUsuario.ALMACENERO,
-    val estado: String = "pendiente" // "pendiente", "aceptada", "rechazada"
+    val estado: String = "pendiente", // "pendiente", "aceptada", "rechazada"
+    val negocioId: String = "" // Nuevo campo para el id del negocio
 ) 

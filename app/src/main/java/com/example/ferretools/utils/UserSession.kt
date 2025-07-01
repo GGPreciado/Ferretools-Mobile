@@ -18,6 +18,9 @@ object SesionUsuario {
     val usuario: UsuarioActual?
         get() = _usuario
 
+    var rolDeseado: RolUsuario? = null
+    var negocioId: String? = null
+
     fun iniciarSesion(usuario: UsuarioActual) {
         this._usuario = usuario
     }
@@ -27,8 +30,10 @@ object SesionUsuario {
         correo: String? = null,
         celular: String? = null,
         fotoUrl: String? = null,
+        rol: RolUsuario? = null,
         negocioId: String? = null,
-        notificacionSolicitudes: Boolean? = null
+        notificacionSolicitudes: Boolean? = null,
+        rolDeseado: RolUsuario? = null
     ) {
         _usuario = _usuario?.copy(
             nombre = nombre ?: _usuario!!.nombre,
@@ -38,6 +43,8 @@ object SesionUsuario {
             negocioId = negocioId ?: _usuario!!.negocioId,
             notificacionSolicitudes = notificacionSolicitudes ?: _usuario!!.notificacionSolicitudes
         )
+        if (rolDeseado != null) this.rolDeseado = rolDeseado
+        if (negocioId != null) this.negocioId = negocioId
     }
 
     fun cerrarSesion() {

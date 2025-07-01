@@ -18,9 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.ferretools.model.database.Solicitud
-import com.example.ferretools.viewmodel.session.RevisarSolicitudesViewModel
-import com.example.ferretools.viewmodel.session.SolicitudesUiState
+import com.example.ferretools.viewmodel.configuracion.RevisarSolicitudesViewModel
+import com.example.ferretools.viewmodel.configuracion.SolicitudesUiState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun SolicitudesScreen(
@@ -87,8 +89,8 @@ fun SolicitudesScreen(
                         Text("No hay solicitudes pendientes.")
                     }
                 } else {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        solicitudes.forEach { solicitud ->
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(solicitudes) { solicitud ->
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()

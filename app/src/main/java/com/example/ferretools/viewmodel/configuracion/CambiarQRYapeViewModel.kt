@@ -1,9 +1,7 @@
-package com.example.ferretools.viewmodel.session
+package com.example.ferretools.viewmodel.configuracion
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.ferretools.model.database.Negocio
 import com.example.ferretools.model.registro.CambiarQRYapeUiState
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth

@@ -1,5 +1,6 @@
 package com.example.ferretools.ui.configuracion
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
 import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseAuth
 
 
 @Composable
@@ -60,8 +62,18 @@ fun Config_01_Configuracion(
     stockNotificationEnabled: Boolean,
     // viewModel: ConfiguracionViewModel = viewModel() // Para uso futuro
 ) {
+    Log.e("DEBUG", "Pantalla Configuración - rol actual: ${SesionUsuario.usuario?.rol}, rol deseado: ${SesionUsuario.rolDeseado}")
     val usuarioActual = SesionUsuario.usuario
+    if (usuarioActual == null) {
+        LaunchedEffect(Unit) {
+            navController.navigate(com.example.ferretools.navigation.AppRoutes.Auth.WELCOME) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+        return
+    }
     var notificacionSolicitudesEnabled by remember { mutableStateOf(usuarioActual?.rol == RolUsuario.ADMIN && (usuarioActual?.let { it.notificacionSolicitudes } ?: true)) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     // Leer el valor actualizado de Firestore al entrar a la pantalla
     LaunchedEffect(usuarioActual?.uid) {
@@ -203,9 +215,34 @@ fun Config_01_Configuracion(
                 icon = Icons.AutoMirrored.Filled.ExitToApp,
                 text = "Cerrar Sesión",
                 color = MaterialTheme.colorScheme.error,
-                onClick = { navController.navigate(AppRoutes.Config.CONFIRM_LOGOUT) }
+                onClick = { showLogoutDialog = true }
             )
             Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        if (showLogoutDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Cerrar sesión") },
+                text = { Text("¿Estás seguro de que deseas cerrar sesión?") },
+                confirmButton = {
+                    androidx.compose.material3.Button(
+                        onClick = {
+                            FirebaseAuth.getInstance().signOut()
+                            SesionUsuario.cerrarSesion()
+                            showLogoutDialog = false
+                            navController.navigate(AppRoutes.Auth.WELCOME) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    ) { Text("Sí, cerrar sesión") }
+                },
+                dismissButton = {
+                    androidx.compose.material3.Button(onClick = { showLogoutDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }

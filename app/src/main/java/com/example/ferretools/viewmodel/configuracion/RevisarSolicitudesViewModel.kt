@@ -1,14 +1,14 @@
-package com.example.ferretools.viewmodel.session
+package com.example.ferretools.viewmodel.configuracion
 
-import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import com.example.ferretools.model.database.Solicitud
 import com.example.ferretools.model.enums.RolUsuario
+import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
 sealed class SolicitudesUiState {
     object Loading : SolicitudesUiState()
@@ -28,8 +28,11 @@ class RevisarSolicitudesViewModel : ViewModel() {
 
     fun fetchSolicitudes() {
         _solicitudesState.value = SolicitudesUiState.Loading
+        val usuario = SesionUsuario.usuario
+        val negocioId = usuario?.negocioId ?: ""
         db.collection("solicitudes")
             .whereEqualTo("estado", "pendiente")
+            .whereEqualTo("negocioId", negocioId)
             .get()
             .addOnSuccessListener { result ->
                 val solicitudes = result.documents.mapNotNull { doc ->
@@ -39,11 +42,12 @@ class RevisarSolicitudesViewModel : ViewModel() {
                     val correo = doc.getString("correo") ?: ""
                     val celular = doc.getString("celular") ?: ""
                     val fotoUriString = doc.getString("fotoUri")
-                    val fotoUri = fotoUriString?.let { android.net.Uri.parse(it) }
+                    val fotoUri = fotoUriString?.let { Uri.parse(it) }
                     val rolSolicitadoStr = doc.getString("rolSolicitado") ?: "ALMACENERO"
                     val rolSolicitado = try { RolUsuario.valueOf(rolSolicitadoStr) } catch (e: Exception) { RolUsuario.ALMACENERO }
                     val estado = doc.getString("estado") ?: "pendiente"
-                    Solicitud(id, usuarioId, nombreUsuario, correo, celular, fotoUri, rolSolicitado, estado)
+                    val negocioId = doc.getString("negocioId") ?: ""
+                    Solicitud(id, usuarioId, nombreUsuario, correo, celular, fotoUri, rolSolicitado, estado, negocioId)
                 }
                 _solicitudesState.value = SolicitudesUiState.Success(solicitudes)
             }
