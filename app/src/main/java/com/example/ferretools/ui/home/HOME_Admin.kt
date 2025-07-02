@@ -29,13 +29,19 @@ import com.example.ferretools.ui.components.*
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.utils.NotificationHelper
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.viewmodel.HomeAdminViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 @Composable
 fun HOME_Admin(
     navController: NavController,
-    // viewModel: HomeAdminViewModel = viewModel() // Para uso futuro
+    viewModel: HomeAdminViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val stockAlerts by viewModel.stockAlerts.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     /*
     LaunchedEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
@@ -142,9 +148,19 @@ fun HOME_Admin(
         }
         Spacer(modifier = Modifier.height(8.dp))
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            StockAlertCard("Producto Crítico", 0, Color(0xFFFF8A80))
-            StockAlertCard("Producto Bajo", 0, Color(0xFFFFF176))
-            StockAlertCard("Producto Bajo 2", 0, Color(0xFFFFF176))
+            when {
+                isLoading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                }
+                stockAlerts.isEmpty() -> {
+                    Text("No hay productos con bajo stock.", color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+                }
+                else -> {
+                    StockAlerts(
+                        alerts = stockAlerts
+                    )
+                }
+            }
         }
         Box(modifier = Modifier.weight(1f)) {}
         // Barra de navegación inferior
