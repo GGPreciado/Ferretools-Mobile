@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 // Colores para las alertas
 val RedAlert = Color(0xFFFF8A80)
@@ -24,26 +26,12 @@ data class StockAlert(val product: String, val units: Int, val isLow: Boolean)
 
 @Composable
 fun StockAlerts(alerts: List<StockAlert>) {
-    Column(Modifier.padding(horizontal = 0.dp)) {
-        /*
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Alertas de Stock", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Black)
-            Spacer(Modifier.weight(1f))
-            Button(
-                onClick = onReport,
-                colors = ButtonDefaults.buttonColors(containerColor = YellowAlert)
-            ) {
-                Text("Reporte", fontWeight = FontWeight.Bold, color = Black)
-            }
-        }
-        Spacer(Modifier.height(8.dp))
-
-         */
-        alerts.forEach {
-            StockAlertCard(it)
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(vertical = 8.dp)
+    ) {
+        items(alerts) { alert ->
+            StockAlertCard(alert)
             Spacer(Modifier.height(8.dp))
         }
     }

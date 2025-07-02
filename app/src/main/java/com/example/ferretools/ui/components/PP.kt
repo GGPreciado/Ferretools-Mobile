@@ -1,5 +1,5 @@
-package com.example.ferretools.ui.home
-
+package com.example.ferretools.ui.components
+/*
 // === Imports ===
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -244,3 +244,6 @@ fun DashboardScreenPreview() {
         onReport = {}
     )
 }
+
+
+ */
