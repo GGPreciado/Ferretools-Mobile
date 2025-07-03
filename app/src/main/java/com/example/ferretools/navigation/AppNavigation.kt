@@ -61,6 +61,7 @@ import com.example.ferretools.ui.venta.V_02_ResumenCarritoVenta
 import com.example.ferretools.ui.venta.V_04_VentaExitosa
 import com.example.ferretools.ui.venta.V_05_BoletaVenta
 import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
+import com.example.ferretools.viewmodel.compra.CompraViewModel
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -88,6 +89,9 @@ fun AppNavigation(navController: NavHostController) {
         PedidoCliente("1002", "2024-06-12", "Listo", "S/ 30.00"),
         PedidoCliente("1003", "2024-06-13", "En preparación", "S/ 20.00")
     )
+
+    // ViewModel compartido para el flujo de compras
+    val compraViewModel: CompraViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -243,16 +247,16 @@ fun AppNavigation(navController: NavHostController) {
         }
         // Compras Stack
         composable(AppRoutes.Purchase.CART) {
-            C_01_CarritoCompra(navController = navController)
+            C_01_CarritoCompra(navController = navController, viewModel = compraViewModel)
         }
         composable(AppRoutes.Purchase.CART_SUMMARY) {
-            C_02_ResumenCarritoCompra(navController = navController)
+            C_02_ResumenCarritoCompra(navController = navController, viewModel = compraViewModel)
         }
         composable(AppRoutes.Purchase.SUCCESS) {
-            C_04_CompraExitosa(navController = navController)
+            C_04_CompraExitosa(navController = navController, viewModel = compraViewModel)
         }
         composable(AppRoutes.Purchase.RECEIPT) {
-            C_05_BoletaCompra(navController = navController)
+            C_05_BoletaCompra(navController = navController, viewModel = compraViewModel)
         }
         // Ventas Stack
         composable(AppRoutes.Sale.CART) {

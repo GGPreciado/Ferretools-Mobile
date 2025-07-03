@@ -18,11 +18,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.ui.components.ConfirmationNavBar
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.viewmodel.compra.CompraViewModel
 
 @Composable
 fun C_04_CompraExitosa(
     navController: NavController,
-    // viewModel: CompraExitosaViewModel = viewModel() // Para uso futuro
+    viewModel: CompraViewModel = viewModel()
 ) {
     Scaffold(
         bottomBar = { ConfirmationNavBar(navController) }
