@@ -61,6 +61,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -198,43 +199,42 @@ fun C_02_ResumenCarritoCompra(
                             }) { Text("-") }
                             OutlinedTextField(
                                 value = cantidadTexto,
-                                onValueChange = { newValue ->
-                                    if (newValue.all { it.isDigit() }) {
-                                        cantidadTexto = newValue
-                                        val nuevaCantidad = newValue.toIntOrNull() ?: 0
-                                        if (nuevaCantidad in 1..(producto?.cantidad_disponible ?: Int.MAX_VALUE)) {
-                                            viewModel.cambiarCantidad(item.producto_id ?: "", nuevaCantidad, producto?.precio ?: 0.0)
-                                        }
+                                onValueChange = {
+                                    cantidadTexto = it
+                                    val nuevaCantidad = it.toIntOrNull() ?: 1
+                                    if (nuevaCantidad > 0) {
+                                        viewModel.cambiarCantidad(item.producto_id ?: "", nuevaCantidad, producto?.precio ?: 0.0)
                                     }
                                 },
                                 modifier = Modifier
                                     .width(60.dp)
                                     .padding(horizontal = 8.dp),
                                 singleLine = true,
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Number,
-                                    imeAction = ImeAction.Done
-                                )
+                                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center), // no se
+                                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Done)
                             )
                             Button(onClick = {
-                                if ((item.cantidad ?: 0) >= (producto?.cantidad_disponible ?: 0)) {
-                                    bannerMessage = "No hay suficiente stock para agregar más de este producto."
-                                    showBanner = true
-                                    Log.d("C_02_ResumenCarritoCompra", "Intento de aumentar más allá del stock: ${producto?.nombre}")
-                                } else {
-                                    val nuevaCantidad = (item.cantidad ?: 0) + 1
-                                    cantidadTexto = nuevaCantidad.toString()
-                                    viewModel.cambiarCantidad(item.producto_id ?: "", nuevaCantidad, producto?.precio ?: 0.0)
-                                    Log.d("C_02_ResumenCarritoCompra", "Aumentó cantidad de ${producto?.nombre}")
-                                }
+                                val nuevaCantidad = (item.cantidad ?: 0) + 1
+                                cantidadTexto = nuevaCantidad.toString()
+                                viewModel.cambiarCantidad(item.producto_id ?: "", nuevaCantidad, producto?.precio ?: 0.0)
+                                Log.d("C_02_ResumenCarritoCompra", "Aumentó cantidad de ${producto?.nombre}")
                             }) { Text("+") }
+                            Spacer(modifier = Modifier.width(16.dp))
                             Button(
                                 onClick = {
                                     viewModel.quitarProducto(item.producto_id ?: "")
                                     Log.d("C_02_ResumenCarritoCompra", "Eliminado del carrito: ${producto?.nombre}")
                                 },
+                                /*
                                 modifier = Modifier.padding(start = 8.dp)
                             ) { Text("Eliminar") }
+                                 */
+
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                            ) {
+                                Text("Eliminar", color = Color.White)
+                            }
                         }
                     }
                 }

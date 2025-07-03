@@ -154,27 +154,18 @@ fun C_01_CarritoCompra(
             ) {
                 items(productosFiltrados.size) { idx ->
                     val producto = productosFiltrados[idx]
-                    val existente = uiState.productosSeleccionados.find { it.producto_id == producto.producto_id }
-                    val cantidadEnCarrito = existente?.cantidad ?: 0
-                    val agotado = cantidadEnCarrito >= producto.cantidad_disponible && producto.cantidad_disponible > 0
-                    // Cada carta representa un producto. Si está agotado, se ve apagada y no responde al click.
+                    // Eliminar validación de stock para compras
                     CartaProducto(
                         producto = producto,
                         onClick = {
-                            if (agotado) {
-                                bannerMessage = "No hay suficiente stock para agregar más de este producto."
-                                showBanner = true
-                                Log.d("C_01_CarritoCompra", "Intento de agregar más productos que el stock disponible: ${producto.nombre}")
-                            } else {
-                                Log.d("C_01_CarritoCompra", "Producto agregado al carrito: ${producto.nombre}")
-                                viewModel.agregarProducto(ItemUnitario(
-                                    cantidad = 1,
-                                    subtotal = producto.precio,
-                                    producto_id = producto.producto_id
-                                ))
-                            }
+                            viewModel.agregarProducto(ItemUnitario(
+                                cantidad = 1,
+                                subtotal = producto.precio,
+                                producto_id = producto.producto_id
+                            ))
+                            Log.d("C_01_CarritoCompra", "Producto agregado al carrito: ${producto.nombre}")
                         },
-                        modifier = if (agotado) Modifier.alpha(0.4f) else Modifier
+                        modifier = Modifier // Siempre habilitado
                     )
                 }
             }
