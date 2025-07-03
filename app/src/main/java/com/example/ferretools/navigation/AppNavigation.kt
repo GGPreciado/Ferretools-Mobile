@@ -269,7 +269,7 @@ fun AppNavigation(navController: NavHostController) {
             V_02_ResumenCarritoVenta(navController = navController, viewModel = ventaViewModel)
         }
         composable(AppRoutes.Sale.SUCCESS) {
-            V_04_VentaExitosa(navController = navController, viewModel = ventaViewModel)
+            V_04_VentaExitosa(navController = navController)
         }
         composable(AppRoutes.Sale.RECEIPT) {
             V_05_BoletaVenta(navController = navController, viewModel = ventaViewModel)
