@@ -22,11 +22,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SelectorCategoria(modifier: Modifier = Modifier) {
+fun SelectorCategoria(
+    categorias: List<String>,
+    onCategoriaSeleccionada: (String) -> Unit,
+    categoriaSeleccionada: String,
+    modifier: Modifier = Modifier
+) {
     Text("Categoría")
     Spacer(modifier = Modifier.height(4.dp))
     var expanded by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf("Seleccionar categorías") }
     Box {
         OutlinedButton(
             onClick = { expanded = true },
@@ -34,7 +38,7 @@ fun SelectorCategoria(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                selectedCategory,
+                categoriaSeleccionada.ifEmpty { "Seleccionar categorías" },
                 color = Color.Black
             )
             Icon(
@@ -47,18 +51,14 @@ fun SelectorCategoria(modifier: Modifier = Modifier) {
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            DropdownMenuItem(onClick = {
-                selectedCategory = "Categoría 1"
-                expanded = false
-            },
-                text = { Text("Categoría 1") }
-            )
-            DropdownMenuItem(onClick = {
-                selectedCategory = "Categoría 2"
-                expanded = false
-            },
-                text = { Text("Categoría 2") }
-            )
+            categorias.forEach { categoria ->
+                DropdownMenuItem(onClick = {
+                    onCategoriaSeleccionada(categoria)
+                    expanded = false
+                },
+                    text = { Text(categoria) }
+                )
+            }
         }
     }
 }

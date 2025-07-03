@@ -44,7 +44,8 @@ fun P_01_AgregarAlCarrito(
         ) {
             // Buscador y escáner de barras
             Row {
-                SearchBar(Modifier.weight(0.80f))
+                //SearchBar(Modifier.weight(0.80f))=====================================================> Por COmpra
+
                 ScanButton(
                     Modifier
                         .padding(
@@ -60,7 +61,7 @@ fun P_01_AgregarAlCarrito(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Categorías
-            SelectorCategoria()
+            //SelectorCategoria()=====================================================> Por COmpra
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -70,7 +71,7 @@ fun P_01_AgregarAlCarrito(
                 modifier = Modifier.weight(1f)
             ) {
                 items(9) {
-                    CartaProducto()
+                    //CartaProducto() =====================================================> Por COmpra
                 }
             }
             // Botón Continuar
