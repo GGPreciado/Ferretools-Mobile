@@ -92,6 +92,9 @@ fun AppNavigation(navController: NavHostController) {
 
     // ViewModel compartido para el flujo de compras
     val compraViewModel: CompraViewModel = viewModel()
+    
+    // ViewModel compartido para el flujo de ventas
+    val ventaViewModel: com.example.ferretools.viewmodel.venta.VentaViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -260,16 +263,16 @@ fun AppNavigation(navController: NavHostController) {
         }
         // Ventas Stack
         composable(AppRoutes.Sale.CART) {
-            V_01_CarritoVenta(navController = navController)
+            V_01_CarritoVenta(navController = navController, viewModel = ventaViewModel)
         }
         composable(AppRoutes.Sale.CART_SUMMARY) {
-            V_02_ResumenCarritoVenta(navController = navController)
+            V_02_ResumenCarritoVenta(navController = navController, viewModel = ventaViewModel)
         }
         composable(AppRoutes.Sale.SUCCESS) {
-            V_04_VentaExitosa(navController = navController)
+            V_04_VentaExitosa(navController = navController, viewModel = ventaViewModel)
         }
         composable(AppRoutes.Sale.RECEIPT) {
-            V_05_BoletaVenta(navController = navController)
+            V_05_BoletaVenta(navController = navController, viewModel = ventaViewModel)
         }
         // Pedidos Stack
         composable(AppRoutes.Order.ADD_TO_CART) {
