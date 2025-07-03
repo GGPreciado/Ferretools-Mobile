@@ -14,30 +14,41 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.ferretools.R
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.model.enums.RolUsuario
+import com.example.ferretools.utils.SesionUsuario
 
 @Composable
 fun ConfirmationNavBar(
     navController: NavController,
+    onReceiptClick: () -> Unit,
+    onNewOperationClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavigationBar(containerColor = Color(0xFF00BF59)) {
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate(AppRoutes.Purchase.RECEIPT) },
+            onClick = onReceiptClick,
             icon = { Image(painterResource(R.drawable.documento), contentDescription = "Recibo") },
             label = { Text("Recibo", fontSize = 14.sp) },
             modifier = modifier
         )
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate(AppRoutes.Admin.DASHBOARD) },
+            onClick = {
+                when (SesionUsuario.usuario?.rol) {
+                    RolUsuario.ADMIN -> navController.navigate(AppRoutes.Admin.DASHBOARD)
+                    RolUsuario.ALMACENERO -> navController.navigate(AppRoutes.Employee.DASHBOARD)
+                    RolUsuario.CLIENTE -> navController.navigate(AppRoutes.Client.DASHBOARD)
+                    else -> navController.navigate(AppRoutes.Admin.DASHBOARD)
+                }
+            },
             icon = { Image(painterResource(R.drawable.inicio), contentDescription = "Inicio") },
             label = { Text("Inicio", fontSize = 14.sp) },
             modifier = modifier
         )
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate(AppRoutes.Purchase.CART) },
+            onClick = onNewOperationClick,
             icon = { Image(painterResource(R.drawable.nuevo), contentDescription = "Nuevo", modifier = Modifier.size(70.dp)) },
             label = { Text("Nueva Operación", fontSize = 14.sp) },
             modifier = modifier

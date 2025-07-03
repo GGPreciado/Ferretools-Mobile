@@ -19,7 +19,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.ui.components.ConfirmationNavBar
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.viewmodel.compra.CompraViewModel
+import com.example.ferretools.ui.components.TopNavBar
 
 @Composable
 fun C_04_CompraExitosa(
@@ -27,7 +29,14 @@ fun C_04_CompraExitosa(
     viewModel: CompraViewModel = viewModel()
 ) {
     Scaffold(
-        bottomBar = { ConfirmationNavBar(navController) }
+        //topBar = { TopNavBar(navController, "Compra Exitosa") },
+        bottomBar = {
+            ConfirmationNavBar(
+                navController = navController,
+                onReceiptClick = { navController.navigate(AppRoutes.Purchase.RECEIPT) },
+                onNewOperationClick = { navController.navigate(AppRoutes.Purchase.CART) }
+            )
+        }
     ) { padding ->
         // Contenido principal centrado
         Box(
