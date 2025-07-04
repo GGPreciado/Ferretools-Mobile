@@ -7,7 +7,7 @@ import kotlinx.coroutines.tasks.await
 import android.util.Log
 
 class PedidoRepository(
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
     /**
      * Registra un pedido en la colección 'pedidos'.

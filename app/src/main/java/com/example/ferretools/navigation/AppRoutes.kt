@@ -104,12 +104,15 @@ object AppRoutes {
         const val SUCCESS = "order_success"
         const val HISTORY = "order_history"
         const val RECEIPT = "order_receipt"
+        const val DETAILS = "order/details/{pedidoId}"
+        fun detailsWithId(pedidoId: String) = "order/details/$pedidoId"
 
         // Rutas específicas para empleados
         object Employee {
             const val HISTORY = "order_employee_history"
             const val DETAILS = "order_employee_details"
-            const val PREPARE = "order_employee_prepare"
+            const val PREPARE = "order_employee_prepare/{pedidoId}"
+            fun prepareWithId(pedidoId: String) = "order_employee_prepare/$pedidoId"
         }
     }
 
