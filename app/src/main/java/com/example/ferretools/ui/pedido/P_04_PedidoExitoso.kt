@@ -1,16 +1,7 @@
 package com.example.ferretools.ui.pedido
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbUp
@@ -33,14 +24,15 @@ import com.example.ferretools.ui.components.ConfirmationNavBar
 @Composable
 fun P_04_PedidoExitoso(
     navController: NavController,
-    // viewModel: PedidoExitosoViewModel = viewModel() // Para uso futuro
 ) {
     Scaffold(
-        bottomBar = { ConfirmationNavBar(
-            navController = navController,
-            onReceiptClick = { navController.navigate(AppRoutes.Purchase.RECEIPT) },
-            onNewOperationClick = { navController.navigate(AppRoutes.Purchase.CART) }
-        ) }
+        bottomBar = {
+            ConfirmationNavBar(
+                navController = navController,
+                onReceiptClick = { navController.navigate(AppRoutes.Order.RECEIPT) },
+                onNewOperationClick = { navController.navigate(AppRoutes.Order.ADD_TO_CART) }
+            )
+        }
     ) { padding ->
         Box(
             modifier = Modifier
