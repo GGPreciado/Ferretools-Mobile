@@ -96,6 +96,9 @@ fun AppNavigation(navController: NavHostController) {
     // ViewModel compartido para el flujo de ventas
     val ventaViewModel: com.example.ferretools.viewmodel.venta.VentaViewModel = viewModel()
 
+    // ViewModel compartido para el flujo de pedidos
+    val pedidoViewModel: com.example.ferretools.viewmodel.pedido.PedidoViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = AppRoutes.Auth.WELCOME
@@ -276,10 +279,10 @@ fun AppNavigation(navController: NavHostController) {
         }
         // Pedidos Stack
         composable(AppRoutes.Order.ADD_TO_CART) {
-            P_01_AgregarAlCarrito(navController = navController)
+            P_01_AgregarAlCarrito(navController = navController, viewModel = pedidoViewModel)
         }
         composable(AppRoutes.Order.CART) {
-            P_02_CarritoCliente(navController = navController)
+            P_02_CarritoCliente(navController = navController, viewModel = pedidoViewModel)
         }
         composable(AppRoutes.Order.CONFIRM) {
             P_03_ConfirmarPedido(navController = navController)
@@ -299,7 +302,7 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
         composable(AppRoutes.Order.RECEIPT) {
-            P_06_BoletaPedido(navController = navController)
+            P_06_BoletaPedido(navController = navController, viewModel = pedidoViewModel)
         }
         composable(AppRoutes.Order.Employee.HISTORY) {
             P_E1_HistorialPedidos(
