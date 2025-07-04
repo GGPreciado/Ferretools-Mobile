@@ -22,6 +22,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.ui.home.EmpleadoBottomNavBar
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.example.ferretools.viewmodel.pedido.PedidoViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 
 // --- Constantes de Estilo ---
 private val GreenPrimary = Color(0xFF22D366)
@@ -179,12 +187,19 @@ fun ListaHistorialPedidos(
 @Composable
 fun P_E1_HistorialPedidos(
     navController: NavController,
-    pedidosHistorial: List<PedidoHistorial>,
+    pedidosHistorial: List<PedidoHistorial> = emptyList(),
     onPedidoClick: (PedidoHistorial) -> Unit,
     userName: String = "Nombre de Usuario",
-    storeName: String = "Nombre de la Tienda"
-    // viewModel: HistorialPedidosEmpleadoViewModel = viewModel() // Para uso futuro
+    storeName: String = "Nombre de la Tienda",
+    viewModel: PedidoViewModel = viewModel()
 ) {
+    // Observar todos los pedidos del negocio en tiempo real
+    val todosPedidos = viewModel.todosPedidosNegocio.collectAsState().value
+    LaunchedEffect(Unit) { viewModel.cargarTodosPedidosNegocio() }
+    // DropdownMenu de orden
+    var expanded by remember { mutableStateOf(false) }
+    var ordenDescendente by remember { mutableStateOf(true) }
+    val ordenLabel = if (ordenDescendente) "Más recientes primero" else "Más antiguos primero"
     Scaffold(
         topBar = { AlmaceneroTopBar(navController, userName, storeName) },
         bottomBar = { EmpleadoBottomNavBar(
@@ -199,11 +214,60 @@ fun P_E1_HistorialPedidos(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            Text(
+                text = "Historial de Pedidos",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Box {
+                    Button(onClick = { expanded = true }, shape = RoundedCornerShape(24.dp)) {
+                        Text(ordenLabel)
+                    }
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Más recientes primero") },
+                            onClick = {
+                                ordenDescendente = true
+                                expanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Más antiguos primero") },
+                            onClick = {
+                                ordenDescendente = false
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            val pedidosOrdenados = if (ordenDescendente)
+                todosPedidos.sortedByDescending { it.fecha }
+            else
+                todosPedidos.sortedBy { it.fecha }
             ListaHistorialPedidos(
-                pedidos = pedidosHistorial,
+                pedidos = pedidosOrdenados.map {
+                    PedidoHistorial(
+                        id = it.pedidoId,
+                        cliente = it.clienteId ?: "-",
+                        fecha = it.fecha?.toDate()?.let { date ->
+                            java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault()).format(date)
+                        } ?: "",
+                        productos = it.lista_productos.map { item -> "${item.producto_id} x${item.cantidad}" },
+                        estado = it.estado.replaceFirstChar { c -> c.uppercase() }
+                    )
+                },
                 onPedidoClick = { pedido ->
-                    onPedidoClick(pedido)
-                    navController.navigate(AppRoutes.Order.Employee.DETAILS)
+                    navController.navigate(com.example.ferretools.navigation.AppRoutes.Order.DETAILS.replace("{pedidoId}", pedido.id))
                 }
             )
         }

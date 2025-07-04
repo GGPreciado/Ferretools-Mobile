@@ -62,6 +62,7 @@ import com.example.ferretools.ui.venta.V_04_VentaExitosa
 import com.example.ferretools.ui.venta.V_05_BoletaVenta
 import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
 import com.example.ferretools.viewmodel.compra.CompraViewModel
+import androidx.navigation.NavType
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -313,17 +314,21 @@ fun AppNavigation(navController: NavHostController) {
                 storeName = "Tienda Demo"
             )
         }
-        composable(AppRoutes.Order.Employee.DETAILS) {
-            P_E2_DetallesPedido(
-                navController = navController,
-                pedido = mockPedidoDetalle,
-                onPrepararPedido = {}
-            )
+        composable(
+            route = AppRoutes.Order.DETAILS,
+            arguments = listOf(navArgument("pedidoId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val pedidoId = backStackEntry.arguments?.getString("pedidoId") ?: ""
+            P_E2_DetallesPedido(navController = navController, pedidoId = pedidoId)
         }
-        composable(AppRoutes.Order.Employee.PREPARE) {
+        composable(
+            route = AppRoutes.Order.Employee.PREPARE,
+            arguments = listOf(navArgument("pedidoId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val pedidoId = backStackEntry.arguments?.getString("pedidoId") ?: ""
             P_E3_PrepararPedido(
                 navController = navController,
-                pedidoId = "001",
+                pedidoId = pedidoId,
                 onPedidoPreparado = {}
             )
         }

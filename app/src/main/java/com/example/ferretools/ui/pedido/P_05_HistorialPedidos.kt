@@ -20,6 +20,17 @@ import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.ui.home.ClienteBottomNavBar
 import com.example.ferretools.ui.home.ClienteHeader
 import com.example.ferretools.ui.home.PedidoCliente
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.viewmodel.pedido.PedidoViewModel
+import com.example.ferretools.model.database.Pedido
+import java.text.SimpleDateFormat
+import java.util.Locale
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
 // --- Constantes de Estilo ---
 private val GreenPrimary = Color(0xFF22D366)
@@ -137,12 +148,17 @@ fun P_05_HistorialPedidos(
     userName: String,
     storeName: String,
     navController: NavController,
-    pedidosHistorial: List<PedidoCliente>,
+    pedidosHistorial: List<PedidoCliente> = emptyList(),
     selectedMenu: Int,
     onMenuSelect: (Int) -> Unit,
-    onPedidoClick: (PedidoCliente) -> Unit
-    // viewModel: HistorialPedidosViewModel = viewModel() // Para uso futuro
+    onPedidoClick: (PedidoCliente) -> Unit,
+    viewModel: PedidoViewModel = viewModel()
 ) {
+    // Observar historial de pedidos en tiempo real
+    val historialPedidos = viewModel.historialPedidos.collectAsState().value
+    LaunchedEffect(Unit) {
+        viewModel.cargarHistorialPedidosCliente()
+    }
     Scaffold(
         topBar = { ClienteHeader(userName, storeName) },
         bottomBar = { ClienteBottomNavBar(selected = selectedMenu, onSelect = onMenuSelect) },
@@ -153,13 +169,57 @@ fun P_05_HistorialPedidos(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            ListaHistorialPedidosCliente(
-                pedidos = pedidosHistorial,
-                onPedidoClick = { pedido ->
-                    onPedidoClick(pedido)
-                    navController.navigate(AppRoutes.Order.RECEIPT)
+            var expanded by remember { mutableStateOf(false) }
+            var ordenDescendente by remember { mutableStateOf(true) }
+            val ordenLabel = if (ordenDescendente) "Más recientes primero" else "Más antiguos primero"
+            Column(Modifier.padding(horizontal = 16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Box {
+                        Button(onClick = { expanded = true }) {
+                            Text(ordenLabel)
+                        }
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Más recientes primero") },
+                                onClick = {
+                                    ordenDescendente = true
+                                    expanded = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Más antiguos primero") },
+                                onClick = {
+                                    ordenDescendente = false
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
                 }
-            )
+                val pedidosOrdenados = if (ordenDescendente)
+                    historialPedidos.sortedByDescending { it.fecha }
+                else
+                    historialPedidos.sortedBy { it.fecha }
+                ListaHistorialPedidosCliente(
+                    pedidos = pedidosOrdenados.map {
+                        val fechaFormateada = it.fecha?.toDate()?.let { date ->
+                            SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(date)
+                        } ?: ""
+                        PedidoCliente(
+                            id = it.pedidoId,
+                            fecha = fechaFormateada,
+                            estado = it.estado.replaceFirstChar { c -> c.uppercase() },
+                            total = "S/ ${"%.2f".format(it.total ?: 0.0)}"
+                        )
+                    },
+                    onPedidoClick = { pedido ->
+                        navController.navigate(AppRoutes.Order.detailsWithId(pedido.id))
+                    }
+                )
+            }
         }
     }
 }
