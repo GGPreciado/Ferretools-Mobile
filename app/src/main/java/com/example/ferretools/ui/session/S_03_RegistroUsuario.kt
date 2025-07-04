@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -34,10 +36,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -62,6 +70,11 @@ fun S_03_RegistroUsuario(
 ) {
     val registroUsuarioUiState = registroUsuarioViewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
+    val emailFocusRequester = remember { FocusRequester() }
+    val phoneFocusRequester = remember { FocusRequester() }
+    val passwordFocusRequester = remember { FocusRequester() }
+    val confirmPasswordFocusRequester = remember { FocusRequester() }
 
     // Define un launcher para elegir fotos
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -199,7 +212,11 @@ fun S_03_RegistroUsuario(
             placeholder = "Correo",
             isError = registroUsuarioUiState.value.email.isNotBlank() &&
                     registroUsuarioUiState.value.emailError != null,
-            errorText = registroUsuarioUiState.value.emailError
+            errorText = registroUsuarioUiState.value.emailError,
+            keyboardType = KeyboardType.Email,
+            imeAction = ImeAction.Next,
+            modifier = Modifier.focusRequester(emailFocusRequester),
+            onNext = { phoneFocusRequester.requestFocus() }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -208,7 +225,11 @@ fun S_03_RegistroUsuario(
             label = "Teléfono",
             value = registroUsuarioUiState.value.phone,
             onValueChange = { registroUsuarioViewModel.updatePhone(it) },
-            placeholder = "Teléfono"
+            placeholder = "Teléfono",
+            keyboardType = KeyboardType.Phone,
+            imeAction = ImeAction.Next,
+            modifier = Modifier.focusRequester(phoneFocusRequester),
+            onNext = { passwordFocusRequester.requestFocus() }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -223,7 +244,11 @@ fun S_03_RegistroUsuario(
             onTogglePassword = { registroUsuarioViewModel.toggleShowPassword() },
             isError = registroUsuarioUiState.value.password.isNotBlank() &&
                     registroUsuarioUiState.value.passwordError != null,
-            errorText = registroUsuarioUiState.value.passwordError
+            errorText = registroUsuarioUiState.value.passwordError,
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Next,
+            modifier = Modifier.focusRequester(passwordFocusRequester),
+            onNext = { confirmPasswordFocusRequester.requestFocus() }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -238,7 +263,11 @@ fun S_03_RegistroUsuario(
             onTogglePassword = { registroUsuarioViewModel.toggleShowConfirmPassword() },
             isError = registroUsuarioUiState.value.confirmPassword.isNotBlank() &&
                     registroUsuarioUiState.value.confirmPasswordError != null,
-            errorText = registroUsuarioUiState.value.confirmPasswordError
+            errorText = registroUsuarioUiState.value.confirmPasswordError,
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done,
+            modifier = Modifier.focusRequester(confirmPasswordFocusRequester),
+            onNext = { focusManager.clearFocus() }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -278,8 +307,13 @@ private fun FormField(
     showPassword: Boolean = false,
     onTogglePassword: (() -> Unit)? = null,
     isError: Boolean = false,
-    errorText: String? = null
+    errorText: String? = null,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    imeAction: ImeAction = ImeAction.Next,
+    modifier: Modifier = Modifier,
+    onNext: (() -> Unit)? = null
 ) {
+    val focusManager = LocalFocusManager.current
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
@@ -302,7 +336,12 @@ private fun FormField(
                     }
                 }
             } else null,
-            modifier = Modifier.fillMaxWidth()
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+            keyboardActions = KeyboardActions(
+                onNext = { onNext?.invoke() },
+                onDone = { onNext?.invoke() }
+            ),
+            modifier = modifier.fillMaxWidth()
         )
         if (isError && errorText != null) {
 //            Log.e("DEBUG", errorText)

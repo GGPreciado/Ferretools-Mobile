@@ -62,8 +62,8 @@ fun S_04_RegistroNegocio(
     }
 
     val registroNegocioUiState = registroNegocioViewModel.uiState.collectAsState()
+    val navController = navController
 
-    // Navegar al dashboard cuando el registro sea exitoso
     LaunchedEffect(registroNegocioUiState.value.registerSuccessful) {
         if (registroNegocioUiState.value.registerSuccessful) {
             navController.navigate(AppRoutes.Admin.DASHBOARD) {

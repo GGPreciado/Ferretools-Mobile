@@ -18,16 +18,21 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.ui.components.ConfirmationNavBar
+import com.example.ferretools.navigation.AppRoutes
 
 @Composable
 fun V_04_VentaExitosa(
     navController: NavController,
-    // viewModel: VentaExitosaViewModel = viewModel() // Para uso futuro
 ) {
     Scaffold(
-        bottomBar = { ConfirmationNavBar(navController) }
+        bottomBar = {
+            ConfirmationNavBar(
+                navController = navController,
+                onReceiptClick = { navController.navigate(AppRoutes.Sale.RECEIPT) },
+                onNewOperationClick = { navController.navigate(AppRoutes.Sale.CART) }
+            )
+        }
     ) { padding ->
-
         Box(
             modifier = Modifier
                 .padding(padding)

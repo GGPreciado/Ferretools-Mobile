@@ -77,7 +77,7 @@ fun HOME_Cliente(
             )
             ClienteQuickAccess(
                 onCatalogo = { navController.navigate(AppRoutes.Client.CATALOG) },
-                onCarrito = { navController.navigate(AppRoutes.Order.CART) },
+                onCarrito = { navController.navigate(AppRoutes.Order.ADD_TO_CART) },
                 onHistorial = { navController.navigate(AppRoutes.Order.HISTORY) }
             )
             Spacer(Modifier.height(24.dp))

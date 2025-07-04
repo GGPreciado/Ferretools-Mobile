@@ -128,17 +128,12 @@ class RegistroUsuarioViewModel: ViewModel() {
     }
 
     private fun saveUser(uid: String, fotoUrl: String?) {
-
-        val rolFinal = if (_uiState.value.rolUsuario == RolUsuario.ALMACENERO)
-            RolUsuario.CLIENTE
-        else
-            _uiState.value.rolUsuario
-
+        val rolDeseado = _uiState.value.rolUsuario
         val userMap = Usuario(
             nombre = _uiState.value.name,
             celular = _uiState.value.phone,
             fotoUrl = fotoUrl,
-            rol = rolFinal
+            rol = RolUsuario.CLIENTE // Siempre registrar como CLIENTE
         )
 
         db.collection("usuarios")
@@ -158,8 +153,10 @@ class RegistroUsuarioViewModel: ViewModel() {
                         rol = userMap.rol
                     )
                 )
+                SesionUsuario.actualizarDatos(rolDeseado = rolDeseado)
 
                 if (_uiState.value.rolUsuario == RolUsuario.ALMACENERO) {
+                    /*
                     // Crear la solicitud en la colección 'solicitudes'
                     val solicitudMap = mapOf(
                         "usuarioId" to uid,
@@ -181,6 +178,8 @@ class RegistroUsuarioViewModel: ViewModel() {
                         .addOnFailureListener { e ->
                             Log.e("TAG", "Error al registrar solicitud: ${e.message}")
                         }
+                     */
+                    // Ya no se crea la solicitud aquí. Se hará después de elegir el negocio.
                 }
 
                 _uiState.update { it.copy(registerSuccessful = true) }
@@ -230,5 +229,4 @@ class RegistroUsuarioViewModel: ViewModel() {
                 }
             }
     }
-
 }
