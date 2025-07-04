@@ -90,6 +90,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
 
     // Vico para gráficos
-    implementation(libs.vico.compose)
-    implementation(libs.vico.compose.m3)
+    implementation("com.patrykandpatrick.vico:compose:2.1.3")
+    implementation("com.patrykandpatrick.vico:core:2.1.3")
+//    implementation(libs.vico.compose)
+//    implementation(libs.vico.compose.m3)
 }

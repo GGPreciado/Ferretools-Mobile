@@ -64,8 +64,8 @@ class ReporteProductoViewModel: ViewModel() {
 //        return mapa.values.toList()
 //    }
 
-    fun agruparUnidadesPorPeriodo(productoId: String): Pair<List<Int>, List<LocalDate>> {
-        val ventas = _uiState.value.ventas ?: return emptyList<Int>() to emptyList()
+    fun agruparUnidadesPorPeriodo(productoId: String): Pair<List<Float>, List<LocalDate>> {
+        val ventas = _uiState.value.ventas ?: return emptyList<Float>() to emptyList()
         val periodo: String = _uiState.value.periodoTemporal
         val now = LocalDate.now()
 
@@ -83,7 +83,7 @@ class ReporteProductoViewModel: ViewModel() {
                     }
                 }
 
-                mapa.values.toList() to dias
+                mapa.values.map { it.toFloat() } to dias
 //                    .map { it.format(DateTimeFormatter.ofPattern("dd MMM")) }
             }
 
@@ -101,7 +101,7 @@ class ReporteProductoViewModel: ViewModel() {
                     }
                 }
 
-                mapa.values.toList() to semanas
+                mapa.values.map { it.toFloat() } to semanas
 //                    .map {
 //                    "Sem. ${it.get(ChronoField.ALIGNED_WEEK_OF_YEAR)}"
 //                }
@@ -121,11 +121,11 @@ class ReporteProductoViewModel: ViewModel() {
                     }
                 }
 
-                mapa.values.toList() to meses
+                mapa.values.map { it.toFloat() } to meses
 //                    .map { it.format(DateTimeFormatter.ofPattern("MMM yyyy")) }
             }
 
-            else -> emptyList<Int>() to emptyList()
+            else -> emptyList<Float>() to emptyList()
         }
     }
 

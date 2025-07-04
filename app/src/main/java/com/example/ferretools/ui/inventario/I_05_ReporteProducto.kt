@@ -41,9 +41,11 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun I_05_ReporteProducto(
@@ -181,36 +183,35 @@ fun I_05_ReporteProducto(
 
 @Composable
 fun GraficoVentasPorPeriodo(
-    datos: List<Int>,
+    datos: List<Float>,
     fechas: List<LocalDate>
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
 
-    val mapa: Map<LocalDate, Int> = fechas.zip(datos).toMap()
+    val mapa: Map<LocalDate, Float> = fechas.zip(datos).toMap()
 
-    val xToDateMapKey = ExtraStore.Key<Map<Float, LocalDate>>()
+    val xToDateMapKey: ExtraStore.Key<Map<Float, LocalDate>> = ExtraStore.Key()
     val xToDates = mapa.keys.associateBy { it.toEpochDay().toFloat() }
 
     LaunchedEffect(fechas, datos) {
         modelProducer.runTransaction {
             columnSeries { series(xToDates.keys, mapa.values) }
-            extras { it[xToDateMapKey] = xToDates }
+            extras { extras -> extras[xToDateMapKey] = xToDates }
         }
     }
 
-//    val dateFormatter = DateTimeFormatter.ofPattern("dd MMM")
-//    val bottomFormatter = CartesianValueFormatter { context, x, _ ->
-//        (context.model.extraStore[xToDateMapKey]?.get(x)
-//            ?: LocalDate.ofEpochDay(x.toLong()))
-//            .format(dateFormatter)
-//    }
+    val dateFormatter = DateTimeFormatter.ofPattern("dd MMM")
+    val bottomFormatter = CartesianValueFormatter { context, x, _ ->
+        val map = context.model.extraStore[xToDateMapKey]
+        (map[x.toFloat()] ?: LocalDate.ofEpochDay(x.toLong())).format(dateFormatter)
+    }
 
     CartesianChartHost(
         chart = rememberCartesianChart(
             rememberColumnCartesianLayer(),
             startAxis = VerticalAxis.rememberStart(),
             bottomAxis = HorizontalAxis.rememberBottom(
-//                valueFormatter = bottomFormatter
+                valueFormatter = bottomFormatter
             )
         ),
         modelProducer = modelProducer,
