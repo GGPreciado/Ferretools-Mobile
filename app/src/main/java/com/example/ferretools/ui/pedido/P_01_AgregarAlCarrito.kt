@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.ui.components.AdminBottomNavBar
 import com.example.ferretools.ui.components.TopNavBar
@@ -32,7 +33,7 @@ import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 fun P_01_AgregarAlCarrito(
     navController: NavController,
     viewModel: PedidoViewModel,
-    listaProductosViewModel: ListaProductosViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    listaProductosViewModel: ListaProductosViewModel = viewModel()
 ) {
     val productosUiState = listaProductosViewModel.uiState.collectAsState().value
     val uiState by viewModel.uiState.collectAsState()
@@ -40,6 +41,30 @@ fun P_01_AgregarAlCarrito(
     var categoriaSeleccionada by remember { mutableStateOf("") }
     var bannerMessage by remember { mutableStateOf("") }
     var showBanner by remember { mutableStateOf(false) }
+
+    // --- INTEGRACIÓN DEL ESCÁNER DE CÓDIGO DE BARRAS EN PEDIDOS ---
+    LaunchedEffect(navController.currentBackStackEntry) {
+        val scannedBarcode = navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.get<String>("barcode_result")
+        if (!scannedBarcode.isNullOrBlank()) {
+            // Buscar el producto por código de barras
+            val producto = productosUiState.productosFiltrados.find { it.codigo_barras == scannedBarcode }
+            if (producto != null) {
+                // Agregar al carrito
+                viewModel.agregarProducto(producto, 1)
+                bannerMessage = "Producto agregado: ${producto.nombre}"
+                showBanner = true
+                android.util.Log.d("P_01_AgregarAlCarrito", "Producto agregado por escáner: ${producto.nombre}")
+            } else {
+                bannerMessage = "Producto no encontrado con código: $scannedBarcode"
+                showBanner = true
+                android.util.Log.d("P_01_AgregarAlCarrito", "Producto no encontrado con código: $scannedBarcode")
+            }
+            // Limpiar el valor para evitar repeticiones
+            navController.currentBackStackEntry?.savedStateHandle?.remove<String>("barcode_result")
+        }
+    }
 
     val productosFiltrados = productosUiState.productosFiltrados.filter {
         it.nombre.contains(searchQuery, ignoreCase = true) ||
@@ -88,12 +113,14 @@ fun P_01_AgregarAlCarrito(
                 )
                 ScanButton(
                     Modifier
-                        .padding(top = 14.dp, start = 10.dp)
-                        .weight(0.20f)
-                        .size(45.dp)
-                        .clickable { /* TODO: Pantalla de Escanear producto */ },
+                        .padding(
+                            top = 14.dp,
+                            start = 10.dp
+                        )
+                        .weight(0.20f),
                     onClick = {
-                        navController.navigate(AppRoutes.Sale.BARCODE_SCANNER)
+                        android.util.Log.d("P_01_AgregarAlCarrito", "Navegando al escáner de código de barras (pedidos)")
+                        navController.navigate(AppRoutes.Order.BARCODE_SCANNER)
                     }
                 )
             }

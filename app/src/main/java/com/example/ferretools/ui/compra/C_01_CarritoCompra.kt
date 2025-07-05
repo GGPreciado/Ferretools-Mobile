@@ -65,6 +65,34 @@ fun C_01_CarritoCompra(
     var bannerMessage by remember { mutableStateOf("") }
     var showBanner by remember { mutableStateOf(false) }
 
+    // --- INTEGRACIÓN DEL ESCÁNER DE CÓDIGO DE BARRAS EN COMPRAS ---
+    LaunchedEffect(navController.currentBackStackEntry) {
+        val scannedBarcode = navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.get<String>("barcode_result")
+        if (!scannedBarcode.isNullOrBlank()) {
+            // Buscar el producto por código de barras
+            val producto = productosUiState.productosFiltrados.find { it.codigo_barras == scannedBarcode }
+            if (producto != null) {
+                // Agregar al carrito
+                viewModel.agregarProducto(ItemUnitario(
+                    cantidad = 1,
+                    subtotal = producto.precio,
+                    producto_id = producto.producto_id
+                ))
+                bannerMessage = "Producto agregado: ${producto.nombre}"
+                showBanner = true
+                android.util.Log.d("C_01_CarritoCompra", "Producto agregado por escáner: ${producto.nombre}")
+            } else {
+                bannerMessage = "Producto no encontrado con código: $scannedBarcode"
+                showBanner = true
+                android.util.Log.d("C_01_CarritoCompra", "Producto no encontrado con código: $scannedBarcode")
+            }
+            // Limpiar el valor para evitar repeticiones
+            navController.currentBackStackEntry?.savedStateHandle?.remove<String>("barcode_result")
+        }
+    }
+
     // Filtrado por búsqueda
     val productosFiltrados = productosUiState.productosFiltrados.filter {
         it.nombre.contains(searchQuery, ignoreCase = true) ||
@@ -128,7 +156,8 @@ fun C_01_CarritoCompra(
                         .size(45.dp)
                         .clickable { /* TODO: Pantalla de Escanear producto */ },
                     onClick = {
-                        navController.navigate(AppRoutes.Sale.BARCODE_SCANNER)
+                        android.util.Log.d("C_01_CarritoCompra", "Navegando al escáner de código de barras (compras)")
+                        navController.navigate(AppRoutes.Purchase.BARCODE_SCANNER)
                     }
                 )
             }

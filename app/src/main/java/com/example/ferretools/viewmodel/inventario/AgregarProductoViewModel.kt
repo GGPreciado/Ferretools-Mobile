@@ -58,10 +58,30 @@ class AgregarProductoViewModel(
         // Validación básica de campos
         if (state.nombre.isBlank() || state.precio.isBlank() || state.cantidad.isBlank() || state.categoriaId.isBlank()) {
             _uiState.update { it.copy(error = "Completa todos los campos") }
+            android.util.Log.d("AgregarProductoViewModel", "Error: campos obligatorios vacíos")
             return
         }
+        // Validación de código de barras obligatorio y formato
+        val codigoBarras = state.codigoBarras.trim()
+        if (codigoBarras.isBlank()) {
+            _uiState.update { it.copy(error = "El código de barras es obligatorio") }
+            android.util.Log.d("AgregarProductoViewModel", "Error: código de barras vacío")
+            return
+        }
+        if (codigoBarras.length < 8) {
+            _uiState.update { it.copy(error = "El código de barras debe tener al menos 8 caracteres") }
+            android.util.Log.d("AgregarProductoViewModel", "Error: código de barras muy corto")
+            return
+        }
+        // Validación de unicidad (asíncrona)
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) } // Muestra loading
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            val existe = productoRepo.existeCodigoBarras(codigoBarras)
+            if (existe) {
+                _uiState.update { it.copy(isLoading = false, error = "Ya existe un producto con ese código de barras") }
+                android.util.Log.d("AgregarProductoViewModel", "Error: código de barras duplicado")
+                return@launch
+            }
             // Crea el objeto Producto a partir del estado
             val producto = Producto(
                 producto_id = "", // Se asignará automáticamente por Firestore
@@ -70,15 +90,21 @@ class AgregarProductoViewModel(
                 cantidad_disponible = state.cantidad.toIntOrNull() ?: 0,
                 categoria_id = state.categoriaId,
                 descripcion = state.descripcion,
-                codigo_barras = state.codigoBarras,
+                codigo_barras = codigoBarras,
                 negocioId = SesionUsuario.usuario?.negocioId ?: "",
             )
+            android.util.Log.d("AgregarProductoViewModel", "Intentando guardar producto: $producto")
             // Llama al repositorio para guardar el producto
             val result = productoRepo.agregarProducto(producto)
             // Actualiza el estado según el resultado
             _uiState.update {
-                if (result is Result.Success) it.copy(isLoading = false, exito = true)
-                else it.copy(isLoading = false, error = (result as Result.Error).message)
+                if (result is Result.Success) {
+                    android.util.Log.d("AgregarProductoViewModel", "Producto guardado exitosamente")
+                    it.copy(isLoading = false, exito = true)
+                } else {
+                    android.util.Log.d("AgregarProductoViewModel", "Error al guardar producto: ${(result as Result.Error).message}")
+                    it.copy(isLoading = false, error = (result as Result.Error).message)
+                }
             }
         }
     }
