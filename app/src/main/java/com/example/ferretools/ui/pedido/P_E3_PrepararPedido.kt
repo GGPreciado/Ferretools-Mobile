@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.viewmodel.pedido.PedidoViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 private val GreenPrimary = Color(0xFF22D366)
 private val GreenSuccess = Color(0xFF00BF59)
@@ -30,7 +32,7 @@ fun P_E3_PrepararPedido(
     navController: NavController,
     pedidoId: String,
     onPedidoPreparado: (() -> Unit)? = null,
-    // viewModel: PrepararPedidoViewModel = viewModel() // Para uso futuro
+    viewModel: PedidoViewModel = viewModel()
 ) {
     var preparado by remember { mutableStateOf(false) }
 
@@ -66,9 +68,9 @@ fun P_E3_PrepararPedido(
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(
                     onClick = {
+                        viewModel.prepararPedido(pedidoId)
                         preparado = true
                         onPedidoPreparado?.invoke()
-                        // Aquí podrías actualizar el estado en ViewModel/Firebase
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
                     modifier = Modifier.fillMaxWidth()
