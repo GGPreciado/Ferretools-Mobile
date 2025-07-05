@@ -92,4 +92,16 @@ dependencies {
     // Vico para gráficos
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
+
+    // ML Kit para escáner de códigos de barras
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+    
+    // CameraX para la cámara
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
+    
+    // Permisos
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 }

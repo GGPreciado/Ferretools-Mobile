@@ -91,7 +91,10 @@ fun P_01_AgregarAlCarrito(
                         .padding(top = 14.dp, start = 10.dp)
                         .weight(0.20f)
                         .size(45.dp)
-                        .clickable { /* TODO: Pantalla de Escanear producto */ }
+                        .clickable { /* TODO: Pantalla de Escanear producto */ },
+                    onClick = {
+                        navController.navigate(AppRoutes.Sale.BARCODE_SCANNER)
+                    }
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))

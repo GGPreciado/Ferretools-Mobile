@@ -63,6 +63,7 @@ import com.example.ferretools.ui.venta.V_05_BoletaVenta
 import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
 import com.example.ferretools.viewmodel.compra.CompraViewModel
 import androidx.navigation.NavType
+import com.example.ferretools.ui.venta.BarcodeScannerScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -277,6 +278,15 @@ fun AppNavigation(navController: NavHostController) {
         }
         composable(AppRoutes.Sale.RECEIPT) {
             V_05_BoletaVenta(navController = navController, viewModel = ventaViewModel)
+        }
+        composable(AppRoutes.Sale.BARCODE_SCANNER) {
+            BarcodeScannerScreen(
+                navController = navController,
+                onBarcodeScanned = { barcode ->
+                    // Buscar el producto por código de barras y agregarlo al carrito
+                    ventaViewModel.buscarProductoPorCodigoBarras(barcode)
+                }
+            )
         }
         // Pedidos Stack
         composable(AppRoutes.Order.ADD_TO_CART) {

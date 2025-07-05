@@ -126,7 +126,10 @@ fun C_01_CarritoCompra(
                         )
                         .weight(0.20f)
                         .size(45.dp)
-                        .clickable { /* TODO: Pantalla de Escanear producto */ }
+                        .clickable { /* TODO: Pantalla de Escanear producto */ },
+                    onClick = {
+                        navController.navigate(AppRoutes.Sale.BARCODE_SCANNER)
+                    }
                 )
             }
 

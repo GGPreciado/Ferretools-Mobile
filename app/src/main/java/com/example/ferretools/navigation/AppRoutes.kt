@@ -94,6 +94,7 @@ object AppRoutes {
         const val CONFIRM = "sale_confirm"
         const val SUCCESS = "sale_success"
         const val RECEIPT = "sale_receipt"
+        const val BARCODE_SCANNER = "sale_barcode_scanner"
     }
 
     // Rutas de Pedidos

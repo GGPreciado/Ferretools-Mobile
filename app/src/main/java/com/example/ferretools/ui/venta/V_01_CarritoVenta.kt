@@ -32,6 +32,7 @@ import com.example.ferretools.ui.components.seleccion_productos.ScanButton
 import com.example.ferretools.ui.components.seleccion_productos.SearchBar
 import com.example.ferretools.ui.components.seleccion_productos.SelectorCategoria
 import com.example.ferretools.viewmodel.venta.VentaViewModel
+import com.example.ferretools.viewmodel.venta.VentaUiState
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 import kotlinx.coroutines.delay
 
@@ -78,6 +79,20 @@ fun V_01_CarritoVenta(
         }
     }
 
+    // Mostrar mensajes de error del ViewModel
+    LaunchedEffect(uiState.status) {
+        when (uiState.status) {
+            VentaUiState.Status.Error -> {
+                uiState.mensaje?.let { mensaje ->
+                    bannerMessage = mensaje
+                    showBanner = true
+                }
+                viewModel.resetState()
+            }
+            else -> {}
+        }
+    }
+
     Scaffold(
         topBar = {
             TopNavBar(navController, "Selección de producto vendido")
@@ -105,9 +120,10 @@ fun V_01_CarritoVenta(
                             top = 14.dp,
                             start = 10.dp
                         )
-                        .weight(0.20f)
-                        .size(45.dp)
-                        .clickable { /* TODO: Pantalla de Escanear producto */ }
+                        .weight(0.20f),
+                    onClick = { 
+                        navController.navigate(AppRoutes.Sale.BARCODE_SCANNER)
+                    }
                 )
             }
 
