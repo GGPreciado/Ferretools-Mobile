@@ -50,6 +50,7 @@ fun BarcodeScannerScreen(
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     var hasCameraPermission by remember { mutableStateOf(false) }
     var scannedCode by remember { mutableStateOf<String?>(null) }
+    var scanSuccess by remember { mutableStateOf(false) }
     
     // Solicitar permisos de cámara
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -99,140 +100,166 @@ fun BarcodeScannerScreen(
                 .padding(padding)
         ) {
             if (hasCameraPermission) {
-                // Vista de la cámara
-                AndroidView(
-                    factory = { ctx ->
-                        PreviewView(ctx).apply {
-                            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                        }
-                    },
-                    modifier = Modifier.fillMaxSize(),
-                    update = { previewView ->
-                        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-                        cameraProviderFuture.addListener({
-                            val cameraProvider = cameraProviderFuture.get()
-                            
-                            val preview = Preview.Builder().build()
-                            preview.setSurfaceProvider(previewView.surfaceProvider)
-                            
-                            val imageAnalysis = ImageAnalysis.Builder()
-                                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                                .build()
-                            
-                            imageAnalysis.setAnalyzer(cameraExecutor, @androidx.camera.core.ExperimentalGetImage { imageProxy ->
-                                val mediaImage = imageProxy.image
-                                if (mediaImage != null) {
-                                    val image = InputImage.fromMediaImage(
-                                        mediaImage,
-                                        imageProxy.imageInfo.rotationDegrees
-                                    )
-                                    
-                                    val scanner = BarcodeScanning.getClient()
-                                    scanner.process(image)
-                                        .addOnSuccessListener { barcodes ->
-                                            for (barcode in barcodes) {
-                                                when (barcode.format) {
-                                                    Barcode.FORMAT_CODE_128,
-                                                    Barcode.FORMAT_CODE_39,
-                                                    Barcode.FORMAT_EAN_13,
-                                                    Barcode.FORMAT_EAN_8,
-                                                    Barcode.FORMAT_UPC_A,
-                                                    Barcode.FORMAT_UPC_E -> {
-                                                        val code = barcode.rawValue
-                                                        if (code != null && code != scannedCode) {
-                                                            scannedCode = code
-                                                            Log.d("BarcodeScanner", "Código escaneado: $code")
-                                                            onBarcodeScanned(code)
-                                                            navController.popBackStack()
+                if (!scanSuccess) {
+                    // Vista de la cámara
+                    AndroidView(
+                        factory = { ctx ->
+                            PreviewView(ctx).apply {
+                                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        update = { previewView ->
+                            val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+                            cameraProviderFuture.addListener({
+                                val cameraProvider = cameraProviderFuture.get()
+                                val preview = Preview.Builder().build()
+                                preview.setSurfaceProvider(previewView.surfaceProvider)
+                                val imageAnalysis = ImageAnalysis.Builder()
+                                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                                    .build()
+                                imageAnalysis.setAnalyzer(cameraExecutor, @androidx.camera.core.ExperimentalGetImage { imageProxy ->
+                                    val mediaImage = imageProxy.image
+                                    if (mediaImage != null) {
+                                        val image = InputImage.fromMediaImage(
+                                            mediaImage,
+                                            imageProxy.imageInfo.rotationDegrees
+                                        )
+                                        val scanner = BarcodeScanning.getClient()
+                                        scanner.process(image)
+                                            .addOnSuccessListener { barcodes ->
+                                                for (barcode in barcodes) {
+                                                    when (barcode.format) {
+                                                        Barcode.FORMAT_CODE_128,
+                                                        Barcode.FORMAT_CODE_39,
+                                                        Barcode.FORMAT_EAN_13,
+                                                        Barcode.FORMAT_EAN_8,
+                                                        Barcode.FORMAT_UPC_A,
+                                                        Barcode.FORMAT_UPC_E -> {
+                                                            val code = barcode.rawValue
+                                                            if (code != null && code != scannedCode) {
+                                                                scannedCode = code
+                                                                scanSuccess = true
+                                                                Log.d("TEST_AGREGAR_PRODUCTO", "Código escaneado: $code")
+                                                                onBarcodeScanned(code)
+                                                            }
                                                         }
-                                                    }
-                                                    else -> {
-                                                        // Otros formatos no soportados
+                                                        else -> {
+                                                            // Otros formatos no soportados
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                        .addOnCompleteListener {
-                                            imageProxy.close()
-                                        }
-                                } else {
-                                    imageProxy.close()
+                                            .addOnCompleteListener {
+                                                imageProxy.close()
+                                            }
+                                    } else {
+                                        imageProxy.close()
+                                    }
+                                })
+                                try {
+                                    cameraProvider.unbindAll()
+                                    cameraProvider.bindToLifecycle(
+                                        lifecycleOwner,
+                                        CameraSelector.DEFAULT_BACK_CAMERA,
+                                        preview,
+                                        imageAnalysis
+                                    )
+                                } catch (e: Exception) {
+                                    Log.e("TEST_AGREGAR_PRODUCTO", "Error al configurar la cámara", e)
                                 }
-                            })
-                            
-                            try {
-                                cameraProvider.unbindAll()
-                                cameraProvider.bindToLifecycle(
-                                    lifecycleOwner,
-                                    CameraSelector.DEFAULT_BACK_CAMERA,
-                                    preview,
-                                    imageAnalysis
-                                )
-                            } catch (e: Exception) {
-                                Log.e("BarcodeScanner", "Error al configurar la cámara", e)
-                            }
-                        }, ContextCompat.getMainExecutor(context))
-                    }
-                )
-                
-                // Overlay con marco de escaneo
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(250.dp)
-                            .border(
-                                width = 3.dp,
-                                color = Color(0xFF22D366),
-                                shape = RoundedCornerShape(16.dp)
-                            )
+                            }, ContextCompat.getMainExecutor(context))
+                        }
                     )
                     
-                    // Icono de escáner
-                    Icon(
-                        Icons.Default.QrCodeScanner,
-                        contentDescription = "Escáner",
+                    // Overlay con marco de escaneo
+                    Box(
                         modifier = Modifier
-                            .size(64.dp)
-                            .align(Alignment.Center),
-                        tint = Color(0xFF22D366)
-                    )
-                }
-                
-                // Instrucciones
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp)
-                        .align(Alignment.BottomCenter)
-                ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.Black.copy(alpha = 0.7f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Box(
+                            modifier = Modifier
+                                .size(250.dp)
+                                .border(
+                                    width = 3.dp,
+                                    color = Color(0xFF22D366),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                        )
+                        
+                        // Icono de escáner
+                        Icon(
+                            Icons.Default.QrCodeScanner,
+                            contentDescription = "Escáner",
+                            modifier = Modifier
+                                .size(64.dp)
+                                .align(Alignment.Center),
+                            tint = Color(0xFF22D366)
+                        )
+                    }
+                    
+                    // Instrucciones
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp)
+                            .align(Alignment.BottomCenter)
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.Black.copy(alpha = 0.7f)
+                            ),
+                            shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text(
-                                "Coloca el código de barras",
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                "dentro del marco",
-                                color = Color.White,
-                                fontSize = 14.sp
-                            )
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    "Coloca el código de barras",
+                                    color = Color.White,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    "dentro del marco",
+                                    color = Color.White,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Mensaje de éxito y botón para volver
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White.copy(alpha = 0.95f)),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "¡Código escaneado correctamente!",
+                            color = Color(0xFF22D366),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Código: ${scannedCode ?: "-"}",
+                            color = Color.Black,
+                            fontSize = 18.sp
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Button(
+                            onClick = { navController.popBackStack() },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF22D366))
+                        ) {
+                            Text("Volver al formulario", color = Color.White, fontSize = 18.sp)
                         }
                     }
                 }

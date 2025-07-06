@@ -194,14 +194,12 @@ fun AppNavigation(navController: NavHostController) {
         }
         // Escáner de código de barras para inventario
         composable(AppRoutes.Inventory.BARCODE_SCANNER) {
-            // Pantalla de escáner reutilizable
             BarcodeScannerScreen(
                 navController = navController,
                 onBarcodeScanned = { barcode ->
-                    // Guardar el código escaneado en el SavedStateHandle para que lo lea I_02_AgregarProducto
                     navController.previousBackStackEntry?.savedStateHandle?.set("barcode_result", barcode)
                     android.util.Log.d("AppNavigation", "Código de barras escaneado en inventario: $barcode")
-                    navController.popBackStack()
+                    // Eliminar navegación automática, el usuario debe volver manualmente
                 }
             )
         }

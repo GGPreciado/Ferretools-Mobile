@@ -79,12 +79,12 @@ fun I_02_AgregarProducto(
                 ?.get<String>("barcode_result")
             
             if (!scannedBarcode.isNullOrBlank()) {
-                android.util.Log.d("I_02_AgregarProducto", "Código escaneado encontrado: $scannedBarcode")
+                android.util.Log.d("TEST_AGREGAR_PRODUCTO", "Código escaneado encontrado: $scannedBarcode")
                 android.util.Log.d("I_02_AgregarProducto", "Código actual en UI: ${uiState.codigoBarras}")
                 
                 if (scannedBarcode != uiState.codigoBarras) {
                     viewModel.onCodigoBarrasChanged(scannedBarcode)
-                    android.util.Log.d("I_02_AgregarProducto", "Código de barras actualizado desde escáner: $scannedBarcode")
+                    android.util.Log.d("TEST_AGREGAR_PRODUCTO", "Código de barras actualizado desde escáner: $scannedBarcode")
                     // Limpiar el valor para evitar repeticiones
                     navController.currentBackStackEntry?.savedStateHandle?.remove<String>("barcode_result")
                     android.util.Log.d("I_02_AgregarProducto", "SavedStateHandle limpiado")
