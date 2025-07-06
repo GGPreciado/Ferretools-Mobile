@@ -110,9 +110,10 @@ class PedidoViewModel(
                         logBarcodeScan(cleanBarcode, true, producto.nombre)
                         Log.d("PedidoViewModel", "Producto encontrado y agregado: ${producto.nombre}")
                         
+                        // No mostrar mensaje de éxito para mantener consistencia con el flujo de ventas
                         _uiState.value = _uiState.value.copy(
-                            status = PedidoUiState.Status.Success,
-                            mensaje = "Producto agregado: ${producto.nombre}"
+                            status = PedidoUiState.Status.Idle,
+                            mensaje = null
                         )
                     } else {
                         logBarcodeScan(cleanBarcode, true, producto.nombre)

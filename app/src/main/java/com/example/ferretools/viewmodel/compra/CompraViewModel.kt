@@ -109,9 +109,10 @@ class CompraViewModel(
                     logBarcodeScan(cleanBarcode, true, producto.nombre)
                     Log.d("CompraViewModel", "Producto encontrado y agregado: ${producto.nombre}")
                     
+                    // No mostrar mensaje de éxito para mantener consistencia con el flujo de ventas
                     _uiState.value = _uiState.value.copy(
-                        status = CompraUiState.Status.Success,
-                        mensaje = "Producto agregado: ${producto.nombre}"
+                        status = CompraUiState.Status.Idle,
+                        mensaje = null
                     )
                 } else {
                     logBarcodeScan(cleanBarcode, false)

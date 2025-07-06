@@ -64,16 +64,12 @@ fun P_01_AgregarAlCarrito(
                 // Usar el ViewModel para buscar y agregar el producto
                 viewModel.buscarProductoPorCodigoBarras(scannedBarcode)
                 
-                // Mostrar mensaje de confirmación
-                bannerMessage = "Escaneando producto..."
-                showBanner = true
-                
                 Log.d("P_01_AgregarAlCarrito", "Procesando código de barras: $scannedBarcode")
             }
         }
     }
 
-    // Mostrar mensajes del ViewModel
+    // Mostrar mensajes del ViewModel solo para errores
     LaunchedEffect(uiState.status) {
         when (uiState.status) {
             PedidoUiState.Status.Error -> {
@@ -84,14 +80,7 @@ fun P_01_AgregarAlCarrito(
                 }
                 viewModel.resetState()
             }
-            PedidoUiState.Status.Success -> {
-                uiState.mensaje?.let { mensaje ->
-                    bannerMessage = mensaje
-                    showBanner = true
-                    Log.d("P_01_AgregarAlCarrito", "Éxito del ViewModel: $mensaje")
-                }
-                viewModel.resetState()
-            }
+            // No mostrar mensajes de éxito para mantener consistencia con el flujo de ventas
             else -> {}
         }
     }

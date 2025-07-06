@@ -273,7 +273,7 @@ fun AppNavigation(navController: NavHostController) {
                 onBarcodeScanned = { barcode ->
                     navController.previousBackStackEntry?.savedStateHandle?.set("barcode_result", barcode)
                     android.util.Log.d("AppNavigation", "Código de barras escaneado en compras: $barcode")
-                    navController.popBackStack()
+                    //navController.popBackStack()
                 }
             )
         }
@@ -306,7 +306,7 @@ fun AppNavigation(navController: NavHostController) {
                     // Guardar el código escaneado en el SavedStateHandle para que lo lea V_01_CarritoVenta
                     navController.previousBackStackEntry?.savedStateHandle?.set("scanned_barcode", barcode)
                     android.util.Log.d("AppNavigation", "Código de barras escaneado en ventas: $barcode")
-                    navController.popBackStack()
+                    //navController.popBackStack()
                 }
             )
         }
@@ -321,7 +321,7 @@ fun AppNavigation(navController: NavHostController) {
                 onBarcodeScanned = { barcode ->
                     navController.previousBackStackEntry?.savedStateHandle?.set("barcode_result", barcode)
                     android.util.Log.d("AppNavigation", "Código de barras escaneado en pedidos: $barcode")
-                    navController.popBackStack()
+                    //navController.popBackStack()
                 }
             )
         }
