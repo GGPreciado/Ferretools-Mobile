@@ -143,12 +143,12 @@ fun B_03_Reporte(
                     ResumenBox(
                         titulo = "Productos\ndiferentes",
                         valor = resumen.productosDiferentes.toString(),
-                        porcentaje = resumen.productosDiferentesPorcentaje
+                        etiqueta = resumen.productosDiferentesPorcentaje
                     )
                     ResumenBox(
                         titulo = "Categorías\ndiferentes",
                         valor = resumen.categoriasDiferentes.toString(),
-                        porcentaje = resumen.categoriasDiferentesPorcentaje
+                        etiqueta = resumen.categoriasDiferentesPorcentaje
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -159,12 +159,12 @@ fun B_03_Reporte(
                     ResumenBox(
                         titulo = "Productos\ntotales",
                         valor = resumen.productosTotales.toString(),
-                        porcentaje = resumen.productosTotalesPorcentaje
+                        etiqueta = resumen.productosTotalesPorcentaje
                     )
                     ResumenBox(
                         titulo = "Ganancias\ntotales",
                         valor = "S/ ${resumen.gananciasTotales}",
-                        porcentaje = resumen.gananciasTotalesPorcentaje
+                        etiqueta = resumen.gananciasTotalesPorcentaje
                     )
                 }
             }

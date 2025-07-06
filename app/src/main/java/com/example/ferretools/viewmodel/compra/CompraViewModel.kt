@@ -99,7 +99,7 @@ class CompraViewModel(
         val usuario = SesionUsuario.usuario
         val negocioId = usuario?.negocioId
         val usuarioId = usuario?.uid
-        if (negocioId == null || usuarioId == null) {
+        if (negocioId == null) {
             _uiState.value = _uiState.value.copy(status = CompraUiState.Status.Error, mensaje = "No hay sesión de usuario o negocio activo")
             return
         }
@@ -110,8 +110,8 @@ class CompraViewModel(
                 total = _uiState.value.total,
                 metodo_pago = _uiState.value.metodoPago,
                 lista_productos = _uiState.value.productosSeleccionados,
-                negocioId = FirebaseFirestore.getInstance().collection("negocios").document(negocioId),
-                usuarioId = FirebaseFirestore.getInstance().collection("usuarios").document(usuarioId)
+                negocioId = negocioId,
+                usuarioId = usuarioId
             )
             when (val result = compraRepository.registrarCompra(compra)) {
                 is Result.Success -> {

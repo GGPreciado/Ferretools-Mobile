@@ -285,7 +285,7 @@ fun I_02_AgregarProducto(
                                 codigo_barras = codigoBarras,
                                 imagen_url = null,
                                 categoria_id = categoriaSeleccionada,
-                                negocio_id = SesionUsuario.usuario?.negocioId!!
+                                negocioId = SesionUsuario.usuario?.negocioId!!
                             )
                             println("DEBUG: Producto a guardar (categoría existente) - categoria_id: ${producto.categoria_id}")
                             viewModel.agregarProducto(producto) { exito ->
@@ -312,7 +312,7 @@ fun I_02_AgregarProducto(
                                         codigo_barras = codigoBarras,
                                         imagen_url = null,
                                         categoria_id = categoriaId,
-                                        negocio_id = SesionUsuario.usuario?.negocioId!!
+                                        negocioId = SesionUsuario.usuario?.negocioId!!
                                     )
                                     println("DEBUG: Producto a guardar - categoria_id: ${producto.categoria_id}")
                                     viewModel.agregarProducto(producto) { exito ->

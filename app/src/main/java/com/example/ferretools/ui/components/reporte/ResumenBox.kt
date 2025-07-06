@@ -31,7 +31,7 @@ import com.example.ferretools.R
 fun ResumenBox(
     titulo: String,
     valor: String,
-    porcentaje: String
+    etiqueta: String
 ) {
     Box(
         modifier = Modifier
@@ -69,10 +69,9 @@ fun ResumenBox(
             ) {
                 Text(valor, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Text(
-                    porcentaje,
-                    color = Color(0xFF00C853),
+                    text= etiqueta,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    fontSize = 16.sp
                 )
             }
         }

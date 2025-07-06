@@ -1,5 +1,6 @@
 package com.example.ferretools.ui.inventario
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,22 +75,29 @@ fun I_05_ReporteProducto(
 
             // Botón de fecha
             Button(
-                onClick = { /* Acción seleccionar fecha */ },
                 modifier = Modifier
                     .fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)),
+                onClick = {},
             ) {
-                Text("Reporte de {compra/venta} del producto $productoNombre", color = Color.Black)
+                Text("Reporte de ${reporteProductoUiState.value.operacionSeleccionada.lowercase()} del producto $productoNombre", color = Color.Black)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Selector de ventas/compras
             SelectorOpciones(
-                opcion1 = "Compras",
-                opcion2 = "Ventas",
+                opcion1 = "Ventas",
+                opcion2 = "Compras",
                 seleccionado = ""
-            ) { /* TODO: Función de selección de valor */ }
+            ) {
+                reporteProductoViewModel.cambiarOperacionSeleccionada(it)
+                if (it == "Ventas") {
+                    reporteProductoViewModel.cargarVentasDeProducto(productoId)
+                } else {
+                    reporteProductoViewModel.cargarComprasDeProducto(productoId)
+                }
+            }
 
             Spacer(Modifier.padding(vertical = 8.dp))
 
@@ -110,7 +117,10 @@ fun I_05_ReporteProducto(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Estadísticas de Venta", fontWeight = FontWeight.Bold)
+                        Text(
+                            "Estadísticas de ${reporteProductoUiState.value.operacionSeleccionada}",
+                            fontWeight = FontWeight.Bold
+                        )
                         // Selector de periodo
                         Row(
                             verticalAlignment = Alignment.CenterVertically
@@ -120,19 +130,37 @@ fun I_05_ReporteProducto(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    if (reporteProductoUiState.value.ventas != null) {
-                        if (reporteProductoUiState.value.ventas!!.isNotEmpty()) {
-                            val (valores, fechas) = reporteProductoViewModel.
-                                agruparUnidadesPorPeriodo(
-                                    productoId = productoId
+                    if (reporteProductoUiState.value.operacionSeleccionada == "Ventas") {
+                        if (reporteProductoUiState.value.ventas != null) {
+                            if (reporteProductoUiState.value.ventas!!.isNotEmpty()) {
+
+                                Log.e("DEBUG", "En ventas: ${reporteProductoUiState.value.valoresGrafico}")
+                                Log.e("DEBUG", "En ventas: ${reporteProductoUiState.value.fechasGrafico}")
+
+                                GraficoVentasPorPeriodo(
+                                    datos = reporteProductoUiState.value.valoresGrafico,
+                                    fechas = reporteProductoUiState.value.fechasGrafico,
                                 )
 
-                            GraficoVentasPorPeriodo(
-                                datos = valores,
-                                fechas = fechas,
-                            )
-                        } else {
-                            CircularProgressIndicator()
+                            } else {
+                                NoItemsFoundCard(operacion = reporteProductoUiState.value.operacionSeleccionada)
+                            }
+                        }
+                    } else {
+                        if (reporteProductoUiState.value.compras != null) {
+                            if (reporteProductoUiState.value.compras!!.isNotEmpty()) {
+
+                                Log.e("DEBUG", "En compras: ${reporteProductoUiState.value.valoresGrafico}")
+                                Log.e("DEBUG", "EN compras: ${reporteProductoUiState.value.fechasGrafico}")
+
+                                GraficoVentasPorPeriodo(
+                                    datos = reporteProductoUiState.value.valoresGrafico,
+                                    fechas = reporteProductoUiState.value.fechasGrafico,
+                                )
+
+                            } else {
+                                NoItemsFoundCard(operacion = reporteProductoUiState.value.operacionSeleccionada)
+                            }
                         }
                     }
                 }
@@ -145,39 +173,89 @@ fun I_05_ReporteProducto(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    ResumenBox(
-                        titulo = "Unidades\nvendidas",
-                        valor = "XXXX",
-                        porcentaje = "+15%"
-                    )
-                    ResumenBox(
-                        titulo = "Total\nrecaudado",
-                        valor = "XXXX",
-                        porcentaje = "+15%"
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    ResumenBox(
-                        titulo = "Porcentaje dentro\nde categoría",
-                        valor = "XXXX",
-                        porcentaje = "+15%"
-                    )
-                    ResumenBox(
-                        titulo = "Puesto dentro\nde categoría",
-                        valor = "XXXX",
-                        porcentaje = "+15%"
-                    )
+                if (reporteProductoUiState.value.operacionSeleccionada == "Ventas") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        ResumenBox(
+                            titulo = "Unidades\nvendidas",
+                            valor = reporteProductoUiState.value.unidadesVendidas.toString(),
+                            etiqueta = "+15%"
+                        )
+                        ResumenBox(
+                            titulo = "Total\nrecaudado",
+                            valor = reporteProductoUiState.value.totalRecaudadoVentas.toString(),
+                            etiqueta = "+15%"
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        ResumenBox(
+                            titulo = "Ganancia promedio\npor venta",
+                            valor = reporteProductoUiState.value.gananciaPromedioVenta.toString(),
+                            etiqueta = "+15%"
+                        )
+                        ResumenBox(
+                            titulo = "Usuario con mayores ventas",
+                            valor = reporteProductoUiState.value.usuarioMayoresVentas,
+                            etiqueta = "+15%"
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        ResumenBox(
+                            titulo = "Unidades\ncompradas",
+                            valor = reporteProductoUiState.value.unidadesCompradas.toString(),
+                            etiqueta = "+15%"
+                        )
+                        ResumenBox(
+                            titulo = "Total\nrecaudado",
+                            valor = reporteProductoUiState.value.totalInvertidoCompras.toString(),
+                            etiqueta = "+15%"
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        ResumenBox(
+                            titulo = "Precio promedio\npor compra",
+                            valor = reporteProductoUiState.value.precioPromedioCompra.toString(),
+                            etiqueta = "+15%"
+                        )
+                        ResumenBox(
+                            titulo = "Usuario con mayores compras",
+                            valor = reporteProductoUiState.value.usuarioMayoresCompras,
+                            etiqueta = "+15%"
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun NoItemsFoundCard(
+    operacion: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(240.dp)
+    ) {
+        Text("No se encontró ${operacion.lowercase()} para ese producto")
     }
 }
 
@@ -187,10 +265,9 @@ fun GraficoVentasPorPeriodo(
     fechas: List<LocalDate>
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
+    val xToDateMapKey = remember { ExtraStore.Key<Map<Float, LocalDate>>() }
 
     val mapa: Map<LocalDate, Float> = fechas.zip(datos).toMap()
-
-    val xToDateMapKey: ExtraStore.Key<Map<Float, LocalDate>> = ExtraStore.Key()
     val xToDates = mapa.keys.associateBy { it.toEpochDay().toFloat() }
 
     LaunchedEffect(fechas, datos) {
@@ -202,8 +279,9 @@ fun GraficoVentasPorPeriodo(
 
     val dateFormatter = DateTimeFormatter.ofPattern("dd MMM")
     val bottomFormatter = CartesianValueFormatter { context, x, _ ->
-        val map = context.model.extraStore[xToDateMapKey]
-        (map[x.toFloat()] ?: LocalDate.ofEpochDay(x.toLong())).format(dateFormatter)
+        val map = context.model.extraStore.getOrNull(xToDateMapKey)
+        val fecha = map?.get(x.toFloat()) ?: LocalDate.ofEpochDay(x.toLong())
+        fecha.format(dateFormatter)
     }
 
     CartesianChartHost(
@@ -220,8 +298,6 @@ fun GraficoVentasPorPeriodo(
             .height(240.dp)
     )
 }
-
-
 
 //@Preview(showBackground = true, showSystemUi = true)
 //@Composable
