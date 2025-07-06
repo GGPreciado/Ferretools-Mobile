@@ -50,7 +50,14 @@ class AgregarProductoViewModel(
     fun onCantidadChanged(cantidad: String) { _uiState.update { it.copy(cantidad = cantidad) } }
     fun onCategoriaSeleccionadaChanged(id: String) { _uiState.update { it.copy(categoriaId = id) } }
     fun onDescripcionChanged(desc: String) { _uiState.update { it.copy(descripcion = desc) } }
-    fun onCodigoBarrasChanged(codigo: String) { _uiState.update { it.copy(codigoBarras = codigo) } }
+    fun onCodigoBarrasChanged(codigo: String) { 
+        android.util.Log.d("AgregarProductoViewModel", "onCodigoBarrasChanged llamado con: $codigo")
+        _uiState.update { 
+            val newState = it.copy(codigoBarras = codigo)
+            android.util.Log.d("AgregarProductoViewModel", "Estado actualizado - codigoBarras: ${newState.codigoBarras}")
+            newState
+        } 
+    }
 
     // Función para guardar el producto en Firestore
     fun guardarProducto() {

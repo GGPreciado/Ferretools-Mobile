@@ -55,6 +55,7 @@ import com.example.ferretools.viewmodel.inventario.AgregarProductoViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ferretools.navigation.AppRoutes
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 
 @Composable
 fun I_02_AgregarProducto(
@@ -67,16 +68,33 @@ fun I_02_AgregarProducto(
     val showErrorDialog = remember { mutableStateOf(false) }
     val showCategoriaDialog = remember { mutableStateOf(false) }
 
-    // Eliminar variables e imports innecesarios y dejar solo el LaunchedEffect correcto para el escáner.
-    // Obtener el SavedStateHandle para leer el resultado del escáner
-    LaunchedEffect(navController.currentBackStackEntry) {
-        val scannedBarcode = navController.currentBackStackEntry
-            ?.savedStateHandle
-            ?.get<String>("barcode_result")
-        if (!scannedBarcode.isNullOrBlank() && scannedBarcode != uiState.codigoBarras) {
-            viewModel.onCodigoBarrasChanged(scannedBarcode)
-            android.util.Log.d("I_02_AgregarProducto", "Código de barras actualizado desde escáner: $scannedBarcode")
-            navController.currentBackStackEntry?.savedStateHandle?.remove<String>("barcode_result")
+    // --- INTEGRACIÓN DEL ESCÁNER DE CÓDIGO DE BARRAS ---
+    // Observar cambios en el SavedStateHandle de manera más reactiva
+    LaunchedEffect(Unit) {
+        android.util.Log.d("I_02_AgregarProducto", "Iniciando observación del SavedStateHandle")
+        // Observar continuamente el SavedStateHandle para cambios
+        while (true) {
+            val scannedBarcode = navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.get<String>("barcode_result")
+            
+            if (!scannedBarcode.isNullOrBlank()) {
+                android.util.Log.d("I_02_AgregarProducto", "Código escaneado encontrado: $scannedBarcode")
+                android.util.Log.d("I_02_AgregarProducto", "Código actual en UI: ${uiState.codigoBarras}")
+                
+                if (scannedBarcode != uiState.codigoBarras) {
+                    viewModel.onCodigoBarrasChanged(scannedBarcode)
+                    android.util.Log.d("I_02_AgregarProducto", "Código de barras actualizado desde escáner: $scannedBarcode")
+                    // Limpiar el valor para evitar repeticiones
+                    navController.currentBackStackEntry?.savedStateHandle?.remove<String>("barcode_result")
+                    android.util.Log.d("I_02_AgregarProducto", "SavedStateHandle limpiado")
+                } else {
+                    android.util.Log.d("I_02_AgregarProducto", "Código ya está en el campo, limpiando SavedStateHandle")
+                    navController.currentBackStackEntry?.savedStateHandle?.remove<String>("barcode_result")
+                }
+            }
+            // Esperar un poco antes de verificar nuevamente
+            delay(100)
         }
     }
 
@@ -145,7 +163,9 @@ fun I_02_AgregarProducto(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Campo de texto para el código de barras
                 TextField(
-                    value = uiState.codigoBarras,
+                    value = uiState.codigoBarras.also { 
+                        android.util.Log.d("I_02_AgregarProducto", "TextField value: $it")
+                    },
                     onValueChange = {
                         viewModel.onCodigoBarrasChanged(it)
                         android.util.Log.d("I_02_AgregarProducto", "Código de barras cambiado manualmente: $it")

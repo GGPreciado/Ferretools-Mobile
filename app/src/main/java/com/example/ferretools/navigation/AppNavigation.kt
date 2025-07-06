@@ -266,7 +266,7 @@ fun AppNavigation(navController: NavHostController) {
         }
         // Compras Stack
         composable(AppRoutes.Purchase.CART) {
-            C_01_CarritoCompra(navController = navController, viewModel = compraViewModel)
+            C_01_CarritoCompra(navController = navController, compraViewModel = compraViewModel)
         }
         // Escáner de código de barras para compras
         composable(AppRoutes.Purchase.BARCODE_SCANNER) {
@@ -305,8 +305,10 @@ fun AppNavigation(navController: NavHostController) {
             BarcodeScannerScreen(
                 navController = navController,
                 onBarcodeScanned = { barcode ->
-                    // Buscar el producto por código de barras y agregarlo al carrito
-                    ventaViewModel.buscarProductoPorCodigoBarras(barcode)
+                    // Guardar el código escaneado en el SavedStateHandle para que lo lea V_01_CarritoVenta
+                    navController.previousBackStackEntry?.savedStateHandle?.set("scanned_barcode", barcode)
+                    android.util.Log.d("AppNavigation", "Código de barras escaneado en ventas: $barcode")
+                    navController.popBackStack()
                 }
             )
         }

@@ -27,7 +27,13 @@ import com.example.ferretools.ui.components.seleccion_productos.ScanButton
 import com.example.ferretools.ui.components.seleccion_productos.SearchBar
 import com.example.ferretools.ui.components.seleccion_productos.SelectorCategoria
 import com.example.ferretools.viewmodel.pedido.PedidoViewModel
+import com.example.ferretools.viewmodel.pedido.PedidoUiState
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
+import kotlinx.coroutines.delay
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun P_01_AgregarAlCarrito(
@@ -42,27 +48,51 @@ fun P_01_AgregarAlCarrito(
     var bannerMessage by remember { mutableStateOf("") }
     var showBanner by remember { mutableStateOf(false) }
 
-    // --- INTEGRACIÓN DEL ESCÁNER DE CÓDIGO DE BARRAS EN PEDIDOS ---
-    LaunchedEffect(navController.currentBackStackEntry) {
-        val scannedBarcode = navController.currentBackStackEntry
-            ?.savedStateHandle
-            ?.get<String>("barcode_result")
-        if (!scannedBarcode.isNullOrBlank()) {
-            // Buscar el producto por código de barras
-            val producto = productosUiState.productosFiltrados.find { it.codigo_barras == scannedBarcode }
-            if (producto != null) {
-                // Agregar al carrito
-                viewModel.agregarProducto(producto, 1)
-                bannerMessage = "Producto agregado: ${producto.nombre}"
+    // --- INTEGRACIÓN MEJORADA DEL ESCÁNER DE CÓDIGO DE BARRAS EN PEDIDOS ---
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(100) // Polling cada 100ms para detectar cambios
+            val backStackEntry = navController.currentBackStackEntry
+            val scannedBarcode = backStackEntry?.savedStateHandle?.get<String>("barcode_result")
+            
+            if (scannedBarcode != null) {
+                Log.d("P_01_AgregarAlCarrito", "Código de barras escaneado detectado: $scannedBarcode")
+                
+                // Limpiar el código escaneado para evitar procesamiento duplicado
+                backStackEntry.savedStateHandle.remove<String>("barcode_result")
+                
+                // Usar el ViewModel para buscar y agregar el producto
+                viewModel.buscarProductoPorCodigoBarras(scannedBarcode)
+                
+                // Mostrar mensaje de confirmación
+                bannerMessage = "Escaneando producto..."
                 showBanner = true
-                android.util.Log.d("P_01_AgregarAlCarrito", "Producto agregado por escáner: ${producto.nombre}")
-            } else {
-                bannerMessage = "Producto no encontrado con código: $scannedBarcode"
-                showBanner = true
-                android.util.Log.d("P_01_AgregarAlCarrito", "Producto no encontrado con código: $scannedBarcode")
+                
+                Log.d("P_01_AgregarAlCarrito", "Procesando código de barras: $scannedBarcode")
             }
-            // Limpiar el valor para evitar repeticiones
-            navController.currentBackStackEntry?.savedStateHandle?.remove<String>("barcode_result")
+        }
+    }
+
+    // Mostrar mensajes del ViewModel
+    LaunchedEffect(uiState.status) {
+        when (uiState.status) {
+            PedidoUiState.Status.Error -> {
+                uiState.mensaje?.let { mensaje ->
+                    bannerMessage = mensaje
+                    showBanner = true
+                    Log.d("P_01_AgregarAlCarrito", "Error del ViewModel: $mensaje")
+                }
+                viewModel.resetState()
+            }
+            PedidoUiState.Status.Success -> {
+                uiState.mensaje?.let { mensaje ->
+                    bannerMessage = mensaje
+                    showBanner = true
+                    Log.d("P_01_AgregarAlCarrito", "Éxito del ViewModel: $mensaje")
+                }
+                viewModel.resetState()
+            }
+            else -> {}
         }
     }
 
@@ -71,21 +101,26 @@ fun P_01_AgregarAlCarrito(
         it.codigo_barras.contains(searchQuery, ignoreCase = true)
     }
 
+    // Banner superior para advertencias
     if (showBanner) {
         Box(
             Modifier
                 .fillMaxWidth()
                 .background(Color(0xFFFFE082))
                 .padding(vertical = 8.dp),
-            contentAlignment = androidx.compose.ui.Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 bannerMessage,
-                color = Color.Black
+                color = Color.Black,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center
             )
         }
+        // Ocultar banner después de 2 segundos
         LaunchedEffect(bannerMessage) {
-            kotlinx.coroutines.delay(2000)
+            delay(2000)
             showBanner = false
         }
     }
@@ -119,7 +154,7 @@ fun P_01_AgregarAlCarrito(
                         )
                         .weight(0.20f),
                     onClick = {
-                        android.util.Log.d("P_01_AgregarAlCarrito", "Navegando al escáner de código de barras (pedidos)")
+                        Log.d("P_01_AgregarAlCarrito", "Navegando al escáner de código de barras (pedidos)")
                         navController.navigate(AppRoutes.Order.BARCODE_SCANNER)
                     }
                 )
@@ -130,6 +165,7 @@ fun P_01_AgregarAlCarrito(
                 onCategoriaSeleccionada = { categoria ->
                     categoriaSeleccionada = categoria
                     val catId = productosUiState.categorias.getOrNull(productosUiState.categoriasName.indexOf(categoria) - 1)?.id ?: ""
+                    Log.d("P_01_AgregarAlCarrito", "Categoría seleccionada: $categoria, id: $catId")
                     listaProductosViewModel.filtrarPorCategoria(if (categoria == "Todas las categorías") "" else catId)
                 },
                 categoriaSeleccionada = categoriaSeleccionada
@@ -150,8 +186,10 @@ fun P_01_AgregarAlCarrito(
                             if (agotado) {
                                 bannerMessage = "No hay suficiente stock para agregar más de este producto."
                                 showBanner = true
+                                Log.d("P_01_AgregarAlCarrito", "Intento de agregar más productos que el stock disponible: ${producto.nombre}")
                             } else {
                                 viewModel.agregarProducto(producto, 1)
+                                Log.d("P_01_AgregarAlCarrito", "Producto agregado al carrito: ${producto.nombre}")
                             }
                         },
                         modifier = if (agotado) Modifier.alpha(0.4f) else Modifier
@@ -160,7 +198,10 @@ fun P_01_AgregarAlCarrito(
             }
             // Botón Continuar
             Button(
-                onClick = { navController.navigate(AppRoutes.Order.CART) },
+                onClick = { 
+                    Log.d("P_01_AgregarAlCarrito", "Navegando al carrito de pedidos")
+                    navController.navigate(AppRoutes.Order.CART) 
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
