@@ -19,6 +19,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+
 // Estado centralizado para el flujo de pedidos
 data class PedidoUiState(
     val productosSeleccionados: List<ItemUnitario> = emptyList(),
