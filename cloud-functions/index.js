@@ -14,10 +14,11 @@ exports.onSolicitudCreated = functions.firestore
         }
 
         try {
-            // Obtener todos los usuarios administradores
+            // Obtener todos los usuarios administradores del mismo negocio
             const adminUsers = await admin.firestore()
                 .collection('usuarios')
                 .where('rol', '==', 'ADMIN')
+                .where('negocioId', '==', solicitud.negocioId)
                 .get();
 
             const tokens = [];

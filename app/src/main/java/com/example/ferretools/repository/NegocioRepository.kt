@@ -40,12 +40,12 @@ class NegocioRepository(
         }
     }
 
-    // Actualizar el negocio_id de un usuario
+    // Actualizar el negocioId de un usuario
     suspend fun actualizarNegocioUsuario(usuarioId: String, negocioId: String): Result<Unit> {
         return try {
             db.collection("usuarios")
                 .document(usuarioId)
-                .update("negocio_id", negocioId)
+                .update("negocioId", negocioId)
                 .await()
             Result.Success(Unit)
         } catch (e: Exception) {

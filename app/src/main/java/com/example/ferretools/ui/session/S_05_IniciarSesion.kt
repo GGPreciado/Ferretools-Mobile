@@ -73,8 +73,10 @@ fun S_05_IniciarSesion(
                 val context = navController.context
                 val db = FirebaseFirestore.getInstance()
                 val notificationHelper = NotificationHelper(context)
+                val negocioId = SesionUsuario.usuario?.negocioId
                 db.collection("solicitudes")
                     .whereEqualTo("estado", "pendiente")
+                    .whereEqualTo("negocioId", negocioId)
                     .addSnapshotListener { snapshot, _ ->
                         val count = snapshot?.size() ?: 0
                         if (count > 0) {

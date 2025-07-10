@@ -1,5 +1,6 @@
 package com.example.ferretools.ui.session
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddBusiness
@@ -27,6 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +46,7 @@ import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
 import com.example.ferretools.viewmodel.session.ElegirNegocioViewModel
 import com.example.ferretools.viewmodel.session.NegociosUiState
+import com.example.ferretools.utils.SesionUsuario
 import kotlin.collections.find
 
 @Composable
@@ -50,6 +55,7 @@ fun S_03_02_ElegirNegocio(
     rolUsuario: RolUsuario,
     elegirNegocioViewModel: ElegirNegocioViewModel = viewModel()
 ) {
+    Log.e("DEBUG", "Pantalla ElegirNegocio - rol actual: ${SesionUsuario.usuario?.rol}, rol deseado: ${SesionUsuario.rolDeseado}")
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var selectedNegocioId by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -59,7 +65,8 @@ fun S_03_02_ElegirNegocio(
 
     // Navegación tras afiliarse
     fun navegarADashboard() {
-        when (rolUsuario) {
+        /*
+        when (SesionUsuario.usuario?.rol!!) {
             RolUsuario.ADMIN -> navController.navigate(AppRoutes.Admin.DASHBOARD) {
                 popUpTo(AppRoutes.Auth.WELCOME) {
                     inclusive = true
@@ -74,6 +81,13 @@ fun S_03_02_ElegirNegocio(
                 popUpTo(AppRoutes.Auth.WELCOME) {
                     inclusive = true
                 }
+            }
+        }
+
+         */
+        navController.navigate(AppRoutes.Client.DASHBOARD) {
+            popUpTo(AppRoutes.Auth.WELCOME) {
+                inclusive = true
             }
         }
     }
@@ -155,7 +169,8 @@ fun S_03_02_ElegirNegocio(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Search)
             )
 
             // Lista de negocios
@@ -236,10 +251,10 @@ fun S_03_02_ElegirNegocio(
                 onClick = {
                     val negocios = (negociosState as? NegociosUiState.Success)?.negocios ?: emptyList()
                     val negocioSeleccionado = negocios.find { it.id == selectedNegocioId }
+                    isLoadingAfiliar = true
+                    errorMessage = null
                     if (negocioSeleccionado != null) {
-                        isLoadingAfiliar = true
-                        errorMessage = null
-                        elegirNegocioViewModel.afiliarUsuarioANegocio(
+                        elegirNegocioViewModel.flujoAfiliacionONuevoNegocio(
                             negocioId = negocioSeleccionado.id,
                             onSuccess = {
                                 isLoadingAfiliar = false
@@ -250,6 +265,13 @@ fun S_03_02_ElegirNegocio(
                                 errorMessage = it
                             }
                         )
+                    } else if (SesionUsuario.rolDeseado == RolUsuario.ADMIN) {
+                        // Si el usuario quiere crear un negocio propio
+                        isLoadingAfiliar = false
+                        navController.navigate(AppRoutes.Auth.REGISTER_BUSINESS)
+                    } else {
+                        isLoadingAfiliar = false
+                        errorMessage = "Selecciona un negocio o crea uno nuevo."
                     }
                 },
                 enabled = selectedNegocioId != null && !isLoadingAfiliar && negociosState is NegociosUiState.Success,
