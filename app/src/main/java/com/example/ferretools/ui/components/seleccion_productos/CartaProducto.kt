@@ -1,6 +1,7 @@
 package com.example.ferretools.ui.components.seleccion_productos
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,13 +22,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.ferretools.model.database.Producto
 
 @Composable
-fun CartaProducto(modifier: Modifier = Modifier) {
+fun CartaProducto(
+    producto: Producto,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .padding(8.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable{ onClick() },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
@@ -55,9 +62,9 @@ fun CartaProducto(modifier: Modifier = Modifier) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             // Textos fuera del recuadro gris
-            Text("Nombre", fontWeight = FontWeight.Medium)
-            Text("Costo")
-            Text("Cantidad")
+            Text(producto.nombre, fontWeight = FontWeight.Medium)
+            Text("S/ ${producto.precio}")
+            Text("Stock: ${producto.cantidad_disponible}")
         }
     }
 }
