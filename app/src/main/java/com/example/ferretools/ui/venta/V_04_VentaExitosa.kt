@@ -17,12 +17,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+
 import com.example.ferretools.ui.components.ConfirmationNavBar
 import com.example.ferretools.navigation.AppRoutes
+
 
 @Composable
 fun V_04_VentaExitosa(
     navController: NavController,
+
 ) {
     Scaffold(
         bottomBar = {
@@ -34,6 +37,7 @@ fun V_04_VentaExitosa(
         }
     ) { padding ->
         Box(
+
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),

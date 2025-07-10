@@ -26,6 +26,7 @@ fun P_04_PedidoExitoso(
     navController: NavController,
 ) {
     Scaffold(
+
         bottomBar = {
             ConfirmationNavBar(
                 navController = navController,
@@ -33,6 +34,7 @@ fun P_04_PedidoExitoso(
                 onNewOperationClick = { navController.navigate(AppRoutes.Order.ADD_TO_CART) }
             )
         }
+
     ) { padding ->
         Box(
             modifier = Modifier
