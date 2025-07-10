@@ -22,19 +22,27 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+
+import com.example.ferretools.ui.components.ConfirmationNavBar
 import com.example.ferretools.navigation.AppRoutes
-import com.example.ferretools.ui.components.TopNavBar
-import com.example.ferretools.viewmodel.venta.VentaViewModel
+
 
 @Composable
 fun V_04_VentaExitosa(
     navController: NavController,
-    viewModel: VentaViewModel = viewModel()
+
 ) {
     Scaffold(
-        topBar = { TopNavBar(navController, "Venta Exitosa") }
+        bottomBar = {
+            ConfirmationNavBar(
+                navController = navController,
+                onReceiptClick = { navController.navigate(AppRoutes.Sale.RECEIPT) },
+                onNewOperationClick = { navController.navigate(AppRoutes.Sale.CART) }
+            )
+        }
     ) { padding ->
-        Column(
+        Box(
+
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
