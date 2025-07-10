@@ -54,7 +54,8 @@ import com.example.ferretools.model.database.Categoria
 @Composable
 fun I_08_ListaCategorias(
     navController: NavController,
-    viewModel: ListaCategoriasViewModel = viewModel()
+    viewModel: ListaCategoriasViewModel = viewModel(),
+    isReadOnly: Boolean = false
 ) {
     val uiState = viewModel.uiState.collectAsState().value
     val scrollState = rememberScrollState()
@@ -118,23 +119,24 @@ fun I_08_ListaCategorias(
                 )
             )
         }
-        // Botón grande
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            contentAlignment = Alignment.Center,
-
-            ) {
-            Button(
-                onClick = { navController.navigate(AppRoutes.Inventory.ADD_CATEGORY) },
+        // Botón grande (crear categoría)
+        if (!isReadOnly) {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                shape = RoundedCornerShape(8.dp)
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                Text(text = "Crear nueva categoría", color = Color.White, fontSize = 18.sp)
+                Button(
+                    onClick = { navController.navigate(AppRoutes.Inventory.ADD_CATEGORY) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = "Crear nueva categoría", color = Color.White, fontSize = 18.sp)
+                }
             }
         }
         // Lista de categorías desplazable
@@ -150,7 +152,11 @@ fun I_08_ListaCategorias(
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                         .clickable { 
-                            val route = AppRoutes.Inventory.CATEGORY_DETAILS.replace("{categoriaId}", categoria.id)
+                            val route = if (isReadOnly) {
+                                "inventory_category_details/${categoria.id}?isReadOnly=true"
+                            } else {
+                                "inventory_category_details/${categoria.id}"
+                            }
                             navController.navigate(route)
                         },
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
@@ -169,112 +175,115 @@ fun I_08_ListaCategorias(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(categoria.nombre, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.weight(1f))
-
-                        // Botón Editar
-                        IconButton(
-                            onClick = {
-                                categoriaSeleccionada.value = categoria
-                                nuevoNombre.value = categoria.nombre
-                                showEditDialog.value = true
+                        if (!isReadOnly) {
+                            // Botón Editar
+                            IconButton(
+                                onClick = {
+                                    categoriaSeleccionada.value = categoria
+                                    nuevoNombre.value = categoria.nombre
+                                    showEditDialog.value = true
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = "Editar",
+                                    tint = Color.Blue,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
-                        ) {
-                            Icon(
-                                Icons.Default.Edit,
-                                contentDescription = "Editar",
-                                tint = Color.Blue,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        
-                        // Botón Eliminar
-                        IconButton(
-                            onClick = {
-                                categoriaSeleccionada.value = categoria
-                                showDeleteDialog.value = true
+                            // Botón Eliminar
+                            IconButton(
+                                onClick = {
+                                    categoriaSeleccionada.value = categoria
+                                    showDeleteDialog.value = true
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Eliminar",
+                                    tint = Color.Red,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
-                        ) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = "Eliminar",
-                                tint = Color.Red,
-                                modifier = Modifier.size(20.dp)
-                            )
                         }
                     }
                 }
             }
         }
         
-        // Diálogo de editar categoría
-        if (showEditDialog.value && categoriaSeleccionada.value != null) {
-            AlertDialog(
-                onDismissRequest = { showEditDialog.value = false },
-                title = { Text("Editar Categoría") },
-                text = {
-                    TextField(
-                        value = nuevoNombre.value,
-                        onValueChange = { nuevoNombre.value = it },
-                        label = { Text("Nombre de la categoría") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            categoriaSeleccionada.value?.let { categoria ->
-                                viewModel.editarCategoria(categoria.id, nuevoNombre.value) { exito ->
-                                    if (exito) {
-                                        showSuccessDialog.value = true
-                                        showEditDialog.value = false
-                                    } else {
-                                        showErrorDialog.value = true
+        // Diálogos de editar/eliminar solo si !isReadOnly
+        if (!isReadOnly) {
+            // Diálogo de editar categoría
+            if (showEditDialog.value && categoriaSeleccionada.value != null) {
+                AlertDialog(
+                    onDismissRequest = { showEditDialog.value = false },
+                    title = { Text("Editar Categoría") },
+                    text = {
+                        TextField(
+                            value = nuevoNombre.value,
+                            onValueChange = { nuevoNombre.value = it },
+                            label = { Text("Nombre de la categoría") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                categoriaSeleccionada.value?.let { categoria ->
+                                    viewModel.editarCategoria(categoria.id, nuevoNombre.value) { exito ->
+                                        if (exito) {
+                                            showSuccessDialog.value = true
+                                            showEditDialog.value = false
+                                        } else {
+                                            showErrorDialog.value = true
+                                        }
                                     }
                                 }
                             }
+                        ) {
+                            Text("Guardar")
                         }
-                    ) {
-                        Text("Guardar")
+                    },
+                    dismissButton = {
+                        Button(onClick = { showEditDialog.value = false }) {
+                            Text("Cancelar")
+                        }
                     }
-                },
-                dismissButton = {
-                    Button(onClick = { showEditDialog.value = false }) {
-                        Text("Cancelar")
-                    }
-                }
-            )
-        }
-        
-        // Diálogo de confirmación para eliminar
-        if (showDeleteDialog.value && categoriaSeleccionada.value != null) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog.value = false },
-                title = { Text("Eliminar Categoría") },
-                text = { Text("¿Estás seguro de que quieres eliminar la categoría '${categoriaSeleccionada.value?.nombre}'?") },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            categoriaSeleccionada.value?.let { categoria ->
-                                viewModel.eliminarCategoria(categoria.id) { exito ->
-                                    if (exito) {
-                                        showSuccessDialog.value = true
-                                        showDeleteDialog.value = false
-                                    } else {
-                                        showErrorDialog.value = true
+                )
+            }
+            
+            // Diálogo de confirmación para eliminar
+            if (showDeleteDialog.value && categoriaSeleccionada.value != null) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog.value = false },
+                    title = { Text("Eliminar Categoría") },
+                    text = { Text("¿Estás seguro de que quieres eliminar la categoría '${categoriaSeleccionada.value?.nombre}'?") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                categoriaSeleccionada.value?.let { categoria ->
+                                    viewModel.eliminarCategoria(categoria.id) { exito ->
+                                        if (exito) {
+                                            showSuccessDialog.value = true
+                                            showDeleteDialog.value = false
+                                        } else {
+                                            showErrorDialog.value = true
+                                        }
                                     }
                                 }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                    ) {
-                        Text("Eliminar")
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                        ) {
+                            Text("Eliminar")
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showDeleteDialog.value = false }) {
+                            Text("Cancelar")
+                        }
                     }
-                },
-                dismissButton = {
-                    Button(onClick = { showDeleteDialog.value = false }) {
-                        Text("Cancelar")
-                    }
-                }
-            )
+                )
+            }
         }
         
         // Diálogo de éxito

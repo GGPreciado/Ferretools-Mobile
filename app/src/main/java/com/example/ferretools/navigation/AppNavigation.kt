@@ -32,6 +32,8 @@ import com.example.ferretools.ui.inventario.I_08_ListaCategorias
 import com.example.ferretools.ui.inventario.I_09_CrearCategoria
 import com.example.ferretools.ui.inventario.I_10_DetallesCategoria
 import com.example.ferretools.ui.inventario.I_12_ReporteInventario
+import com.example.ferretools.ui.catalogo.I_C1_VerCatalogo
+import com.example.ferretools.ui.catalogo.I_C2_DetallesProducto
 import com.example.ferretools.viewmodel.inventario.AgregarProductoViewModel
 import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
 import com.example.ferretools.viewmodel.inventario.DetallesProductoViewModel
@@ -64,6 +66,7 @@ import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
 import com.example.ferretools.viewmodel.compra.CompraViewModel
 import androidx.navigation.NavType
 import com.example.ferretools.ui.venta.BarcodeScannerScreen
+import com.example.ferretools.ui.inventario.I_01_ListaProductosEmpleado
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -178,8 +181,39 @@ fun AppNavigation(navController: NavHostController) {
         composable(AppRoutes.Client.DASHBOARD) {
             HOME_Cliente(navController = navController)
         }
+        composable(AppRoutes.Client.CATALOG) {
+            I_C1_VerCatalogo(navController = navController)
+        }
+        composable<AppRoutes.Client.PRODUCT_DETAILS> { backStackEntry ->
+            val args: AppRoutes.Client.PRODUCT_DETAILS = backStackEntry.toRoute()
+            I_C2_DetallesProducto(
+                navController = navController,
+                productoId = args.productoId
+            )
+        }
+        composable(AppRoutes.Client.ORDERS) {
+            P_05_HistorialPedidos(
+                navController = navController,
+                pedidosHistorial = pedidosDemo,
+                selectedMenu = 2,
+                onMenuSelect = {},
+                onPedidoClick = {},
+                userName = "Cliente Demo",
+                storeName = "Tienda Demo"
+            )
+        }
+        composable(AppRoutes.Client.CONFIG) {
+            Config_01_Configuracion(
+                navController = navController,
+                darkModeEnabled = false,
+                stockNotificationEnabled = false
+            )
+        }
         composable(AppRoutes.Employee.DASHBOARD) {
             HOME_Empleado(navController = navController)
+        }
+        composable(AppRoutes.Employee.INVENTORY) {
+            I_01_ListaProductosEmpleado(navController = navController)
         }
         // Inventario Stack
         composable(AppRoutes.Inventory.LIST_PRODUCTS) {
@@ -203,13 +237,21 @@ fun AppNavigation(navController: NavHostController) {
                 }
             )
         }
-        composable<AppRoutes.Inventory.PRODUCT_DETAILS> { backStackEntry ->
-            val args: AppRoutes.Inventory.PRODUCT_DETAILS = backStackEntry.toRoute()
+        composable(
+            route = "inventory_product_details/{productoId}?isReadOnly={isReadOnly}",
+            arguments = listOf(
+                navArgument("productoId") { type = NavType.StringType },
+                navArgument("isReadOnly") { type = NavType.BoolType; defaultValue = false }
+            )
+        ) { backStackEntry ->
+            val productoId = backStackEntry.arguments?.getString("productoId") ?: ""
+            val isReadOnly = backStackEntry.arguments?.getBoolean("isReadOnly") ?: false
             val viewModel: DetallesProductoViewModel = viewModel()
             I_04_DetallesProducto(
                 navController = navController,
-                productoId = args.productoId,
-                viewModel = viewModel
+                productoId = productoId,
+                viewModel = viewModel,
+                isReadOnly = isReadOnly
             )
         }
 
@@ -233,26 +275,35 @@ fun AppNavigation(navController: NavHostController) {
                 productoNombre = productReport.productoNombre
             )
         }
-        composable(AppRoutes.Inventory.LIST_CATEGORIES) {
-            I_08_ListaCategorias(navController = navController)
+        composable(
+            route = "inventory_categories?isReadOnly={isReadOnly}",
+            arguments = listOf(
+                navArgument("isReadOnly") { type = NavType.BoolType; defaultValue = false }
+            )
+        ) { backStackEntry ->
+            val isReadOnly = backStackEntry.arguments?.getBoolean("isReadOnly") ?: false
+            I_08_ListaCategorias(navController = navController, isReadOnly = isReadOnly)
         }
         composable(AppRoutes.Inventory.ADD_CATEGORY) {
             I_09_CrearCategoria(navController = navController)
         }
         composable(
-            route = AppRoutes.Inventory.CATEGORY_DETAILS,
+            route = "inventory_category_details/{categoriaId}?isReadOnly={isReadOnly}",
             arguments = listOf(
-                navArgument("categoriaId") { type = androidx.navigation.NavType.StringType }
+                navArgument("categoriaId") { type = NavType.StringType },
+                navArgument("isReadOnly") { type = NavType.BoolType; defaultValue = false }
             )
         ) { backStackEntry ->
             val categoriaId = backStackEntry.arguments?.getString("categoriaId") ?: ""
+            val isReadOnly = backStackEntry.arguments?.getBoolean("isReadOnly") ?: false
             val productosViewModel: ListaProductosViewModel = viewModel()
             val categoriaViewModel: ListaCategoriasViewModel = viewModel()
             I_10_DetallesCategoria(
                 navController = navController,
                 categoriaId = categoriaId,
                 productosViewModel = productosViewModel,
-                categoriaViewModel = categoriaViewModel
+                categoriaViewModel = categoriaViewModel,
+                isReadOnly = isReadOnly
             )
         }
         composable(AppRoutes.Inventory.INVENTORY_REPORT) {

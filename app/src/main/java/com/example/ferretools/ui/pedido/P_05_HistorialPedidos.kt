@@ -161,7 +161,16 @@ fun P_05_HistorialPedidos(
     }
     Scaffold(
         topBar = { ClienteHeader(userName, storeName) },
-        bottomBar = { ClienteBottomNavBar(selected = selectedMenu, onSelect = onMenuSelect) },
+        bottomBar = {
+            ClienteBottomNavBar(selected = selectedMenu, onSelect = {
+                when (it) {
+                    0 -> navController.navigate(AppRoutes.Client.DASHBOARD)
+                    1 -> navController.navigate(AppRoutes.Client.CATALOG)
+                    2 -> navController.navigate(AppRoutes.Client.ORDERS)
+                    3 -> navController.navigate(AppRoutes.Client.CONFIG)
+                }
+            })
+        },
         containerColor = BackgroundColor
     ) { padding ->
         Column(

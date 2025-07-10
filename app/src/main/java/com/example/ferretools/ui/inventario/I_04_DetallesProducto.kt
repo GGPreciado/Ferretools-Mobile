@@ -52,7 +52,8 @@ import androidx.compose.runtime.LaunchedEffect
 fun I_04_DetallesProducto(
     navController: NavController,
     productoId: String,
-    viewModel: DetallesProductoViewModel = viewModel()
+    viewModel: DetallesProductoViewModel = viewModel(),
+    isReadOnly: Boolean = false
 ) {
     val eliminado = viewModel.eliminado.collectAsState().value
     val showDialog = remember { mutableStateOf(false) }
@@ -183,59 +184,63 @@ fun I_04_DetallesProducto(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Botones de acción
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = { 
-                        showDialog.value = true
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                    modifier = Modifier.weight(1f)
+            if (!isReadOnly) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Eliminar", color = Color.White)
+                    Button(
+                        onClick = { 
+                            showDialog.value = true
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Eliminar", color = Color.White)
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = { 
+                            // Navegar a la pantalla de editar producto
+                            navController.navigate(AppRoutes.Inventory.EDIT_PRODUCT(producto.producto_id))
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Editar", color = Color.White)
+                    }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(
-                    onClick = { 
-                        // Navegar a la pantalla de editar producto
-                        navController.navigate(AppRoutes.Inventory.EDIT_PRODUCT(producto.producto_id))
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Editar", color = Color.White)
-                }
+                Spacer(modifier = Modifier.height(24.dp))
             }
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 
-    // Diálogo de confirmación de eliminación
-    if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Confirmar eliminación") },
-            text = { Text("¿Estás seguro de que quieres eliminar este producto?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.eliminarProducto(producto.producto_id)
-                        showDialog.value = false
+    // Diálogos de eliminar solo si !isReadOnly
+    if (!isReadOnly) {
+        if (showDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showDialog.value = false },
+                title = { Text("Confirmar eliminación") },
+                text = { Text("¿Estás seguro de que quieres eliminar este producto?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.eliminarProducto(producto.producto_id)
+                            showDialog.value = false
+                        }
+                    ) {
+                        Text("Eliminar")
                     }
-                ) {
-                    Text("Eliminar")
+                },
+                dismissButton = {
+                    Button(onClick = { showDialog.value = false }) {
+                        Text("Cancelar")
+                    }
                 }
-            },
-            dismissButton = {
-                Button(onClick = { showDialog.value = false }) {
-                    Text("Cancelar")
-                }
-            }
-        )
+            )
+        }
     }
     
     // Diálogo de éxito

@@ -68,7 +68,8 @@ fun HOME_Admin(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF22D366))
-                .padding(12.dp),
+                .padding(vertical = 10.dp, horizontal = 8.dp)
+                .padding(top = 40.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(

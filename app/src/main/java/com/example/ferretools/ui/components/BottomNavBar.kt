@@ -64,6 +64,52 @@ fun AdminBottomNavBar(navController: NavController, modifier: Modifier = Modifie
     }
 }
 
+@Composable
+fun ClientBottomNavBar(navController: NavController, modifier: Modifier = Modifier) {
+    NavigationBar(containerColor = Color(0xFF00BF59)) {
+        NavigationBarItem(
+            selected = false,
+            onClick = { navController.navigate(AppRoutes.Client.DASHBOARD) },
+            icon = { Image(painterResource(R.drawable.inicio), contentDescription = "Inicio") },
+            label = { Text("Inicio",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            ) },
+            modifier = modifier
+        )
+        NavigationBarItem(
+            selected = false,
+            onClick = { navController.navigate(AppRoutes.Client.CATALOG) },
+            icon = { Image(painterResource(R.drawable.inventario), contentDescription = "Catálogo") },
+            label = { Text("Catálogo",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )},
+            modifier = modifier
+        )
+        NavigationBarItem(
+            selected = false,
+            onClick = { navController.navigate(AppRoutes.Client.ORDERS) },
+            icon = { Image(painterResource(R.drawable.documento), contentDescription = "Pedidos") },
+            label = { Text("Pedidos",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            ) },
+            modifier = modifier
+        )
+        NavigationBarItem(
+            selected = false,
+            onClick = { navController.navigate(AppRoutes.Client.CONFIG) },
+            icon = { Image(painterResource(R.drawable.cuenta), contentDescription = "Cuenta") },
+            label = { Text("Cuenta",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            ) },
+            modifier = modifier
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
 @Composable
@@ -72,6 +118,19 @@ fun AdminBottomNavBarPreview() {
     val mockNavController = rememberNavController()
 
     AdminBottomNavBar(
+        navController = mockNavController,
+        modifier = Modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, device = "spec:width=411dp,height=891dp")
+@Composable
+fun ClientBottomNavBarPreview() {
+    // Simulamos un NavController para la preview
+    val mockNavController = rememberNavController()
+
+    ClientBottomNavBar(
         navController = mockNavController,
         modifier = Modifier
     )

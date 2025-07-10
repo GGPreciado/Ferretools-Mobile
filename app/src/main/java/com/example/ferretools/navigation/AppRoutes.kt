@@ -40,6 +40,9 @@ object AppRoutes {
         const val CATALOG = "client_catalog"
         const val ORDERS = "client_orders"
         const val CONFIG = "client_config"
+
+        @Serializable
+        data class PRODUCT_DETAILS(val productoId: String)
     }
 
     // Rutas de Almacenero

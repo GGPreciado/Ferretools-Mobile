@@ -61,7 +61,8 @@ fun AlmaceneroTopBar(
         modifier = modifier
             .fillMaxWidth()
             .background(GreenPrimary)
-            .padding(12.dp),
+            .padding(vertical = 10.dp, horizontal = 8.dp)
+            .padding(top = 40.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -204,7 +205,7 @@ fun P_E1_HistorialPedidos(
         topBar = { AlmaceneroTopBar(navController, userName, storeName) },
         bottomBar = { EmpleadoBottomNavBar(
             onInicio = { /* Pantalla actual */ },
-            onInventario = { navController.navigate(AppRoutes.Inventory.LIST_PRODUCTS) },
+            onInventario = { navController.navigate(AppRoutes.Employee.INVENTORY) },
             onHistorial = { navController.navigate(AppRoutes.Order.Employee.HISTORY) },
             onCuenta = { navController.navigate(AppRoutes.Config.MAIN) }) },
         containerColor = BackgroundColor

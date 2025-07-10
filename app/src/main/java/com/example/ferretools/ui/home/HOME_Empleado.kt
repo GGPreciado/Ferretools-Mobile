@@ -47,7 +47,7 @@ fun HOME_Empleado(
         bottomBar = {
             EmpleadoBottomNavBar(
                 onInicio = { /* Pantalla actual */ },
-                onInventario = { navController.navigate(AppRoutes.Inventory.LIST_PRODUCTS) },
+                onInventario = { navController.navigate(AppRoutes.Employee.INVENTORY) },
                 onHistorial = { navController.navigate(AppRoutes.Order.Employee.HISTORY) },
                 onCuenta = { navController.navigate(AppRoutes.Config.MAIN) }
             )
@@ -64,7 +64,7 @@ fun HOME_Empleado(
                 onCompra = { navController.navigate(AppRoutes.Sale.CART) },
                 onVenta = { navController.navigate(AppRoutes.Purchase.CART) },
                 onHistorial = { navController.navigate(AppRoutes.Order.Employee.HISTORY) },
-                onCatalogo = { navController.navigate(AppRoutes.Inventory.LIST_PRODUCTS) }
+                onCatalogo = { navController.navigate(AppRoutes.Employee.INVENTORY) }
             )
             Spacer(Modifier.height(24.dp))
             ListaPedidosPendientes(
@@ -83,7 +83,8 @@ fun TopNavBarEmpleado() {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFF22D366))
-            .padding(12.dp),
+            .padding(vertical = 10.dp, horizontal = 8.dp)
+            .padding(top = 40.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
