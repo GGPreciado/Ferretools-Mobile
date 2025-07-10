@@ -21,6 +21,13 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ferretools.navigation.AppRoutes
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.ui.home.HomeViewModel
+import com.example.ferretools.model.database.Pedido
+import java.text.SimpleDateFormat
+import java.util.Locale
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 private val GreenP = Color(0xFF22D366)
 private val GreenDark = Color(0xFF00BF59)
@@ -43,9 +50,17 @@ fun HOME_Cliente(
     storeName: String = "Mi Tienda",
     pedidosRecientes: List<PedidoCliente> = emptyList(),
     selectedMenu: Int = 0,
-    // viewModel: HomeClienteViewModel = viewModel() // Para uso futuro
+    viewModel: HomeViewModel = viewModel()
 ) {
     var menu by remember { mutableStateOf(selectedMenu) }
+
+    // Observar pedidos pendientes del usuario activo
+    val pedidosPendientes = viewModel.pedidosPendientes.collectAsState().value
+
+    // Cargar pedidos pendientes al iniciar
+    LaunchedEffect(Unit) {
+        viewModel.cargarPedidosPendientes()
+    }
 
     Scaffold(
         topBar = { ClienteHeader(userName, storeName) },
@@ -81,10 +96,21 @@ fun HOME_Cliente(
                 onHistorial = { navController.navigate(AppRoutes.Order.HISTORY) }
             )
             Spacer(Modifier.height(24.dp))
+            val pedidosOrdenados = pedidosPendientes.sortedByDescending { it.fecha }
             PedidosRecientesCliente(
-                pedidos = pedidosRecientes,
+                pedidos = pedidosOrdenados.map {
+                    val fechaFormateada = it.fecha?.toDate()?.let { date ->
+                        SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(date)
+                    } ?: ""
+                    PedidoCliente(
+                        id = it.pedidoId,
+                        fecha = fechaFormateada,
+                        estado = it.estado.replaceFirstChar { c -> c.uppercase() },
+                        total = "S/ ${"%.2f".format(it.total ?: 0.0)}"
+                    )
+                },
                 onPedidoClick = { pedido ->
-                    navController.navigate(AppRoutes.Order.RECEIPT) // Puedes pasar el ID como parámetro si lo necesitas
+                    navController.navigate(AppRoutes.Order.detailsWithId(pedido.id))
                 }
             )
         }
@@ -167,8 +193,13 @@ fun PedidosRecientesCliente(
         if (pedidos.isEmpty()) {
             Text("Aún no has realizado pedidos.", color = TextSecondary, modifier = Modifier.padding(16.dp))
         } else {
-            pedidos.take(3).forEach { pedido ->
-                PedidoCard(pedido, onPedidoClick)
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp), // Ajusta el alto máximo si lo deseas
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                items(pedidos) { pedido ->
+                    PedidoCard(pedido, onPedidoClick)
+                }
             }
         }
     }

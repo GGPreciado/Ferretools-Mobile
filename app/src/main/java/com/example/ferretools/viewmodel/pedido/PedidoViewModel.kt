@@ -15,6 +15,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.asStateFlow
+import com.google.firebase.firestore.ListenerRegistration
+import java.text.SimpleDateFormat
+import java.util.Locale
+
 
 // Estado centralizado para el flujo de pedidos
 data class PedidoUiState(
@@ -38,6 +42,17 @@ class PedidoViewModel(
 
     var ultimoPedidoExitoso: PedidoUiState? = null
         private set
+
+    private val _historialPedidos = MutableStateFlow<List<Pedido>>(emptyList())
+    val historialPedidos: StateFlow<List<Pedido>> = _historialPedidos.asStateFlow()
+    private var historialListener: ListenerRegistration? = null
+
+    private val _productosPorId = MutableStateFlow<Map<String, Producto?>>(emptyMap())
+    val productosPorId: StateFlow<Map<String, Producto?>> = _productosPorId.asStateFlow()
+
+    private val _todosPedidosNegocio = MutableStateFlow<List<Pedido>>(emptyList())
+    val todosPedidosNegocio: StateFlow<List<Pedido>> = _todosPedidosNegocio.asStateFlow()
+    private var todosPedidosListener: ListenerRegistration? = null
 
     fun agregarProducto(producto: Producto, cantidad: Int = 1) {
         val productosActuales = _uiState.value.productosSeleccionados.toMutableList()
@@ -145,6 +160,69 @@ class PedidoViewModel(
                 is Result.Error -> _uiState.value = _uiState.value.copy(status = PedidoUiState.Status.Error, mensaje = result.message)
             }
         }
+    }
+
+    fun cargarHistorialPedidosCliente() {
+        val usuario = SesionUsuario.usuario
+        if (usuario?.uid.isNullOrEmpty()) return
+        historialListener?.remove()
+        historialListener = pedidoRepository.db.collection("pedidos")
+            .whereEqualTo("clienteId", usuario.uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    _historialPedidos.value = emptyList()
+                    return@addSnapshotListener
+                }
+                val pedidos = snapshot.documents.mapNotNull { it.toObject(Pedido::class.java)?.copy(pedidoId = it.id) }
+                _historialPedidos.value = pedidos
+            }
+    }
+
+    fun cargarTodosPedidosNegocio() {
+        val negocioId = SesionUsuario.usuario?.negocioId
+        if (negocioId.isNullOrEmpty()) return
+        todosPedidosListener?.remove()
+        todosPedidosListener = pedidoRepository.db.collection("pedidos")
+            .whereEqualTo("negocioId", negocioId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    _todosPedidosNegocio.value = emptyList()
+                    return@addSnapshotListener
+                }
+                val pedidos = snapshot.documents.mapNotNull { it.toObject(Pedido::class.java)?.copy(pedidoId = it.id) }
+                _todosPedidosNegocio.value = pedidos
+            }
+    }
+
+    fun getProductosPorIds(ids: List<String>) {
+        viewModelScope.launch {
+            productoRepository.getProductosStream().collect { result ->
+                val lista = when (result) {
+                    is Result.Success -> result.data
+                    else -> emptyList()
+                }
+                val map = ids.distinct().associateWith { id -> lista.find { it.producto_id == id } }
+                _productosPorId.value = map
+            }
+        }
+    }
+
+    fun cancelarPedido(pedidoId: String) {
+        viewModelScope.launch {
+            pedidoRepository.actualizarEstadoPedido(pedidoId, "cancelado")
+        }
+    }
+
+    fun prepararPedido(pedidoId: String) {
+        viewModelScope.launch {
+            pedidoRepository.actualizarEstadoPedido(pedidoId, "preparado")
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        historialListener?.remove()
+        todosPedidosListener?.remove()
     }
 
     fun resetState() {
