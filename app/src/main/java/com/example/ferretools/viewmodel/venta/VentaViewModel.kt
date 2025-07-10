@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import android.util.Log
+import com.example.ferretools.utils.BarcodeUtils
+import com.example.ferretools.utils.BarcodeUtils.logBarcodeScan
 
 data class VentaUiState(
     val productosSeleccionados: List<ItemUnitario> = emptyList(),
@@ -173,6 +176,57 @@ class VentaViewModel(
                     _uiState.value = _uiState.value.copy(status = VentaUiState.Status.Success)
                 }
                 is Result.Error -> _uiState.value = _uiState.value.copy(status = VentaUiState.Status.Error, mensaje = result.message)
+            }
+        }
+    }
+
+    /**
+     * Busca un producto por código de barras y lo agrega al carrito
+     */
+    fun buscarProductoPorCodigoBarras(codigoBarras: String) {
+        val cleanBarcode = BarcodeUtils.cleanBarcode(codigoBarras)
+        
+        if (!BarcodeUtils.isValidBarcode(cleanBarcode)) {
+            _uiState.value = _uiState.value.copy(
+                status = VentaUiState.Status.Error,
+                mensaje = "Código de barras inválido"
+            )
+            return
+        }
+        
+        viewModelScope.launch {
+            val productos = productoRepository.getProductosStream().collect { result ->
+                val lista = when (result) {
+                    is Result.Success -> result.data
+                    else -> emptyList()
+                }
+                
+                val producto = lista.find { it.codigo_barras == cleanBarcode }
+                if (producto != null) {
+                    // Verificar stock disponible
+                    val existente = _uiState.value.productosSeleccionados.find { it.producto_id == producto.producto_id }
+                    val cantidadEnCarrito = existente?.cantidad ?: 0
+                    
+                    if (cantidadEnCarrito < producto.cantidad_disponible) {
+                        agregarProducto(producto, 1)
+                        logBarcodeScan(cleanBarcode, true, producto.nombre)
+                        Log.d("VentaViewModel", "Producto encontrado y agregado: ${producto.nombre}")
+                    } else {
+                        logBarcodeScan(cleanBarcode, true, producto.nombre)
+                        Log.d("VentaViewModel", "Stock insuficiente para: ${producto.nombre}")
+                        _uiState.value = _uiState.value.copy(
+                            status = VentaUiState.Status.Error,
+                            mensaje = "Stock insuficiente para ${producto.nombre}"
+                        )
+                    }
+                } else {
+                    logBarcodeScan(cleanBarcode, false)
+                    Log.d("VentaViewModel", "Producto no encontrado con código: $cleanBarcode")
+                    _uiState.value = _uiState.value.copy(
+                        status = VentaUiState.Status.Error,
+                        mensaje = "Producto no encontrado con código: $cleanBarcode"
+                    )
+                }
             }
         }
     }

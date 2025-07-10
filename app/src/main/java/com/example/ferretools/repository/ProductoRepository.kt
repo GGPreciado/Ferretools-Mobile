@@ -93,4 +93,29 @@ class ProductoRepository(
             null
         }
     }
+
+    /**
+     * Verifica si ya existe un producto con el mismo código de barras en la base de datos.
+     * Devuelve true si existe, false si es único.
+     */
+    suspend fun existeCodigoBarras(codigo: String): Boolean {
+        return try {
+            val negocioId = SesionUsuario.usuario?.negocioId
+            if (negocioId.isNullOrEmpty()) {
+                android.util.Log.d("ProductoRepository", "No hay sesión de usuario o negocio activo para validar código de barras")
+                return false
+            }
+            val query = db.collection("productos")
+                .whereEqualTo("negocioId", negocioId)
+                .whereEqualTo("codigo_barras", codigo)
+                .get()
+                .await()
+            val existe = !query.isEmpty
+            android.util.Log.d("ProductoRepository", "Validando unicidad de código de barras '$codigo': existe = $existe")
+            existe
+        } catch (e: Exception) {
+            android.util.Log.e("ProductoRepository", "Error al validar código de barras: ${e.message}")
+            false
+        }
+    }
 } 

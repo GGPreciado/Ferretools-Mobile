@@ -53,6 +53,9 @@ import com.example.ferretools.theme.primaryContainerLight
 import com.example.ferretools.utils.SesionUsuario
 import com.example.ferretools.viewmodel.inventario.AgregarProductoViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.navigation.AppRoutes
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 
 @Composable
 fun I_02_AgregarProducto(
@@ -64,6 +67,36 @@ fun I_02_AgregarProducto(
     val showDialog = remember { mutableStateOf(false) }
     val showErrorDialog = remember { mutableStateOf(false) }
     val showCategoriaDialog = remember { mutableStateOf(false) }
+
+    // --- INTEGRACIÓN DEL ESCÁNER DE CÓDIGO DE BARRAS ---
+    // Observar cambios en el SavedStateHandle de manera más reactiva
+    LaunchedEffect(Unit) {
+        android.util.Log.d("I_02_AgregarProducto", "Iniciando observación del SavedStateHandle")
+        // Observar continuamente el SavedStateHandle para cambios
+        while (true) {
+            val scannedBarcode = navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.get<String>("barcode_result")
+            
+            if (!scannedBarcode.isNullOrBlank()) {
+                android.util.Log.d("TEST_AGREGAR_PRODUCTO", "Código escaneado encontrado: $scannedBarcode")
+                android.util.Log.d("I_02_AgregarProducto", "Código actual en UI: ${uiState.codigoBarras}")
+                
+                if (scannedBarcode != uiState.codigoBarras) {
+                    viewModel.onCodigoBarrasChanged(scannedBarcode)
+                    android.util.Log.d("TEST_AGREGAR_PRODUCTO", "Código de barras actualizado desde escáner: $scannedBarcode")
+                    // Limpiar el valor para evitar repeticiones
+                    navController.currentBackStackEntry?.savedStateHandle?.remove<String>("barcode_result")
+                    android.util.Log.d("I_02_AgregarProducto", "SavedStateHandle limpiado")
+                } else {
+                    android.util.Log.d("I_02_AgregarProducto", "Código ya está en el campo, limpiando SavedStateHandle")
+                    navController.currentBackStackEntry?.savedStateHandle?.remove<String>("barcode_result")
+                }
+            }
+            // Esperar un poco antes de verificar nuevamente
+            delay(100)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -128,9 +161,15 @@ fun I_02_AgregarProducto(
             // Código de barras
             Text("Codigo de barras", fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // Campo de texto para el código de barras
                 TextField(
-                    value = uiState.codigoBarras,
-                    onValueChange = { viewModel.onCodigoBarrasChanged(it) },
+                    value = uiState.codigoBarras.also { 
+                        android.util.Log.d("I_02_AgregarProducto", "TextField value: $it")
+                    },
+                    onValueChange = {
+                        viewModel.onCodigoBarrasChanged(it)
+                        android.util.Log.d("I_02_AgregarProducto", "Código de barras cambiado manualmente: $it")
+                    },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -140,13 +179,16 @@ fun I_02_AgregarProducto(
                     )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = { /* TODO: escanear */ }) {
+                // Botón de escáner (a implementar)
+                IconButton(onClick = {
+                    // Navegar al escáner de código de barras
+                    android.util.Log.d("I_02_AgregarProducto", "Navegando al escáner de código de barras")
+                    navController.navigate(AppRoutes.Inventory.BARCODE_SCANNER)
+                }) {
                     Image(
-                        painter = painterResource(id = R.drawable.escaner), // Cambia el nombre según tu archivo
+                        painter = painterResource(id = R.drawable.escaner),
                         contentDescription = "Cargar Imagen",
                     )
-
-                   // Icon(Icons.Default.List, contentDescription = "Escanear", tint = Color.Black)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -262,8 +304,10 @@ fun I_02_AgregarProducto(
                 .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
+            // Botón para agregar producto
             Button(
                 onClick = {
+                    android.util.Log.d("I_02_AgregarProducto", "Click en botón Agregar producto")
                     // Validación básica
                     val nombre = uiState.nombre.trim()
                     val precio = uiState.precio.toDoubleOrNull() ?: 0.0
@@ -276,7 +320,7 @@ fun I_02_AgregarProducto(
                         // Si la categoría seleccionada es un ID (categoría existente)
                         if (uiState.categorias.any { it.id == categoriaSeleccionada }) {
                             // Es una categoría existente, guardar directamente
-                            println("DEBUG: Categoría existente seleccionada - ID: $categoriaSeleccionada")
+                            android.util.Log.d("I_02_AgregarProducto", "Categoría existente seleccionada - ID: $categoriaSeleccionada")
                             val producto = Producto(
                                 nombre = nombre,
                                 descripcion = if (descripcion.isNotEmpty()) descripcion else null,
@@ -287,14 +331,14 @@ fun I_02_AgregarProducto(
                                 categoria_id = categoriaSeleccionada,
                                 negocioId = SesionUsuario.usuario?.negocioId!!
                             )
-                            println("DEBUG: Producto a guardar (categoría existente) - categoria_id: ${producto.categoria_id}")
+                            android.util.Log.d("I_02_AgregarProducto", "Producto a guardar (categoría existente) - categoria_id: ${producto.categoria_id}")
                             viewModel.agregarProducto(producto) { exito ->
                                 if (exito) {
-                                    println("DEBUG: Producto agregado exitosamente, mostrando diálogo de confirmación")
+                                    android.util.Log.d("I_02_AgregarProducto", "Producto agregado exitosamente, mostrando diálogo de confirmación")
                                     showDialog.value = true
                                     viewModel.limpiarFormulario()
                                 } else {
-                                    println("ERROR: Error al agregar producto")
+                                    android.util.Log.e("I_02_AgregarProducto", "Error al agregar producto")
                                     showErrorDialog.value = true
                                 }
                             }
@@ -302,7 +346,7 @@ fun I_02_AgregarProducto(
                             // Es una nueva categoría, crearla primero
                             viewModel.agregarCategoriaSiNoExiste(categoriaSeleccionada) { categoriaId ->
                                 if (categoriaId != null) {
-                                    println("DEBUG: Nueva categoría creada - Nombre: $categoriaSeleccionada, ID: $categoriaId")
+                                    android.util.Log.d("I_02_AgregarProducto", "Nueva categoría creada - Nombre: $categoriaSeleccionada, ID: $categoriaId")
                                     
                                     val producto = Producto(
                                         nombre = nombre,
@@ -314,24 +358,25 @@ fun I_02_AgregarProducto(
                                         categoria_id = categoriaId,
                                         negocioId = SesionUsuario.usuario?.negocioId!!
                                     )
-                                    println("DEBUG: Producto a guardar - categoria_id: ${producto.categoria_id}")
+                                    android.util.Log.d("I_02_AgregarProducto", "Producto a guardar - categoria_id: ${producto.categoria_id}")
                                     viewModel.agregarProducto(producto) { exito ->
                                         if (exito) {
-                                            println("DEBUG: Producto agregado exitosamente (nueva categoría), mostrando diálogo de confirmación")
+                                            android.util.Log.d("I_02_AgregarProducto", "Producto agregado exitosamente (nueva categoría), mostrando diálogo de confirmación")
                                             showDialog.value = true
                                             viewModel.limpiarFormulario()
                                         } else {
-                                            println("ERROR: Error al agregar producto (nueva categoría)")
+                                            android.util.Log.e("I_02_AgregarProducto", "Error al agregar producto (nueva categoría)")
                                             showErrorDialog.value = true
                                         }
                                     }
                                 } else {
-                                    println("ERROR: Error al crear categoría")
+                                    android.util.Log.e("I_02_AgregarProducto", "Error al crear categoría")
                                     showErrorDialog.value = true
                                 }
                             }
                         }
                     } else {
+                        android.util.Log.w("I_02_AgregarProducto", "Validación de campos fallida. Campos vacíos o inválidos.")
                         showErrorDialog.value = true
                     }
                 },
@@ -353,7 +398,7 @@ fun I_02_AgregarProducto(
                 confirmButton = {
                     Button(
                         onClick = {
-                            println("DEBUG: Cerrando diálogo y navegando hacia atrás")
+                            android.util.Log.d("I_02_AgregarProducto", "Cerrando diálogo y navegando hacia atrás")
                             showDialog.value = false
                             // Forzar recarga antes de navegar
                             viewModel.recargarProductos()

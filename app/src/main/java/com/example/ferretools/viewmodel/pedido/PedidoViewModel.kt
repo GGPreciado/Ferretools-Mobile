@@ -10,6 +10,8 @@ import com.example.ferretools.model.Result
 import com.example.ferretools.repository.PedidoRepository
 import com.example.ferretools.repository.ProductoRepository
 import com.example.ferretools.utils.SesionUsuario
+import com.example.ferretools.utils.BarcodeUtils
+import com.example.ferretools.utils.BarcodeUtils.logBarcodeScan
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import com.google.firebase.firestore.ListenerRegistration
 import java.text.SimpleDateFormat
 import java.util.Locale
-
+import android.util.Log
 
 // Estado centralizado para el flujo de pedidos
 data class PedidoUiState(
@@ -74,6 +76,63 @@ class PedidoViewModel(
             productosActuales.add(nuevoItem)
         }
         actualizarProductosConDetalles(productosActuales)
+    }
+
+    /**
+     * Busca un producto por código de barras y lo agrega al carrito de pedido
+     */
+    fun buscarProductoPorCodigoBarras(codigoBarras: String) {
+        val cleanBarcode = BarcodeUtils.cleanBarcode(codigoBarras)
+        
+        if (!BarcodeUtils.isValidBarcode(cleanBarcode)) {
+            _uiState.value = _uiState.value.copy(
+                status = PedidoUiState.Status.Error,
+                mensaje = "Código de barras inválido"
+            )
+            return
+        }
+        
+        viewModelScope.launch {
+            val productos = productoRepository.getProductosStream().collect { result ->
+                val lista = when (result) {
+                    is Result.Success -> result.data
+                    else -> emptyList()
+                }
+                
+                val producto = lista.find { it.codigo_barras == cleanBarcode }
+                if (producto != null) {
+                    // Verificar stock disponible para pedidos
+                    val existente = _uiState.value.productosSeleccionados.find { it.producto_id == producto.producto_id }
+                    val cantidadEnCarrito = existente?.cantidad ?: 0
+                    
+                    if (cantidadEnCarrito < producto.cantidad_disponible) {
+                        agregarProducto(producto, 1)
+                        logBarcodeScan(cleanBarcode, true, producto.nombre)
+                        Log.d("PedidoViewModel", "Producto encontrado y agregado: ${producto.nombre}")
+                        
+                        // No mostrar mensaje de éxito para mantener consistencia con el flujo de ventas
+                        _uiState.value = _uiState.value.copy(
+                            status = PedidoUiState.Status.Idle,
+                            mensaje = null
+                        )
+                    } else {
+                        logBarcodeScan(cleanBarcode, true, producto.nombre)
+                        Log.d("PedidoViewModel", "Stock insuficiente para: ${producto.nombre}")
+                        _uiState.value = _uiState.value.copy(
+                            status = PedidoUiState.Status.Error,
+                            mensaje = "Stock insuficiente para ${producto.nombre}"
+                        )
+                    }
+                } else {
+                    logBarcodeScan(cleanBarcode, false)
+                    Log.d("PedidoViewModel", "Producto no encontrado con código: $cleanBarcode")
+                    _uiState.value = _uiState.value.copy(
+                        status = PedidoUiState.Status.Error,
+                        mensaje = "Producto no encontrado con código: $cleanBarcode"
+                    )
+                }
+            }
+        }
     }
 
     fun actualizarCantidadProducto(productoId: String, nuevaCantidad: Int) {

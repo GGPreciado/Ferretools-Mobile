@@ -63,6 +63,7 @@ import com.example.ferretools.ui.venta.V_05_BoletaVenta
 import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
 import com.example.ferretools.viewmodel.compra.CompraViewModel
 import androidx.navigation.NavType
+import com.example.ferretools.ui.venta.BarcodeScannerScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -186,11 +187,20 @@ fun AppNavigation(navController: NavHostController) {
         }
         composable(AppRoutes.Inventory.ADD_PRODUCT) {
             val viewModel: AgregarProductoViewModel = viewModel()
-            //val categoriaViewModel: ListaCategoriasViewModel = viewModel()
             I_02_AgregarProducto(
                 navController = navController,
                 viewModel = viewModel
-                //categoriaViewModel = categoriaViewModel
+            )
+        }
+        // Escáner de código de barras para inventario
+        composable(AppRoutes.Inventory.BARCODE_SCANNER) {
+            BarcodeScannerScreen(
+                navController = navController,
+                onBarcodeScanned = { barcode ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("barcode_result", barcode)
+                    android.util.Log.d("AppNavigation", "Código de barras escaneado en inventario: $barcode")
+                    // Eliminar navegación automática, el usuario debe volver manualmente
+                }
             )
         }
         composable<AppRoutes.Inventory.PRODUCT_DETAILS> { backStackEntry ->
@@ -254,7 +264,18 @@ fun AppNavigation(navController: NavHostController) {
         }
         // Compras Stack
         composable(AppRoutes.Purchase.CART) {
-            C_01_CarritoCompra(navController = navController, viewModel = compraViewModel)
+            C_01_CarritoCompra(navController = navController, compraViewModel = compraViewModel)
+        }
+        // Escáner de código de barras para compras
+        composable(AppRoutes.Purchase.BARCODE_SCANNER) {
+            BarcodeScannerScreen(
+                navController = navController,
+                onBarcodeScanned = { barcode ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("barcode_result", barcode)
+                    android.util.Log.d("AppNavigation", "Código de barras escaneado en compras: $barcode")
+                    //navController.popBackStack()
+                }
+            )
         }
         composable(AppRoutes.Purchase.CART_SUMMARY) {
             C_02_ResumenCarritoCompra(navController = navController, viewModel = compraViewModel)
@@ -278,9 +299,31 @@ fun AppNavigation(navController: NavHostController) {
         composable(AppRoutes.Sale.RECEIPT) {
             V_05_BoletaVenta(navController = navController, viewModel = ventaViewModel)
         }
+        composable(AppRoutes.Sale.BARCODE_SCANNER) {
+            BarcodeScannerScreen(
+                navController = navController,
+                onBarcodeScanned = { barcode ->
+                    // Guardar el código escaneado en el SavedStateHandle para que lo lea V_01_CarritoVenta
+                    navController.previousBackStackEntry?.savedStateHandle?.set("scanned_barcode", barcode)
+                    android.util.Log.d("AppNavigation", "Código de barras escaneado en ventas: $barcode")
+                    //navController.popBackStack()
+                }
+            )
+        }
         // Pedidos Stack
         composable(AppRoutes.Order.ADD_TO_CART) {
             P_01_AgregarAlCarrito(navController = navController, viewModel = pedidoViewModel)
+        }
+        // Escáner de código de barras para pedidos
+        composable(AppRoutes.Order.BARCODE_SCANNER) {
+            BarcodeScannerScreen(
+                navController = navController,
+                onBarcodeScanned = { barcode ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("barcode_result", barcode)
+                    android.util.Log.d("AppNavigation", "Código de barras escaneado en pedidos: $barcode")
+                    //navController.popBackStack()
+                }
+            )
         }
         composable(AppRoutes.Order.CART) {
             P_02_CarritoCliente(navController = navController, viewModel = pedidoViewModel)
