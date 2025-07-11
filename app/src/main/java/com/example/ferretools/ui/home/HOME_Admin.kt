@@ -1,6 +1,7 @@
 package com.example.ferretools.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,8 +58,8 @@ fun HOME_Admin(
 
     // Observar estadísticas de la semana
     val ventasSemana = viewModel.ventasSemana.collectAsState().value
-    val ingresosSemana = viewModel.ingresosSemana.collectAsState().value  
-  
+    val ingresosSemana = viewModel.ingresosSemana.collectAsState().value
+
     Scaffold(
         topBar = { UserDataBar(userName, storeName) },
         bottomBar = { AdminBottomNavBar(navController) }
@@ -74,30 +78,30 @@ fun HOME_Admin(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 SummaryCard(
-                    title = "Ventas de esta semana", 
-                    value = ventasSemana.toString(), 
+                    title = "Ventas de esta semana",
+                    value = ventasSemana.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 SummaryCard(
-                    title = "Ingresos de esta semana", 
-                    value = "S/ ${String.format("%.2f", ingresosSemana)}", 
+                    title = "Ingresos de esta semana",
+                    value = "S/ ${String.format("%.2f", ingresosSemana)}",
                     modifier = Modifier.weight(1f)
                 )
-        }
-        Spacer(modifier = Modifier.height(18.dp))
-        // Accesos Directos
-        Text(
-            text = stringResource(R.string.home_admin_accesos_directos),
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+            }
+            Spacer(modifier = Modifier.height(18.dp))
+            // Accesos Directos
+            Text(
+                text = stringResource(R.string.home_admin_accesos_directos),
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 AdminQuickAccess(
                     onVenta = { navController.navigate(AppRoutes.Sale.CART) },
                     onGasto = { navController.navigate(AppRoutes.Purchase.CART) },
@@ -126,18 +130,18 @@ fun HOME_Admin(
             Spacer(modifier = Modifier.height(8.dp))
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 when {
-                isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    isLoading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    }
+                    stockAlerts.isEmpty() -> {
+                        Text(text = stringResource(R.string.home_admin_no_bajo_stock), color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    }
+                    else -> {
+                        StockAlerts(
+                            alerts = stockAlerts
+                        )
+                    }
                 }
-                stockAlerts.isEmpty() -> {
-                    Text(text = stringResource(R.string.home_admin_no_bajo_stock), color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
-                }
-                else -> {
-                    StockAlerts(
-                        alerts = stockAlerts
-                    )
-                }
-              }
             }
         }
     }
@@ -161,9 +165,9 @@ fun AdminQuickAccess(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            QuickAccessButtonE(stringResource(R.string.home_admin_venta), Icons.Default.ShoppingCart, onVenta)
-            QuickAccessButtonE(stringResource(R.string.home_admin_gasto), Icons.Default.Person, onGasto)
-            QuickAccessButtonE(stringResource(R.string.home_admin_tienda), Icons.Default.List, onInventario)
+            QuickAccessButtonA(stringResource(R.string.home_admin_venta), Icons.Default.ShoppingCart, onVenta)
+            QuickAccessButtonA(stringResource(R.string.home_admin_gasto), Icons.Default.Person, onGasto)
+            QuickAccessButtonA(stringResource(R.string.home_admin_tienda), Icons.Default.List, onInventario)
         }
     }
 }
