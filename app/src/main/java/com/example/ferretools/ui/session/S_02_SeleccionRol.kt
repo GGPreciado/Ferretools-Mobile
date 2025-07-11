@@ -24,11 +24,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.ferretools.R
 import com.example.ferretools.model.enums.RolUsuario
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
@@ -52,7 +54,7 @@ fun S_02_SeleccionRol(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Selecciona tu rol",
+            text = stringResource(R.string.seleccion_rol_titulo),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -97,10 +99,7 @@ fun S_02_SeleccionRol(
             shape = MaterialTheme.shapes.small,
             elevation = ButtonDefaults.buttonElevation(4.dp)
         ) {
-            Text(
-                text = "SIGUIENTE",
-                style = MaterialTheme.typography.labelSmall
-            )
+            Text(text = stringResource(R.string.seleccion_rol_siguiente))
         }
     }
 }

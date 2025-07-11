@@ -54,6 +54,9 @@ import kotlinx.coroutines.delay
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun C_01_CarritoCompra(
@@ -138,7 +141,7 @@ fun C_01_CarritoCompra(
 
     Scaffold(
         topBar = {
-            TopNavBar(navController, "Selección de producto comprado")
+            TopNavBar(navController, stringResource(R.string.compra_seleccion_producto))
         },
         bottomBar = {
             AdminBottomNavBar(navController, Modifier.size(40.dp))
@@ -224,7 +227,7 @@ fun C_01_CarritoCompra(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)),
                 enabled = uiState.productosSeleccionados.isNotEmpty()
             ) {
-                Text("Continuar", color = Color.Black)
+                Text(stringResource(R.string.compra_continuar))
             }
         }
     }

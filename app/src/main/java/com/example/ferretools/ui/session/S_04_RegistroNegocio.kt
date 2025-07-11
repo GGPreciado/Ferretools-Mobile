@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +49,7 @@ import com.example.ferretools.theme.FerretoolsTheme
 import com.example.ferretools.viewmodel.session.RegistroNegocioViewModel
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import com.example.ferretools.R
 
 @Composable
 fun S_04_RegistroNegocio(
@@ -87,7 +89,7 @@ fun S_04_RegistroNegocio(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
+                    contentDescription = stringResource(R.string.registro_negocio_volver),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -95,7 +97,7 @@ fun S_04_RegistroNegocio(
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Detalles del negocio",
+            text = stringResource(R.string.registro_negocio_detalles),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
@@ -127,14 +129,13 @@ fun S_04_RegistroNegocio(
                 )
                 Image(
                     painter = painter,
-                    contentDescription = "Imagen de perfil",
+                    contentDescription = stringResource(R.string.registro_negocio_imagen_perfil),
                     modifier = Modifier.size(90.dp)
                 )
             } else {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = if (registroNegocioUiState.value.logoUri == null)
-                        "Agregar logo del negocio" else "Logo del negocio",
+                    contentDescription = stringResource(R.string.registro_negocio_agregar_logo),
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(54.dp)
                 )
@@ -144,37 +145,37 @@ fun S_04_RegistroNegocio(
         Spacer(modifier = Modifier.height(24.dp))
 
         BusinessFormField(
-            label = "Nombre del negocio",
+            label = stringResource(R.string.registro_negocio_nombre),
             value = registroNegocioUiState.value.businessName,
             onValueChange = { registroNegocioViewModel.updateBusinessName(it) },
-            placeholder = "Nombre de la Empresa"
+            placeholder = stringResource(R.string.registro_negocio_nombre_empresa)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         BusinessFormField(
-            label = "Rubro del negocio",
+            label = stringResource(R.string.registro_negocio_rubro),
             value = registroNegocioUiState.value.businessType,
             onValueChange = { registroNegocioViewModel.updateBusinessType(it) },
-            placeholder = "Ferretería, farmacia, etc."
+            placeholder = stringResource(R.string.registro_negocio_rubro_placeholder)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         BusinessFormField(
-            label = "Dirección",
+            label = stringResource(R.string.registro_negocio_direccion),
             value = registroNegocioUiState.value.address,
             onValueChange = { registroNegocioViewModel.updateAddress(it) },
-            placeholder ="Dirección"
+            placeholder = stringResource(R.string.registro_negocio_direccion)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         BusinessFormField(
-            label = "R.U.C.",
+            label = stringResource(R.string.registro_negocio_ruc),
             value = registroNegocioUiState.value.ruc,
             onValueChange = { registroNegocioViewModel.updateRuc(it) },
-            placeholder = "R.U.C."
+            placeholder = stringResource(R.string.registro_negocio_ruc)
         )
 
         // Mostrar error si existe
@@ -212,7 +213,7 @@ fun S_04_RegistroNegocio(
         ) {
             Text(
                 //text = "FINALIZAR REGISTRO",
-                text = if (registroNegocioUiState.value.registerSuccessful) "REGISTRO EXITOSO" else "FINALIZAR REGISTRO",
+                text = if (registroNegocioUiState.value.registerSuccessful) stringResource(R.string.registro_negocio_exitoso) else stringResource(R.string.registro_negocio_finalizar),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onPrimary
             )
