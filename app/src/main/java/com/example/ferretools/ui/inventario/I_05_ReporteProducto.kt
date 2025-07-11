@@ -140,12 +140,12 @@ fun I_05_ReporteProducto(
                             DropdownBar(
                                 opciones = listOf("Diario", "Semanal", "Mensual"),
                                 opcionPorDefecto = "Diario",
-                                onOpcionSeleccionada = { reporteProductoViewModel.cambiarPeriodoTemporal(it) }
+                                onOpcionSeleccionada = { reporteProductoViewModel.cambiarPeriodoTemporal(it, productoId) }
                             )
                             DropdownBar(
                                 opciones = listOf("Barras", "Circular", "Apiladas"),
                                 opcionPorDefecto = "Barras",
-                                onOpcionSeleccionada = { reporteProductoViewModel.cambiarTipoGrafico(it) }
+                                onOpcionSeleccionada = { reporteProductoViewModel.cambiarTipoGrafico(it, productoId) }
                             )
                         }
                     }
@@ -158,11 +158,36 @@ fun I_05_ReporteProducto(
                                 Log.e("DEBUG", "En ventas: ${reporteProductoUiState.value.valoresGrafico}")
                                 Log.e("DEBUG", "En ventas: ${reporteProductoUiState.value.fechasGrafico}")
 
-                                GraficoBarrasPorPeriodo(
-                                    datos = reporteProductoUiState.value.valoresGrafico,
-                                    fechas = reporteProductoUiState.value.fechasGrafico,
-                                    periodoTemporal = reporteProductoUiState.value.periodoTemporal
-                                )
+                                when (reporteProductoUiState.value.tipoGrafico) {
+                                    "Barras" -> {
+                                        if (reporteProductoViewModel.hayDatos(reporteProductoUiState.value.valoresGrafico)
+                                            && reporteProductoUiState.value.fechasGrafico.isNotEmpty()) {
+                                            GraficoBarrasPorPeriodo(
+                                                datos = reporteProductoUiState.value.valoresGrafico,
+                                                fechas = reporteProductoUiState.value.fechasGrafico,
+                                                periodoTemporal = reporteProductoUiState.value.periodoTemporal
+                                            )
+                                        } else {
+                                            NoDataFoundCard()
+                                        }
+                                    }
+                                    "Apiladas" -> {
+                                        if (reporteProductoUiState.value.datosGraficoPorUsuario.isNotEmpty()
+                                            && reporteProductoUiState.value.fechasGrafico.isNotEmpty()) {
+                                            GraficoBarrasApiladasPorUsuario(
+                                                datosPorUsuario = reporteProductoUiState.value.datosGraficoPorUsuario,
+                                                fechas = reporteProductoUiState.value.fechasGrafico,
+                                                periodoTemporal = reporteProductoUiState.value.periodoTemporal
+                                            )
+                                        } else {
+                                            NoDataFoundCard()
+                                        }
+
+                                    }
+                                    else -> {
+                                        Log.d("DEBUG", "Elija un tipo de gráfico válido")
+                                    }
+                                }
 
                             } else {
                                 NoItemsFoundCard(operacion = reporteProductoUiState.value.operacionSeleccionada)
@@ -177,18 +202,32 @@ fun I_05_ReporteProducto(
 
                                 when (reporteProductoUiState.value.tipoGrafico) {
                                     "Barras" -> {
-                                        GraficoBarrasPorPeriodo(
-                                            datos = reporteProductoUiState.value.valoresGrafico,
-                                            fechas = reporteProductoUiState.value.fechasGrafico,
-                                            periodoTemporal = reporteProductoUiState.value.periodoTemporal
-                                        )
+                                        if (reporteProductoViewModel.hayDatos(reporteProductoUiState.value.valoresGrafico)
+                                            && reporteProductoUiState.value.fechasGrafico.isNotEmpty()) {
+                                            GraficoBarrasPorPeriodo(
+                                                datos = reporteProductoUiState.value.valoresGrafico,
+                                                fechas = reporteProductoUiState.value.fechasGrafico,
+                                                periodoTemporal = reporteProductoUiState.value.periodoTemporal
+                                            )
+                                        } else {
+                                            NoDataFoundCard()
+                                        }
                                     }
                                     "Apiladas" -> {
-                                        GraficoBarrasApiladasPorUsuario(
-                                            datosPorUsuario = reporteProductoUiState.value.datosGraficoPorUsuario,
-                                            fechas = reporteProductoUiState.value.fechasGrafico,
-                                            periodoTemporal = reporteProductoUiState.value.periodoTemporal
-                                        )
+                                        Log.d("DEBUG", "Cambiar a barras apiladas")
+                                        if (reporteProductoUiState.value.datosGraficoPorUsuario.isNotEmpty()
+                                            && reporteProductoUiState.value.fechasGrafico.isNotEmpty()) {
+                                            GraficoBarrasApiladasPorUsuario(
+                                                datosPorUsuario = reporteProductoUiState.value.datosGraficoPorUsuario,
+                                                fechas = reporteProductoUiState.value.fechasGrafico,
+                                                periodoTemporal = reporteProductoUiState.value.periodoTemporal
+                                            )
+                                        } else {
+                                            NoDataFoundCard()
+                                        }
+                                    }
+                                    else -> {
+                                        Log.d("DEBUG", "Elija un tipo de gráfico válido")
                                     }
                                 }
 
@@ -295,6 +334,19 @@ fun NoItemsFoundCard(
 }
 
 @Composable
+fun NoDataFoundCard(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(240.dp)
+    ) {
+        Text("No hay datos que mostrar para ese producto")
+    }
+}
+
+@Composable
 fun GraficoBarrasPorPeriodo(
     datos: List<Float>,
     fechas: List<LocalDate>,
@@ -359,15 +411,21 @@ fun GraficoBarrasApiladasPorUsuario(
         Color(0xFF1E88E5), Color(0xFFD81B60), Color(0xFF43A047), Color(0xFFF4511E),
         Color(0xFF6A1B9A), Color(0xFF00897B), Color(0xFF5D4037), Color(0xFF3949AB)
     )
-    val colorComponentes = colores.map { color ->
-        rememberLineComponent(fill = fill(color), thickness = 16.dp)
-    }
+//    val colorComponentes = colores.map { color ->
+//        rememberLineComponent(fill = fill(color), thickness = 16.dp)
+//    }
+
+    Log.d("DEBUG", "Usuarios: ${datosPorUsuario.keys}")
+    Log.d("DEBUG", "Fechas: ${fechas}")
+
 
     LaunchedEffect(datosPorUsuario, fechas) {
         modelProducer.runTransaction {
             columnSeries {
-                datosPorUsuario.values.forEachIndexed { index, lista ->
-                    series(x, lista)
+                datosPorUsuario.values.forEach { lista ->
+                    if (lista.isNotEmpty()) {
+                        series(x, lista)
+                    }
                 }
             }
             extras {
@@ -376,6 +434,7 @@ fun GraficoBarrasApiladasPorUsuario(
             }
         }
     }
+
 
     val dateFormatter = when (periodoTemporal) {
         "Mensual" -> DateTimeFormatter.ofPattern("MMM", Locale("es"))
@@ -392,7 +451,12 @@ fun GraficoBarrasApiladasPorUsuario(
     CartesianChartHost(
         chart = rememberCartesianChart(
             rememberColumnCartesianLayer(
-                columnProvider = ColumnCartesianLayer.ColumnProvider.series(colorComponentes),
+                columnProvider =
+                    ColumnCartesianLayer.ColumnProvider.series(
+                        colores.map { color ->
+                            rememberLineComponent(fill = fill(color), thickness = 16.dp)
+                        }
+                    ),
                 mergeMode = { ColumnCartesianLayer.MergeMode.stacked() },
                 columnCollectionSpacing = 24.dp,
             ),
@@ -422,21 +486,3 @@ fun GraficoBarrasApiladasPorUsuario(
             .height(260.dp)
     )
 }
-
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun I_05_ReporteProductoPreview() {
-//    val navController = rememberNavController()
-//    I_05_ReporteProducto(navController = navController)
-//}
-
-//                    Botón PDF
-//                    Button(
-//                        onClick = { /* Acción PDF */ },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(44.dp),
-//                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B))
-//                    ) {
-//                        Text("Convertir a PDF", color = Color.Black)
-//                    }
