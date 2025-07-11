@@ -24,8 +24,9 @@ fun UserDataBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF00BF59))
-            .padding(12.dp),
+            .background(Color(0xFF22D366))
+            .padding(vertical = 10.dp, horizontal = 8.dp)
+            .padding(top = 40.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Imagen de usuario (placeholder)

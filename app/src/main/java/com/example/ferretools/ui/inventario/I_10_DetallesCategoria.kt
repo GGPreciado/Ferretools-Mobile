@@ -32,7 +32,8 @@ fun I_10_DetallesCategoria(
     navController: NavController,
     categoriaId: String,
     productosViewModel: ListaProductosViewModel = viewModel(),
-    categoriaViewModel: ListaCategoriasViewModel = viewModel()
+    categoriaViewModel: ListaCategoriasViewModel = viewModel(),
+    isReadOnly: Boolean = false
 ) {
     var searchQuery by remember { mutableStateOf("") }
     
@@ -181,11 +182,16 @@ fun I_10_DetallesCategoria(
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
                                 .clickable {
-                                    navController.navigate(
-                                        AppRoutes.Inventory.PRODUCT_DETAILS(producto.producto_id)
-                                    )
-//                                    ProductoSeleccionadoManager.seleccionarProducto(producto)
-//                                    navController.navigate(AppRoutes.Inventory.PRODUCT_DETAILS)
+                                    if (isReadOnly) {
+                                        navController.navigate(
+                                            AppRoutes.Client.PRODUCT_DETAILS(producto.producto_id)
+//                                            "inventory_product_details/${producto.producto_id}?isReadOnly=true"
+                                        )
+                                    } else {
+                                        navController.navigate(
+                                            "inventory_product_details/${producto.producto_id}"
+                                        )
+                                    }
                                 },
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
                             shape = RoundedCornerShape(8.dp)

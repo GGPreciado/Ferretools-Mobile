@@ -46,8 +46,6 @@ data class PedidoCliente(
 @Composable
 fun HOME_Cliente(
     navController: NavController,
-    userName: String = "Cliente",
-    storeName: String = "Mi Tienda",
     pedidosRecientes: List<PedidoCliente> = emptyList(),
     selectedMenu: Int = 0,
     viewModel: HomeViewModel = viewModel()
@@ -56,6 +54,10 @@ fun HOME_Cliente(
 
     // Observar pedidos pendientes del usuario activo
     val pedidosPendientes = viewModel.pedidosPendientes.collectAsState().value
+    
+    // Observar datos del usuario y negocio
+    val userName = viewModel.userName.collectAsState().value
+    val storeName = viewModel.storeName.collectAsState().value
 
     // Cargar pedidos pendientes al iniciar
     LaunchedEffect(Unit) {
@@ -68,10 +70,10 @@ fun HOME_Cliente(
             ClienteBottomNavBar(selected = menu, onSelect = {
                 menu = it
                 when (it) {
+                    0 -> navController.navigate(AppRoutes.Client.DASHBOARD)
                     1 -> navController.navigate(AppRoutes.Client.CATALOG)
-                    2 -> navController.navigate(AppRoutes.Order.HISTORY)
-                    3 -> navController.navigate(AppRoutes.Config.MAIN)
-                    else -> {} // Inicio
+                    2 -> navController.navigate(AppRoutes.Client.ORDERS)
+                    3 -> navController.navigate(AppRoutes.Client.CONFIG)
                 }
             })
         },
@@ -93,7 +95,7 @@ fun HOME_Cliente(
             ClienteQuickAccess(
                 onCatalogo = { navController.navigate(AppRoutes.Client.CATALOG) },
                 onCarrito = { navController.navigate(AppRoutes.Order.ADD_TO_CART) },
-                onHistorial = { navController.navigate(AppRoutes.Order.HISTORY) }
+                onHistorial = { navController.navigate(AppRoutes.Client.ORDERS) }
             )
             Spacer(Modifier.height(24.dp))
             val pedidosOrdenados = pedidosPendientes.sortedByDescending { it.fecha }
@@ -120,10 +122,16 @@ fun HOME_Cliente(
 @Composable
 fun ClienteHeader(userName: String, storeName: String) {
     Row(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .background(GreenP)
+//            .padding(12.dp),
+//        verticalAlignment = Alignment.CenterVertically
         modifier = Modifier
             .fillMaxWidth()
-            .background(GreenP)
-            .padding(12.dp),
+            .background(Color(0xFF00E676))
+            .padding(vertical = 10.dp, horizontal = 8.dp)
+            .padding(top = 40.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(

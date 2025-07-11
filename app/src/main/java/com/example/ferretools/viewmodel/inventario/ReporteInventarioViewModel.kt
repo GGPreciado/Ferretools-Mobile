@@ -1,5 +1,7 @@
 package com.example.ferretools.viewmodel.inventario
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,10 +10,13 @@ import com.example.ferretools.model.database.Categoria
 import com.example.ferretools.model.database.Producto
 import com.example.ferretools.repository.CategoriaRepository
 import com.example.ferretools.repository.ProductoRepository
+import com.example.ferretools.utils.ReportGenerator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 data class ReporteInventarioUiState(
     val isLoading: Boolean = false, // Indica si está cargando
@@ -19,7 +24,8 @@ data class ReporteInventarioUiState(
     val productosFiltrados: List<Producto> = emptyList(),
     val categorias: List<Categoria> = emptyList(), // Lista de categorías
     val categoriasName: List<String> = emptyList(),
-    val error: String? = null // Mensaje de error (si ocurre)
+    val error: String? = null, // Mensaje de error (si ocurre)
+    val isGeneratingReport: Boolean = false // Indica si se está generando un reporte
 )
 
 class ReporteInventarioViewModel(
@@ -60,6 +66,10 @@ class ReporteInventarioViewModel(
 
     fun actualizarError(error: String) {
         _uiState.update { it.copy(error = error) }
+    }
+
+    fun actualizarGenerandoReporte(generando: Boolean) {
+        _uiState.update { it.copy(isGeneratingReport = generando) }
     }
 
     fun cargarCategorias() {
@@ -105,14 +115,101 @@ class ReporteInventarioViewModel(
         }
     }
     
+    // Generar reporte en PDF
+    fun generarReportePDF(context: Context, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                actualizarGenerandoReporte(true)
+                
+                val productos = _uiState.value.productosFiltrados
+                val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                
+                // Generar PDF real
+                val pdfContent = ReportGenerator.generarPDF(productos, fecha)
+                
+                // Guardar archivo
+                val nombreArchivo = "reporte_inventario_${System.currentTimeMillis()}.pdf"
+                val uri = ReportGenerator.guardarArchivo(context, pdfContent, nombreArchivo, "application/pdf")
+                
+                if (uri != null) {
+                    actualizarGenerandoReporte(false)
+                    onSuccess("PDF guardado exitosamente")
+                } else {
+                    actualizarGenerandoReporte(false)
+                    onError("Error al guardar el archivo PDF")
+                }
+                
+            } catch (e: Exception) {
+                actualizarGenerandoReporte(false)
+                onError("Error al generar PDF: ${e.message}")
+                Log.e("ReporteInventarioViewModel", "Error generando PDF", e)
+            }
+        }
+    }
+    
+    // Generar reporte en Excel
+    fun generarReporteExcel(context: Context, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                actualizarGenerandoReporte(true)
+                
+                val productos = _uiState.value.productosFiltrados
+                val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                
+                // Generar Excel real
+                val excelContent = ReportGenerator.generarExcel(productos, fecha)
+                
+                // Guardar archivo
+                val nombreArchivo = "reporte_inventario_${System.currentTimeMillis()}.xlsx"
+                val uri = ReportGenerator.guardarArchivo(context, excelContent, nombreArchivo, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                
+                if (uri != null) {
+                    actualizarGenerandoReporte(false)
+                    onSuccess("Excel guardado exitosamente")
+                } else {
+                    actualizarGenerandoReporte(false)
+                    onError("Error al guardar el archivo Excel")
+                }
+                
+            } catch (e: Exception) {
+                actualizarGenerandoReporte(false)
+                onError("Error al generar Excel: ${e.message}")
+                Log.e("ReporteInventarioViewModel", "Error generando Excel", e)
+            }
+        }
+    }
+    
+    // Compartir reporte
+    fun compartirReporte(onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                actualizarGenerandoReporte(true)
+                
+                val productos = _uiState.value.productosFiltrados
+                val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                
+                // Generar contenido para compartir
+                val contenido = ReportGenerator.generarContenidoCompartir(productos, fecha)
+                
+                actualizarGenerandoReporte(false)
+                onSuccess(contenido)
+                
+            } catch (e: Exception) {
+                actualizarGenerandoReporte(false)
+                onError("Error al generar contenido: ${e.message}")
+                Log.e("ReporteInventarioViewModel", "Error generando contenido", e)
+            }
+        }
+    }
+    
     // Obtener estadísticas del inventario
-//    fun obtenerEstadisticas(): Map<String, Any> {
-//        val productos = _productos.value
-//        return mapOf(
-//            "totalProductos" to productos.size,
-//            "valorTotal" to productos.sumOf { it.precio * it.cantidad_disponible },
-//            "productosBajoStock" to productos.count { it.cantidad_disponible < 10 },
-//            "categoriasUnicas" to productos.map { it.categoria_id }.distinct().size
-//        )
-//    }
+    fun obtenerEstadisticas(): Map<String, Any> {
+        val productos = _uiState.value.productosFiltrados
+        return mapOf(
+            "totalProductos" to productos.size,
+            "valorTotal" to productos.sumOf { it.precio * it.cantidad_disponible },
+            "productosBajoStock" to productos.count { it.cantidad_disponible < 10 },
+            "categoriasUnicas" to productos.map { it.categoria_id }.distinct().size
+        )
+    }
 } 

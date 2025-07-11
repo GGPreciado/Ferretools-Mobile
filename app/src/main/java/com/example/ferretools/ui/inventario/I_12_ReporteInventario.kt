@@ -19,8 +19,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,6 +47,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.viewmodel.inventario.ReporteInventarioViewModel
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun I_12_ReporteInventario(
@@ -53,8 +58,13 @@ fun I_12_ReporteInventario(
 ) {
     var showModal by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     val uiState = reporteViewModel.uiState.collectAsState().value
+    val context = LocalContext.current
 
     Column(
         Modifier
@@ -105,8 +115,18 @@ fun I_12_ReporteInventario(
                 }
             }
             Spacer(Modifier.width(8.dp))
-            IconButton(onClick = { showModal = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "Elige un formato para descargar")
+            IconButton(
+                onClick = { showModal = true },
+                enabled = !uiState.isGeneratingReport
+            ) {
+                if (uiState.isGeneratingReport) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.Gray
+                    )
+                } else {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Elige un formato para descargar")
+                }
             }
         }
 
@@ -177,38 +197,198 @@ fun I_12_ReporteInventario(
 
     // Modal de opciones
     if (showModal) {
-        Dialog(onDismissRequest = { showModal = false }) {
+        Dialog(onDismissRequest = { if (!uiState.isGeneratingReport) showModal = false }) {
             Card(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.padding(16.dp)
             ) {
                 Column(Modifier.padding(24.dp)) {
-                    Text("Opciones", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("Opciones de Reporte", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(Modifier.height(16.dp))
-                    Text(
-                        "Descargar PDF",
+                    
+                    // Opción PDF
+                    Row(
                         Modifier
                             .fillMaxWidth()
-                            .clickable { showModal = false }
-                            .padding(8.dp)
-                    )
-                    Text(
-                        "Descargar en Excel",
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { showModal = false }
-                            .padding(8.dp)
-                    )
-                    Text(
-                        "Compartir",
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                showModal = false
-                                navController?.navigate(AppRoutes.Inventory.SHARE_REPORT)
+                            .clickable { 
+                                if (!uiState.isGeneratingReport) {
+                                    reporteViewModel.generarReportePDF(
+                                        context = context,
+                                        onSuccess = { mensaje ->
+                                            successMessage = mensaje
+                                            showSuccessDialog = true
+                                            showModal = false
+                                        },
+                                        onError = { error ->
+                                            errorMessage = error
+                                            showErrorDialog = true
+                                            showModal = false
+                                        }
+                                    )
+                                }
                             }
-                            .padding(8.dp)
-                    )
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (uiState.isGeneratingReport) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.Gray
+                            )
+                        } else {
+                            Text("📄", fontSize = 20.sp)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "Descargar PDF",
+                            fontWeight = FontWeight.Medium,
+                            color = if (uiState.isGeneratingReport) Color.Gray else Color.Black
+                        )
+                    }
+                    
+                    Spacer(Modifier.height(8.dp))
+                    
+                    // Opción Excel
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { 
+                                if (!uiState.isGeneratingReport) {
+                                    reporteViewModel.generarReporteExcel(
+                                        context = context,
+                                        onSuccess = { mensaje ->
+                                            successMessage = mensaje
+                                            showSuccessDialog = true
+                                            showModal = false
+                                        },
+                                        onError = { error ->
+                                            errorMessage = error
+                                            showErrorDialog = true
+                                            showModal = false
+                                        }
+                                    )
+                                }
+                            }
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (uiState.isGeneratingReport) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.Gray
+                            )
+                        } else {
+                            Text("📊", fontSize = 20.sp)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "Descargar Excel",
+                            fontWeight = FontWeight.Medium,
+                            color = if (uiState.isGeneratingReport) Color.Gray else Color.Black
+                        )
+                    }
+                    
+                    Spacer(Modifier.height(8.dp))
+                    
+                    // Opción Compartir
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { 
+                                if (!uiState.isGeneratingReport) {
+                                    reporteViewModel.compartirReporte(
+                                        onSuccess = { contenido ->
+                                            // Compartir usando Intent
+                                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                                type = "text/plain"
+                                                putExtra(Intent.EXTRA_TEXT, contenido)
+                                                putExtra(Intent.EXTRA_SUBJECT, "Reporte de Inventario")
+                                            }
+                                            context.startActivity(Intent.createChooser(intent, "Compartir reporte"))
+                                            showModal = false
+                                        },
+                                        onError = { error ->
+                                            errorMessage = error
+                                            showErrorDialog = true
+                                            showModal = false
+                                        }
+                                    )
+                                }
+                            }
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (uiState.isGeneratingReport) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.Gray
+                            )
+                        } else {
+                            Text("📤", fontSize = 20.sp)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "Compartir",
+                            fontWeight = FontWeight.Medium,
+                            color = if (uiState.isGeneratingReport) Color.Gray else Color.Black
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Diálogo de éxito
+    if (showSuccessDialog) {
+        Dialog(onDismissRequest = { showSuccessDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("✅", fontSize = 40.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Éxito", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Text(successMessage, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = { showSuccessDialog = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Aceptar")
+                    }
+                }
+            }
+        }
+    }
+
+    // Diálogo de error
+    if (showErrorDialog) {
+        Dialog(onDismissRequest = { showErrorDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("❌", fontSize = 40.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Error", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Red)
+                    Spacer(Modifier.height(8.dp))
+                    Text(errorMessage, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = { showErrorDialog = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Aceptar")
+                    }
                 }
             }
         }

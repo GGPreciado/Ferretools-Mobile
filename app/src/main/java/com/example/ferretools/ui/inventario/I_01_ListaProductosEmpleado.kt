@@ -1,20 +1,10 @@
+// Copia de I_01_ListaProductos para el flujo de almacenero
 package com.example.ferretools.ui.inventario
 
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -24,20 +14,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,16 +28,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
-import com.example.ferretools.ui.components.AdminBottomNavBar
 import com.example.ferretools.ui.components.SummaryCard
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
-import com.example.ferretools.viewmodel.HomeAdminViewModel
+import com.example.ferretools.ui.home.EmpleadoBottomNavBar
+import com.example.ferretools.viewmodel.HomeEmpleadoViewModel
 
 @Composable
-fun I_01_ListaProductos(
+fun I_01_ListaProductosEmpleado(
     navController: NavController,
     listaProductosViewModel: ListaProductosViewModel = viewModel(),
-    homeAdminViewModel: HomeAdminViewModel = viewModel()
+    homeEmpleadoViewModel: HomeEmpleadoViewModel = viewModel()
 ) {
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }
 
@@ -67,13 +45,13 @@ fun I_01_ListaProductos(
     val scrollState = rememberScrollState()
     
     // Observar datos del usuario y negocio
-    val userName = homeAdminViewModel.userName.collectAsState().value
-    val storeName = homeAdminViewModel.storeName.collectAsState().value
+    val userName = homeEmpleadoViewModel.userName.collectAsState().value
+    val storeName = homeEmpleadoViewModel.storeName.collectAsState().value
     
     Column(
         modifier = Modifier
             .fillMaxSize()
-           .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Header (fijo)
         Row(
@@ -84,7 +62,6 @@ fun I_01_ListaProductos(
                 .padding(top = 40.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -147,13 +124,10 @@ fun I_01_ListaProductos(
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             SummaryCard(title = "Total de Productos", value = uiState.productos.size.toString())
-
             val valorTotal = uiState.productos.sumOf { it.precio * it.cantidad_disponible }
             SummaryCard(title = "Valor Total", value = "${valorTotal} PEN")
         }
-
         Spacer(modifier = Modifier.height(10.dp))
-
         LazyRow(modifier = Modifier.padding(horizontal = 16.dp)) {
             Log.e("DEBUG", "Cat: ${uiState.categoriasName}")
             items(uiState.categoriasName) { cat ->
@@ -164,7 +138,6 @@ fun I_01_ListaProductos(
                         if (selectedCategory == "Todas las categorías") {
                             listaProductosViewModel.filtrarPorCategoria("")
                         } else {
-                            // Buscar el id de la categoría seleccionada por nombre
                             val categoriaId = uiState.categorias.find { it.nombre == selectedCategory }?.id
                             listaProductosViewModel.filtrarPorCategoria(categoriaId ?: "")
                         }
@@ -174,16 +147,13 @@ fun I_01_ListaProductos(
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(10.dp))
-
         // Contenido desplazable
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(scrollState)
         ) {
-            // Lista de productos desde Firestore
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                uiState.productosFiltrados.forEach { producto ->
                     Card(
@@ -192,10 +162,10 @@ fun I_01_ListaProductos(
                             .padding(vertical = 6.dp)
                             .clickable {
                                 navController.navigate(
-//                                    AppRoutes.Inventory.PRODUCT_DETAILS(
-//                                        productoId = producto.producto_id
-//                                        //productoNombre = producto.nombre
-                                    "inventory_product_details/${producto.producto_id}?isReadOnly=false"
+                                    AppRoutes.Inventory.PRODUCT_REPORT(
+                                        productoId = producto.codigo_barras,
+                                        productoNombre = producto.nombre
+                                    )
                                 )
                             },
                         colors = CardDefaults.cardColors(
@@ -214,7 +184,6 @@ fun I_01_ListaProductos(
                                     .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
-                                // Aquí podrías cargar la imagen si tienes una URL
                                 Icon(
                                     Icons.Default.Person, 
                                     contentDescription = "Imagen producto", 
@@ -233,7 +202,7 @@ fun I_01_ListaProductos(
             }
             Spacer(modifier = Modifier.height(10.dp))
         }
-        // Botones grandes (fijos)
+        // Botón de categorías
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -242,23 +211,6 @@ fun I_01_ListaProductos(
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(
-                onClick = { navController.navigate(AppRoutes.Inventory.ADD_PRODUCT) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    "Agregar producto", 
-                    color = MaterialTheme.colorScheme.onPrimary, 
-                    fontSize = 18.sp
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { navController.navigate(AppRoutes.Inventory.LIST_CATEGORIES) },
                 modifier = Modifier
@@ -277,14 +229,18 @@ fun I_01_ListaProductos(
             }
         }
         // Barra de navegación inferior (fija)
-        AdminBottomNavBar(navController)
+        EmpleadoBottomNavBar(
+            onInicio = { navController.navigate(AppRoutes.Employee.DASHBOARD) },
+            onInventario = { navController.navigate(AppRoutes.Employee.INVENTORY) },
+            onHistorial = { navController.navigate(AppRoutes.Order.Employee.HISTORY) },
+            onCuenta = { navController.navigate(AppRoutes.Config.MAIN) }
+        )
     }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun I_01_ListaProductosPreview() {
+fun I_01_ListaProductosEmpleadoPreview() {
     val navController = rememberNavController()
-    I_01_ListaProductos(navController = navController)
-}
-
+    I_01_ListaProductosEmpleado(navController = navController)
+} 

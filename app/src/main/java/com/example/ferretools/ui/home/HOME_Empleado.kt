@@ -27,6 +27,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ferretools.navigation.AppRoutes
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.viewmodel.HomeEmpleadoViewModel
 
 data class PedidoPendiente(
     val id: String,
@@ -40,14 +42,18 @@ data class PedidoPendiente(
 fun HOME_Empleado(
     navController: NavController,
     pedidosPendientes: List<PedidoPendiente> = emptyList(),
-    // viewModel: HomeEmpleadoViewModel = viewModel() // Para uso futuro
+    viewModel: HomeEmpleadoViewModel = viewModel()
 ) {
+    // Observar datos del usuario y negocio
+    val userName = viewModel.userName.collectAsState().value
+    val storeName = viewModel.storeName.collectAsState().value
+    
     Scaffold(
-        topBar = { TopNavBarEmpleado() },
+        topBar = { TopNavBarEmpleado(userName, storeName) },
         bottomBar = {
             EmpleadoBottomNavBar(
                 onInicio = { /* Pantalla actual */ },
-                onInventario = { navController.navigate(AppRoutes.Inventory.LIST_PRODUCTS) },
+                onInventario = { navController.navigate(AppRoutes.Employee.INVENTORY) },
                 onHistorial = { navController.navigate(AppRoutes.Order.Employee.HISTORY) },
                 onCuenta = { navController.navigate(AppRoutes.Config.MAIN) }
             )
@@ -64,7 +70,7 @@ fun HOME_Empleado(
                 onCompra = { navController.navigate(AppRoutes.Sale.CART) },
                 onVenta = { navController.navigate(AppRoutes.Purchase.CART) },
                 onHistorial = { navController.navigate(AppRoutes.Order.Employee.HISTORY) },
-                onCatalogo = { navController.navigate(AppRoutes.Inventory.LIST_PRODUCTS) }
+                onCatalogo = { navController.navigate(AppRoutes.Employee.INVENTORY) }
             )
             Spacer(Modifier.height(24.dp))
             ListaPedidosPendientes(
@@ -78,12 +84,13 @@ fun HOME_Empleado(
 }
 
 @Composable
-fun TopNavBarEmpleado() {
+fun TopNavBarEmpleado(userName: String, storeName: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFF22D366))
-            .padding(12.dp),
+            .padding(vertical = 10.dp, horizontal = 8.dp)
+            .padding(top = 40.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -97,8 +104,8 @@ fun TopNavBarEmpleado() {
         }
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text("Nombre de Usuario", color = Color.White, fontWeight = FontWeight.Bold)
-            Text("Nombre de la Tienda", color = Color.White, fontSize = 13.sp)
+            Text(userName, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(storeName, color = Color.White, fontSize = 13.sp)
         }
     }
 }
