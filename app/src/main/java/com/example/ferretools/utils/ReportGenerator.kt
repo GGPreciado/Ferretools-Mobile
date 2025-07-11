@@ -228,13 +228,45 @@ class ReportGenerator {
          */
         fun guardarArchivo(context: Context, contenido: ByteArray, nombreArchivo: String, mimeType: String): Uri? {
             return try {
-                val file = File(context.getExternalFilesDir(null), nombreArchivo)
+                // Validar que el contenido no esté vacío
+                if (contenido.isEmpty()) {
+                    android.util.Log.e("ReportGenerator", "El contenido del archivo está vacío")
+                    return null
+                }
+                
+                // Validar que el contexto no sea null
+                if (context == null) {
+                    android.util.Log.e("ReportGenerator", "El contexto es null")
+                    return null
+                }
+                
+                // Obtener el directorio de archivos externos
+                val externalFilesDir = context.getExternalFilesDir(null)
+                if (externalFilesDir == null) {
+                    android.util.Log.e("ReportGenerator", "No se pudo obtener el directorio de archivos externos")
+                    return null
+                }
+                
+                // Crear el archivo
+                val file = File(externalFilesDir, nombreArchivo)
+                
+                // Escribir el contenido al archivo
                 FileOutputStream(file).use { fos ->
                     fos.write(contenido)
+                    fos.flush()
                 }
+                
+                // Verificar que el archivo se creó correctamente
+                if (!file.exists() || file.length() == 0L) {
+                    android.util.Log.e("ReportGenerator", "El archivo no se creó correctamente o está vacío")
+                    return null
+                }
+                
+                android.util.Log.d("ReportGenerator", "Archivo guardado exitosamente: ${file.absolutePath}")
                 Uri.fromFile(file)
+                
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("ReportGenerator", "Error al guardar archivo: ${e.message}", e)
                 null
             }
         }
@@ -249,81 +281,103 @@ class ReportGenerator {
             negocioNombre: String
         ): ByteArray {
             val outputStream = ByteArrayOutputStream()
-            val pdfWriter = PdfWriter(outputStream)
-            val pdfDocument = PdfDocument(pdfWriter)
-            val document = Document(pdfDocument)
             
             try {
-                // Título del reporte
-                val titulo = Paragraph("💰 REPORTE DE BALANCE")
-                    .setFontSize(20f)
-                    .setBold()
-                    .setTextAlignment(TextAlignment.CENTER)
-                document.add(titulo)
+                val pdfWriter = PdfWriter(outputStream)
+                val pdfDocument = PdfDocument(pdfWriter)
+                val document = Document(pdfDocument)
                 
-                // Información del negocio
-                val negocioParrafo = Paragraph("🏪 Negocio: $negocioNombre")
-                    .setFontSize(12f)
-                    .setTextAlignment(TextAlignment.CENTER)
-                document.add(negocioParrafo)
-                
-                // Fecha
-                val fechaParrafo = Paragraph("📅 Fecha: $fecha")
-                    .setFontSize(12f)
-                    .setTextAlignment(TextAlignment.CENTER)
-                document.add(fechaParrafo)
-                
-                // Resumen del balance
-                val resumenTexto = Paragraph("""
+                try {
+                    // Título del reporte
+                    val titulo = Paragraph("💰 REPORTE DE BALANCE")
+                        .setFontSize(20f)
+                        .setBold()
+                        .setTextAlignment(TextAlignment.CENTER)
+                    document.add(titulo)
                     
-                    💰 RESUMEN DEL BALANCE
+                    // Información del negocio
+                    val negocioParrafo = Paragraph("🏪 Negocio: $negocioNombre")
+                        .setFontSize(12f)
+                        .setTextAlignment(TextAlignment.CENTER)
+                    document.add(negocioParrafo)
                     
-                    💵 Total: S/ ${String.format("%.2f", resumen.total)}
-                    📈 Ingresos: S/ ${String.format("%.2f", resumen.ingresos)}
-                    📉 Egresos: S/ ${String.format("%.2f", resumen.egresos)}
-                """.trimIndent())
-                    .setFontSize(11f)
-                document.add(resumenTexto)
-                
-                // Tabla de movimientos
-                if (movimientos.isNotEmpty()) {
-                    val tabla = Table(UnitValue.createPercentArray(floatArrayOf(40f, 20f, 20f, 20f)))
-                        .useAllAvailableWidth()
+                    // Fecha
+                    val fechaParrafo = Paragraph("📅 Fecha: $fecha")
+                        .setFontSize(12f)
+                        .setTextAlignment(TextAlignment.CENTER)
+                    document.add(fechaParrafo)
                     
-                    // Headers de la tabla
-                    val headers = arrayOf("Productos", "Fecha", "Monto (S/)", "Método")
-                    headers.forEach { header ->
-                        val celda = Paragraph(header).setBold()
-                        tabla.addCell(celda)
+                    // Resumen del balance
+                    val resumenTexto = Paragraph("""
+                        
+                        💰 RESUMEN DEL BALANCE
+                        
+                        💵 Total: S/ ${String.format("%.2f", resumen.total)}
+                        📈 Ingresos: S/ ${String.format("%.2f", resumen.ingresos)}
+                        📉 Egresos: S/ ${String.format("%.2f", resumen.egresos)}
+                    """.trimIndent())
+                        .setFontSize(11f)
+                    document.add(resumenTexto)
+                    
+                    // Tabla de movimientos
+                    if (movimientos.isNotEmpty()) {
+                        val tabla = Table(UnitValue.createPercentArray(floatArrayOf(40f, 20f, 20f, 20f)))
+                            .useAllAvailableWidth()
+                        
+                        // Headers de la tabla
+                        val headers = arrayOf("Productos", "Fecha", "Monto (S/)", "Método")
+                        headers.forEach { header ->
+                            val celda = Paragraph(header).setBold()
+                            tabla.addCell(celda)
+                        }
+                        
+                        // Datos de movimientos
+                        movimientos.forEach { movimiento ->
+                            tabla.addCell(Paragraph(movimiento.productos))
+                            tabla.addCell(Paragraph(movimiento.fecha))
+                            tabla.addCell(Paragraph(String.format("%.2f", movimiento.monto)))
+                            tabla.addCell(Paragraph(movimiento.metodo))
+                        }
+                        
+                        document.add(tabla)
                     }
                     
-                    // Datos de movimientos
-                    movimientos.forEach { movimiento ->
-                        tabla.addCell(Paragraph(movimiento.productos))
-                        tabla.addCell(Paragraph(movimiento.fecha))
-                        tabla.addCell(Paragraph(String.format("%.2f", movimiento.monto)))
-                        tabla.addCell(Paragraph(movimiento.metodo))
-                    }
+                    // Pie de página
+                    val piePagina = Paragraph("""
+                        
+                        
+                        Reporte generado automáticamente por Ferretools
+                        © ${Calendar.getInstance().get(Calendar.YEAR)} Ferretools - Sistema de Gestión de Inventario
+                    """.trimIndent())
+                        .setFontSize(8f)
+                        .setTextAlignment(TextAlignment.CENTER)
+                    document.add(piePagina)
                     
-                    document.add(tabla)
+                } finally {
+                    document.close()
                 }
                 
-                // Pie de página
-                val piePagina = Paragraph("""
-                    
-                    
-                    Reporte generado automáticamente por Ferretools
-                    © ${Calendar.getInstance().get(Calendar.YEAR)} Ferretools - Sistema de Gestión de Inventario
-                """.trimIndent())
-                    .setFontSize(8f)
-                    .setTextAlignment(TextAlignment.CENTER)
-                document.add(piePagina)
+                val result = outputStream.toByteArray()
                 
+                // Verificar que el PDF se generó correctamente
+                if (result.isEmpty()) {
+                    android.util.Log.e("ReportGenerator", "El PDF generado está vacío")
+                    throw Exception("Error al generar PDF: contenido vacío")
+                }
+                
+                android.util.Log.d("ReportGenerator", "PDF generado exitosamente: ${result.size} bytes")
+                return result
+                
+            } catch (e: Exception) {
+                android.util.Log.e("ReportGenerator", "Error al generar PDF de balance: ${e.message}", e)
+                throw e
             } finally {
-                document.close()
+                try {
+                    outputStream.close()
+                } catch (e: Exception) {
+                    android.util.Log.e("ReportGenerator", "Error al cerrar outputStream", e)
+                }
             }
-            
-            return outputStream.toByteArray()
         }
         
         /**

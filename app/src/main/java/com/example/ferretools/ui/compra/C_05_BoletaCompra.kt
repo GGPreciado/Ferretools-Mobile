@@ -106,10 +106,14 @@ fun C_05_BoletaCompra(
                     // Lista de productos comprados
                     compra.productosConDetalles.forEach { (item, producto) ->
                         Log.d("C_05_BoletaCompra", "Producto en boleta: ${producto?.nombre}, cantidad: ${item.cantidad}")
+                        val precioUnitario = producto?.precio ?: 0.0
+                        val cantidad = item.cantidad ?: 0
+                        val subtotal = precioUnitario * cantidad
+                        
                         DetalleProductoFila(
                             nombre = producto?.nombre ?: stringResource(R.string.compra_producto),
-                            cantidad = (item.cantidad ?: 0).toString(),
-                            precio = stringResource(R.string.compra_s_total, compra.total)
+                            cantidad = cantidad.toString(),
+                            precio = stringResource(R.string.compra_s_total, subtotal)
                         )
                     }
                     Divider(modifier = Modifier.padding(vertical = 4.dp))
