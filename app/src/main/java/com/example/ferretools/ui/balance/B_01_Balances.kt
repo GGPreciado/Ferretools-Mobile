@@ -33,6 +33,11 @@ import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import java.text.SimpleDateFormat
 import java.util.Locale
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 
 private val YellowPrimary = Color(0xFFFFEB3B)
 private val GreenLight = Color(0xFFB9F6CA)
@@ -61,8 +66,87 @@ fun B_01_Balances(
     val fechaSeleccionada = balanceViewModel.fechaSeleccionada.collectAsState().value
     
     var filtro by remember { mutableStateOf("Ingresos") }
+    var isGeneratingPDF by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+    
+    // Permission launcher for storage permissions
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        if (allGranted) {
+            // Permissions granted, proceed with PDF generation
+            generatePDF()
+        } else {
+            android.widget.Toast.makeText(
+                context,
+                "Se requieren permisos de almacenamiento para generar el PDF. Ve a Configuración > Aplicaciones > Ferretools > Permisos",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            isGeneratingPDF = false
+        }
+    }
+    
+    // Function to generate PDF
+    fun generatePDF() {
+        try {
+            val fechaActual = dateFormatter.format(java.util.Date())
+            
+            // Validar que los datos estén disponibles
+            if (resumen.total == 0.0 && resumen.ingresos == 0.0 && resumen.egresos == 0.0) {
+                android.widget.Toast.makeText(
+                    context,
+                    "No hay datos para generar el reporte",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                isGeneratingPDF = false
+                return
+            }
+            
+            val pdfContent = ReportGenerator.generarPDFBalance(
+                resumen = resumen,
+                movimientos = movimientos,
+                fecha = fechaActual,
+                negocioNombre = storeName ?: "Negocio"
+            )
+            
+            val uri = ReportGenerator.guardarArchivo(
+                context = context,
+                contenido = pdfContent,
+                nombreArchivo = "balance_${fechaActual.replace("/", "_")}.pdf",
+                mimeType = "application/pdf"
+            )
+            
+            uri?.let { fileUri ->
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/pdf"
+                    putExtra(Intent.EXTRA_STREAM, fileUri)
+                    putExtra(Intent.EXTRA_SUBJECT, "Reporte de Balance - ${storeName ?: "Negocio"}")
+                    putExtra(Intent.EXTRA_TEXT, "Reporte de balance generado el $fechaActual")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(Intent.createChooser(intent, "Compartir reporte"))
+            } ?: run {
+                // Mostrar error si no se pudo guardar el archivo
+                android.widget.Toast.makeText(
+                    context,
+                    "Error al generar el PDF",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+        } catch (e: Exception) {
+            // Mostrar error específico
+            android.widget.Toast.makeText(
+                context,
+                "Error al generar PDF: ${e.message}",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            android.util.Log.e("BalanceScreen", "Error generando PDF", e)
+        } finally {
+            isGeneratingPDF = false
+        }
+    }
 
     Scaffold(
         topBar = { UserDataBar(userName, storeName) },
@@ -141,32 +225,37 @@ fun B_01_Balances(
                         }
                         Button(
                             onClick = { 
-                                val fechaActual = dateFormatter.format(java.util.Date())
-                                val pdfContent = ReportGenerator.generarPDFBalance(
-                                    resumen = resumen,
-                                    movimientos = movimientos,
-                                    fecha = fechaActual,
-                                    negocioNombre = storeName
-                                )
-                                val uri = ReportGenerator.guardarArchivo(
-                                    context = context,
-                                    contenido = pdfContent,
-                                    nombreArchivo = "balance_${fechaActual.replace("/", "_")}.pdf",
-                                    mimeType = "application/pdf"
-                                )
-                                uri?.let { fileUri ->
-                                    val intent = Intent(Intent.ACTION_SEND).apply {
-                                        type = "application/pdf"
-                                        putExtra(Intent.EXTRA_STREAM, fileUri)
-                                        putExtra(Intent.EXTRA_SUBJECT, "Reporte de Balance - $storeName")
-                                        putExtra(Intent.EXTRA_TEXT, "Reporte de balance generado el $fechaActual")
+                                if (isGeneratingPDF) return@Button
+                                
+                                isGeneratingPDF = true
+                                
+                                // Request permissions if not already granted
+                                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
+                                    // For Android 10 and below, request WRITE_EXTERNAL_STORAGE
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                                        permissionLauncher.launch(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                                    } else {
+                                        generatePDF()
                                     }
-                                    context.startActivity(Intent.createChooser(intent, "Compartir reporte"))
+                                } else {
+                                    // For Android 11+ (API 30+), scoped storage is used, no need for WRITE_EXTERNAL_STORAGE
+                                    generatePDF()
                                 }
                             },
+                            enabled = !isGeneratingPDF,
                             colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
                         ) {
-                            Text("Convertir a PDF", color = Color.Black)
+                            if (isGeneratingPDF) {
+                                androidx.compose.material3.CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = Color.Black,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Generando...", color = Color.Black)
+                            } else {
+                                Text("Convertir a PDF", color = Color.Black)
+                            }
                         }
                     }
                 }
