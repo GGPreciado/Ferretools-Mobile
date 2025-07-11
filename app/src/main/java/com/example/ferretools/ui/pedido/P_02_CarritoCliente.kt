@@ -28,6 +28,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.Icons
 
 @Composable
 fun P_02_CarritoCliente(
@@ -165,10 +167,20 @@ fun P_02_CarritoCliente(
                                 }
                             }) { Text("+") }
                             Spacer(modifier = Modifier.width(16.dp))
-                            Button(
-                                onClick = { viewModel.eliminarProducto(item.producto_id ?: "") },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                            ) { Text("Eliminar", color = Color.White) }
+                            // Botón de eliminar con ícono de basura
+                            IconButton(
+                                onClick = {
+                                    viewModel.eliminarProducto(item.producto_id ?: "")
+                                    Log.d("P_02_CarritoCliente", "Producto eliminado: ${producto?.nombre}")
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Eliminar",
+                                    tint = Color.Red,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
                 }

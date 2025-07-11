@@ -48,6 +48,7 @@ import com.example.ferretools.model.enums.MetodosPago
 import androidx.compose.runtime.collectAsState
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.alpha
@@ -66,6 +67,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 
 @Composable
 fun C_02_ResumenCarritoCompra(
@@ -221,19 +226,19 @@ fun C_02_ResumenCarritoCompra(
                                 Log.d("C_02_ResumenCarritoCompra", "Aumentó cantidad de ${producto?.nombre}")
                             }) { Text("+") }
                             Spacer(modifier = Modifier.width(16.dp))
-                            Button(
+                            // Botón de eliminar con ícono de basura
+                            IconButton (
                                 onClick = {
                                     viewModel.quitarProducto(item.producto_id ?: "")
-                                    Log.d("C_02_ResumenCarritoCompra", "Eliminado del carrito: ${producto?.nombre}")
-                                },
-                                /*
-                                modifier = Modifier.padding(start = 8.dp)
-                            ) { Text("Eliminar") }
-                                 */
-
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                                    Log.d("C_02_ResumenCarritoCompra", "Producto eliminado: ${producto?.nombre}")
+                                }
                             ) {
-                                Text("Eliminar", color = Color.White)
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Eliminar",
+                                    tint = Color.Red,
+                                    modifier = Modifier.size(24.dp)
+                                )
                             }
                         }
                     }

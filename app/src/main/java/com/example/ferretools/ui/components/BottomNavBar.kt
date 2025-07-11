@@ -1,6 +1,7 @@
 package com.example.ferretools.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -17,9 +18,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 
 @Composable
-fun AdminBottomNavBar(navController: NavController, modifier: Modifier = Modifier) {
+fun AdminBottomNavBar(navController: NavController, modifier: Modifier = Modifier.size(40.dp)) {
     NavigationBar(containerColor = Color(0xFF00BF59)) {
         NavigationBarItem(
             selected = false,

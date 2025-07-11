@@ -30,6 +30,8 @@ import com.example.ferretools.ui.components.detalles_cv.CampoFechaSeleccion
 import com.example.ferretools.viewmodel.venta.VentaViewModel
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 import kotlinx.coroutines.delay
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.Icons
 
 @Composable
 fun V_02_ResumenCarritoVenta(
@@ -172,9 +174,12 @@ fun V_02_ResumenCarritoVenta(
                                             showBanner = true
                                         }
                                     }
+                                    // Logcat para trazar el cambio de cantidad
+                                    Log.d("V_02_ResumenCarritoVenta", "Cantidad editada manualmente: $nuevaCantidad")
                                 },
+                                // Aumenté el ancho de 60.dp a 100.dp para permitir más dígitos
                                 modifier = Modifier
-                                    .width(60.dp)
+                                    .width(100.dp)
                                     .padding(horizontal = 8.dp),
                                 singleLine = true,
                                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
@@ -193,13 +198,19 @@ fun V_02_ResumenCarritoVenta(
                                 }
                             }) { Text("+") }
                             Spacer(modifier = Modifier.width(16.dp))
-                            Button(
+                            // Botón de eliminar con ícono de basura
+                            IconButton(
                                 onClick = {
                                     viewModel.eliminarProducto(item.producto_id ?: "")
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                                    Log.d("V_02_ResumenCarritoVenta", "Producto eliminado: ${producto?.nombre}")
+                                }
                             ) {
-                                Text("Eliminar", color = Color.White)
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Eliminar",
+                                    tint = Color.Red,
+                                    modifier = Modifier.size(24.dp)
+                                )
                             }
                         }
                     }

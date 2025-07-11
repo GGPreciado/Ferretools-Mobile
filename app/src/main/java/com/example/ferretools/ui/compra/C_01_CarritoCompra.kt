@@ -52,6 +52,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import kotlinx.coroutines.delay
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.Icons
 
 @Composable
 fun C_01_CarritoCompra(
