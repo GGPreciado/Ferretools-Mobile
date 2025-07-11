@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.ferretools.model.database.Compra
 import com.example.ferretools.model.database.Venta
 import com.example.ferretools.model.states.balance.ReporteBalanceUiState
+import com.example.ferretools.repository.ProductoRepository
 import com.example.ferretools.repository.UsuarioRepository
 import com.example.ferretools.utils.SesionUsuario
 import com.google.firebase.Firebase
@@ -23,6 +24,8 @@ class ReporteBalanceViewModel: ViewModel() {
     val uiState = _uiState.asStateFlow()
 
     private val db = Firebase.firestore
+
+    private val productoRepository = ProductoRepository()
 
     fun cargarVentasDeProducto() {
         val negocioId = SesionUsuario.usuario?.negocioId
@@ -50,9 +53,9 @@ class ReporteBalanceViewModel: ViewModel() {
                         }
                     }
 
-//                    viewModelScope.launch {
-//                        actualizarIndicadores()
-//                    }
+                    viewModelScope.launch {
+                        actualizarIndicadores()
+                    }
 
                     Log.e("DEBUG", "Ventas: ${_uiState.value.listaVentas}")
                 }
@@ -90,9 +93,9 @@ class ReporteBalanceViewModel: ViewModel() {
                         }
                     }
 
-//                    viewModelScope.launch {
-//                        actualizarIndicadores()
-//                    }
+                    viewModelScope.launch {
+                        actualizarIndicadores()
+                    }
 
                     Log.e("DEBUG", "Compras: ${_uiState.value.listaCompras}")
                 }
@@ -108,7 +111,7 @@ class ReporteBalanceViewModel: ViewModel() {
         _uiState.value = _uiState.value.copy(operacionSeleccionada = operacion)
     }
 
-    // Gráficos
+    // Actualizar variables gráficos
 
     fun cambiarTipoGrafico(tipo: String) {
         _uiState.update { it.copy(tipoGrafico = tipo) }
@@ -128,7 +131,40 @@ class ReporteBalanceViewModel: ViewModel() {
         _uiState.update { it.copy(fechasGrafico = fechas) }
     }
 
-    // Actualizar gráficos
+    // Actualizar variables KPIs
+    private fun cambiarUnidadesVendidas(unidades: Int) {
+        _uiState.update { it.copy(unidadesVendidas = unidades) }
+    }
+
+    private fun cambiarUnidadesCompradas(unidades: Int) {
+        _uiState.update { it.copy(unidadesCompradas = unidades) }
+    }
+
+    private fun cambiarTotalRecaudadoVentas(total: Double) {
+        _uiState.update { it.copy(totalRecaudadoVentas = total) }
+    }
+
+    private fun cambiarTotalInvertidoCompras(total: Double) {
+        _uiState.update { it.copy(totalInvertidoCompras = total) }
+    }
+
+    private fun cambiarCantidadCategoriasVentas(cantidad: Int) {
+        _uiState.update { it.copy(cantidadCategoriasUnicasVentas = cantidad) }
+    }
+
+    private fun cambiarCantidadCategoriasCompras(cantidad: Int) {
+        _uiState.update { it.copy(cantidadCategoriasUnicasCompras = cantidad) }
+    }
+
+    private fun cambiarCantidadProductosUnicosVendidos(cantidad: Int) {
+        _uiState.update { it.copy(cantidadProductosUnicosVendidos = cantidad) }
+    }
+
+    private fun cambiarCantidadProductosUnicosComprados(cantidad: Int) {
+        _uiState.update { it.copy(cantidadProductosUnicosComprados = cantidad) }
+    }
+
+    // Gráficos
     fun elegirActualizarGrafico() {
         if (_uiState.value.operacionSeleccionada == "Ventas") {
             cargarVentasDeProducto()
@@ -439,7 +475,182 @@ class ReporteBalanceViewModel: ViewModel() {
     }
 
     // KPIs
+    suspend fun actualizarIndicadores() {
+        if (_uiState.value.operacionSeleccionada == "Ventas") {
+            cambiarUnidadesVendidas(
+                contarUnidadesVendidas()
+            )
+            cambiarTotalRecaudadoVentas(
+                calcularTotalRecaudadoVentas()
+            )
+            cambiarCantidadCategoriasVentas(
+                contarCategoriasUnicasVentas()
+            )
+            cambiarCantidadProductosUnicosVendidos(
+                contarProductosDiferentesVendidos()
+            )
 
+        } else if (_uiState.value.operacionSeleccionada == "Compras") {
+            cambiarUnidadesCompradas(
+                contarUnidadesCompradas()
+            )
+            cambiarTotalInvertidoCompras(
+                calcularTotalInvertidoCompras()
+            )
+            cambiarCantidadCategoriasCompras(
+                contarCategoriasUnicasCompras()
+            )
+            cambiarCantidadProductosUnicosComprados(
+                contarProductosDiferentesComprados()
+            )
+        }
+    }
+
+    fun contarUnidadesVendidas(): Int {
+        val listaVentas = _uiState.value.listaVentas
+        var unidadesVendidas = 0
+        if (listaVentas != null) {
+            listaVentas.forEach { item ->
+                val cantidadVentaUnitaria = item.lista_productos
+                    .sumOf { it.cantidad ?: 0 }
+                unidadesVendidas += cantidadVentaUnitaria
+            }
+            return unidadesVendidas
+        } else {
+            return 0
+        }
+    }
+
+    fun contarUnidadesCompradas(): Int {
+        val listaCompras = _uiState.value.listaCompras
+        var unidadesCompradas = 0
+        if (listaCompras != null) {
+            listaCompras.forEach { item ->
+                val cantidadCompraUnitaria = item.lista_productos
+                    .sumOf { it.cantidad ?: 0 }
+                unidadesCompradas += cantidadCompraUnitaria
+            }
+            return unidadesCompradas
+        } else {
+            return 0
+        }
+    }
+
+    fun calcularTotalRecaudadoVentas(): Double {
+        val listaVentas = _uiState.value.listaVentas
+        var totalRecaudado = 0.0
+        if (listaVentas != null) {
+            listaVentas.forEach { item ->
+                val totalVentaUnitario = item.lista_productos
+                    .sumOf { it.subtotal ?: 0.0 }
+                totalRecaudado += totalVentaUnitario
+            }
+            return totalRecaudado
+        } else {
+            return 0.0
+        }
+    }
+
+    fun calcularTotalInvertidoCompras(): Double {
+        val listaCompras = _uiState.value.listaCompras
+        var totalRecaudado = 0.0
+        if (listaCompras != null) {
+            listaCompras.forEach { item ->
+                val totalCompraUnitario = item.lista_productos
+                    .sumOf { it.subtotal ?: 0.0 }
+                totalRecaudado += totalCompraUnitario
+            }
+            return totalRecaudado
+        } else {
+            return 0.0
+        }
+    }
+
+    suspend fun contarCategoriasUnicasVentas(): Int {
+        val listaVentas = _uiState.value.listaVentas
+        val listaCategorias: MutableList<String?> = mutableListOf()
+        if (listaVentas != null) {
+            listaVentas.forEach { itemVenta ->
+                val listaProductosItem = itemVenta.lista_productos
+                listaProductosItem.forEach { itemProducto ->
+                    if (itemProducto.producto_id != null) {
+                        val producto = productoRepository.obtenerProductoPorId(
+                            itemProducto.producto_id
+                        )
+                        if (producto?.categoria_id !in listaCategorias) {
+                            listaCategorias.add(producto?.categoria_id)
+                        }
+                    }
+                }
+            }
+            return listaCategorias.size
+        } else {
+            return 0
+        }
+    }
+
+    suspend fun contarCategoriasUnicasCompras(): Int {
+        val listaVentas = _uiState.value.listaCompras
+        val listaCategorias: MutableList<String?> = mutableListOf()
+        if (listaVentas != null) {
+            listaVentas.forEach { itemCompra ->
+                val listaProductosItem = itemCompra.lista_productos
+                listaProductosItem.forEach { itemProducto ->
+                    if (itemProducto.producto_id != null) {
+                        val producto = productoRepository.obtenerProductoPorId(
+                            itemProducto.producto_id
+                        )
+                        if (producto?.categoria_id !in listaCategorias) {
+                            listaCategorias.add(producto?.categoria_id)
+                        }
+                    }
+                }
+            }
+            return listaCategorias.size
+        } else {
+            return 0
+        }
+    }
+
+    fun contarProductosDiferentesVendidos(): Int {
+        val listaVentas = _uiState.value.listaVentas
+        val listaProductosUnicos: MutableList<String> = mutableListOf()
+        if (listaVentas != null) {
+            listaVentas.forEach { itemVenta ->
+                val listaProductosItem = itemVenta.lista_productos
+                listaProductosItem.forEach { itemProducto ->
+                    if (itemProducto.producto_id != null) {
+                        if (itemProducto.producto_id !in listaProductosUnicos) {
+                            listaProductosUnicos.add(itemProducto.producto_id)
+                        }
+                    }
+                }
+            }
+            return listaProductosUnicos.size
+        } else {
+            return 0
+        }
+    }
+
+    fun contarProductosDiferentesComprados(): Int {
+        val listaVentas = _uiState.value.listaVentas
+        val listaProductosUnicos: MutableList<String> = mutableListOf()
+        if (listaVentas != null) {
+            listaVentas.forEach { itemCompra ->
+                val listaProductosItem = itemCompra.lista_productos
+                listaProductosItem.forEach { itemProducto ->
+                    if (itemProducto.producto_id != null) {
+                        if (itemProducto.producto_id !in listaProductosUnicos) {
+                            listaProductosUnicos.add(itemProducto.producto_id)
+                        }
+                    }
+                }
+            }
+            return listaProductosUnicos.size
+        } else {
+            return 0
+        }
+    }
 
     fun hayDatos(lista: List<Float>?): Boolean {
         return lista?.any { it != 0f } ?: false

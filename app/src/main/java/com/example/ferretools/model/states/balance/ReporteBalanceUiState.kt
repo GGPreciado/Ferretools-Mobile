@@ -20,4 +20,15 @@ data class ReporteBalanceUiState(
     // Barras Apiladas
     val datosGraficoPorUsuario: Map<String, List<Float>> = emptyMap(),
 
-    )
+    // KPIs venta
+    val unidadesVendidas: Int = 0,
+    val totalRecaudadoVentas: Double = 0.0,
+    val cantidadCategoriasUnicasVentas: Int = 0,
+    val cantidadProductosUnicosVendidos: Int = 0,
+
+    // KPIs compra
+    val unidadesCompradas: Int = 0,
+    val totalInvertidoCompras: Double = 0.0,
+    val cantidadCategoriasUnicasCompras: Int = 0,
+    val cantidadProductosUnicosComprados: Int = 0,
+)

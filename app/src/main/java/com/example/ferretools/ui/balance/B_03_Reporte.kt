@@ -22,8 +22,6 @@ import com.example.ferretools.ui.components.reporte.ResumenBox
 import com.example.ferretools.ui.components.seleccion_productos.DropdownBar
 import com.example.ferretools.ui.inventario.GraficoBarrasApiladasPorUsuario
 import com.example.ferretools.ui.inventario.GraficoBarrasPorPeriodo
-import com.example.ferretools.ui.inventario.NoDataFoundCard
-import com.example.ferretools.ui.inventario.NoItemsFoundCard
 import com.example.ferretools.viewmodel.balance.ReporteBalanceViewModel
 
 @Composable
@@ -38,7 +36,7 @@ fun B_03_Reporte(
     }
 
     Scaffold(
-        topBar = { TopNavBar(navController, "Reporte por Producto") }
+        topBar = { TopNavBar(navController, "Reporte de Ventas y Compras") }
     ) { padding ->
 
         Column(
@@ -219,16 +217,14 @@ fun B_03_Reporte(
                     ) {
 
                         ResumenBox(
-                            titulo = "Unidades\nvendidas",
-                            valor = "XXXX",
-//                            valor = reporteBalanceUiState.unidadesVendidas.toString(),
-                            etiqueta = "unidades\nvendidas"
+                            titulo = "Productos totales",
+                            valor = reporteBalanceUiState.unidadesVendidas.toString(),
+                            etiqueta = "unidades totales vendidas"
                         )
                         ResumenBox(
-                            titulo = "Total\nrecaudado",
-                            valor = "XXXX",
-//                            valor = reporteBalanceUiState.totalRecaudadoVentas.toString(),
-                            etiqueta = "soles recaudados\npor ventas"
+                            titulo = "Total recaudado",
+                            valor = reporteBalanceUiState.totalRecaudadoVentas.toString(),
+                            etiqueta = "soles recaudados por ventas totales"
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -237,16 +233,14 @@ fun B_03_Reporte(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         ResumenBox(
-                            titulo = "Ganancia promedio\npor venta",
-                            valor = "XXXX",
-//                            valor = reporteBalanceUiState.gananciaPromedioVenta.toString(),
-                            etiqueta = "soles recaudados\npor cada unidad"
+                            titulo = "Productos únicos vendidos",
+                            valor = reporteBalanceUiState.cantidadProductosUnicosVendidos.toString(),
+                            etiqueta = "productos diferentes vendidos"
                         )
                         ResumenBox(
-                            titulo = "Usuario con mayores ventas",
-                            valor = "XXXX",
-//                            valor = reporteBalanceUiState.usuarioMayoresVentas,
-                            etiqueta = null
+                            titulo = "Categorias únicas vendidas",
+                            valor = reporteBalanceUiState.cantidadCategoriasUnicasVentas.toString(),
+                            etiqueta = "categorias diferentes vendidas"
                         )
                     }
                 } else {
@@ -256,16 +250,14 @@ fun B_03_Reporte(
                     ) {
 
                         ResumenBox(
-                            titulo = "Unidades\ncompradas",
-                            valor = "XXXX",
-//                            valor = reporteBalanceUiState.unidadesCompradas.toString(),
-                            etiqueta = "unidades\ncompradas"
+                            titulo = "Unidades compradas",
+                            valor = reporteBalanceUiState.unidadesCompradas.toString(),
+                            etiqueta = "unidades totales compradas"
                         )
                         ResumenBox(
-                            titulo = "Total\nrecaudado",
-                            valor = "XXXX",
-//                            valor = reporteBalanceUiState.totalInvertidoCompras.toString(),
-                            etiqueta = "soles invertidos\nen compras"
+                            titulo = "Total recaudado",
+                            valor = reporteBalanceUiState.totalInvertidoCompras.toString(),
+                            etiqueta = "soles invertidos en compras totales"
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -274,21 +266,46 @@ fun B_03_Reporte(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         ResumenBox(
-                            titulo = "Precio promedio\npor compra",
-                            valor = "XXXX",
-//                            valor = reporteBalanceUiState.precioPromedioCompra.toString(),
-                            etiqueta = "soles invertidos\npor cada unidad"
+                            titulo = "Productos únicos comprados",
+                            valor = reporteBalanceUiState.cantidadProductosUnicosComprados.toString(),
+                            etiqueta = "productos diferentes comprados"
                         )
                         ResumenBox(
-                            titulo = "Usuario con mayores compras",
-                            valor = "XXXX",
-//                            valor = reporteBalanceUiState.usuarioMayoresCompras,
-                            etiqueta = null
+                            titulo = "Categorias únicas compradas",
+                            valor = reporteBalanceUiState.cantidadCategoriasUnicasCompras.toString(),
+                            etiqueta = "categorias diferentes compradas"
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun NoItemsFoundCard(
+    operacion: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(240.dp)
+    ) {
+        Text("No se encontró ${operacion.lowercase()}")
+    }
+}
+
+@Composable
+fun NoDataFoundCard(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(240.dp)
+    ) {
+        Text("No hay datos que mostrar")
     }
 }
 
