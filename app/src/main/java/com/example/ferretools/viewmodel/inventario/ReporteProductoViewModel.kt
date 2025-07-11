@@ -43,7 +43,7 @@ class ReporteProductoViewModel: ViewModel() {
                     _uiState.value = _uiState.value.copy(compras = comprasDelProducto)
 
                     // Actualizar los componentes dependientes de las compras
-                    agruparUnidadesCompraPorPeriodo(productoId = productoId)
+                    actualizarGraficoBarrasCompras()
 
                     viewModelScope.launch {
                         actualizarIndicadores()
@@ -77,7 +77,14 @@ class ReporteProductoViewModel: ViewModel() {
                     _uiState.value = _uiState.value.copy(ventas = ventasDelProducto)
 
                     // Actualizar los componentes dependientes de las ventas
-                    agruparUnidadesVentaPorPeriodo(productoId = productoId)
+                    when (_uiState.value.tipoGrafico) {
+                        "Barras" -> {
+                            actualizarGraficoBarrasVentas()
+                        }
+                        "Apiladas" -> {
+                            actualizarGraficoBarrasApiladasVentas()
+                        }
+                    }
 
                     viewModelScope.launch {
                         actualizarIndicadores()
@@ -95,6 +102,17 @@ class ReporteProductoViewModel: ViewModel() {
 
     fun cambiarOperacionSeleccionada(operacion: String) {
         _uiState.value = _uiState.value.copy(operacionSeleccionada = operacion)
+    }
+
+    // Gráficos
+
+    fun cambiarTipoGrafico(tipo: String) {
+        _uiState.update { it.copy(tipoGrafico = tipo)}
+    }
+
+    fun cambiarPeriodoTemporal(periodo: String) {
+        _uiState.update { it.copy(periodoTemporal = periodo) }
+        actualizarGraficoBarrasVentas()
     }
 
     fun cambiarValoresGrafico(valores: List<Float>) {
@@ -138,27 +156,7 @@ class ReporteProductoViewModel: ViewModel() {
         _uiState.update { it.copy(usuarioMayoresCompras = usuario) }
     }
 
-//    fun agruparUnidadesPorDiaUltimaSemana(productoId: String): List<Int> {
-//        val ventas = _uiState.value.ventas!!
-//        val hoy = LocalDate.now()
-//        val dias = (0..6).map { hoy.minusDays(it.toLong()) }.reversed()
-//
-//        val mapa = dias.associateWith { 0 }.toMutableMap()
-//
-//        for (venta in ventas) {
-//            val fechaVenta = venta.fecha?.toDate()!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-//            if (fechaVenta in mapa.keys) {
-//                val unidades = venta.lista_productos
-//                    .filter { it.producto_id == productoId }
-//                    .sumOf { it.cantidad!! }
-//                mapa[fechaVenta] = mapa[fechaVenta]!! + unidades
-//            }
-//        }
-//
-//        return mapa.values.toList()
-//    }
-
-    private fun agruparUnidadesVentaPorPeriodo(productoId: String){
+    private fun actualizarGraficoBarrasVentas(){
 
         val ventas = _uiState.value.ventas
         val periodo: String = _uiState.value.periodoTemporal
@@ -167,13 +165,15 @@ class ReporteProductoViewModel: ViewModel() {
         if (ventas != null) {
             when (periodo) {
                 "Diario" -> {
+                    // Devuelve una lista de LocalDate con los días restados
                     val dias = (0..6).map { now.minusDays(it.toLong()) }.reversed()
+                    // Devuelve un mapa de la forma día: 0
                     val mapa = dias.associateWith { 0 }.toMutableMap()
 
                     ventas.forEach { item ->
                         val fecha = item.fecha?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
                         if (fecha in mapa.keys) {
-                            val unidades = item.lista_productos.filter { it.producto_id == productoId }
+                            val unidades = item.lista_productos
                                 .sumOf { it.cantidad ?: 0 }
                             mapa[fecha!!] = mapa[fecha]!! + unidades
                         }
@@ -190,7 +190,7 @@ class ReporteProductoViewModel: ViewModel() {
                         val fecha = item.fecha?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
                         val semana = fecha?.with(DayOfWeek.MONDAY)
                         if (semana in mapa.keys) {
-                            val unidades = item.lista_productos.filter { it.producto_id == productoId }
+                            val unidades = item.lista_productos
                                 .sumOf { it.cantidad ?: 0 }
                             mapa[semana!!] = mapa[semana]!! + unidades
                         }
@@ -198,27 +198,45 @@ class ReporteProductoViewModel: ViewModel() {
 
                     cambiarValoresGrafico(mapa.values.map { it.toFloat() })
                     cambiarFechasGrafico(semanas)
-//                    mapa.values.map { it.toFloat() } to semanas
                 }
 
                 "Mensual" -> {
-                    val meses = (0..6).map { now.minusMonths(it.toLong()).withDayOfMonth(1) }.reversed()
-                    val mapa = meses.associateWith { 0 }.toMutableMap()
+                    // Genera los últimos 5 periodos de 1 mes, del más antiguo al más reciente
+                    val periodos = (4 downTo 0).map { offset ->
+                        val inicio = now.minusMonths(offset.toLong())
+                        val fin = inicio.plusMonths(1)
+                        inicio to fin
+                    }
+
+                    // Mapa para agrupar unidades por periodo
+                    val mapa = periodos.associateWith { 0 }.toMutableMap()
 
                     ventas.forEach { item ->
-                        val fecha = item.fecha?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
-                        val mes = fecha?.withDayOfMonth(1)
-                        if (mes in mapa.keys) {
-                            val unidades = item.lista_productos.filter { it.producto_id == productoId }
-                                .sumOf { it.cantidad ?: 0 }
-                            mapa[mes!!] = mapa[mes]!! + unidades
+                        val fechaItem = item.fecha
+                            ?.toDate()
+                            ?.toInstant()
+                            ?.atZone(ZoneId.systemDefault())
+                            ?.toLocalDate()
+
+                        if (fechaItem != null) {
+                            val periodo = periodos.find { fechaItem >= it.first && fechaItem < it.second }
+                            if (periodo != null) {
+                                val unidades = item.lista_productos.sumOf { it.cantidad ?: 0 }
+                                mapa[periodo] = mapa[periodo]!! + unidades
+                            }
                         }
                     }
-                    cambiarValoresGrafico(mapa.values.map { it.toFloat() })
-                    cambiarFechasGrafico(meses)
-//                    mapa.values.map { it.toFloat() } to meses
-                }
 
+                    // Mostrar los datos agrupados
+                    val valores = mapa.values.map { it.toFloat() }
+
+                    // Obtener una lista de LocalDates con el primer día de cada mes para las etiquetas
+                    val etiquetas = periodos.map { it.first }
+
+                    // Usar en tu gráfico
+                    cambiarValoresGrafico(valores)
+                    cambiarFechasGrafico(etiquetas)
+                }
                 else -> {
                     Log.e("DEBUG", "Elija una opción válida")
                 }
@@ -230,7 +248,7 @@ class ReporteProductoViewModel: ViewModel() {
 
     }
 
-    private fun agruparUnidadesCompraPorPeriodo(productoId: String) {
+    private fun actualizarGraficoBarrasCompras(){
 
         val compras = _uiState.value.compras
         val periodo: String = _uiState.value.periodoTemporal
@@ -239,21 +257,21 @@ class ReporteProductoViewModel: ViewModel() {
         if (compras != null) {
             when (periodo) {
                 "Diario" -> {
+                    // Devuelve una lista de LocalDate con los días restados
                     val dias = (0..6).map { now.minusDays(it.toLong()) }.reversed()
+                    // Devuelve un mapa de la forma día: 0
                     val mapa = dias.associateWith { 0 }.toMutableMap()
 
                     compras.forEach { item ->
                         val fecha = item.fecha?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
                         if (fecha in mapa.keys) {
-                            val unidades = item.lista_productos.filter { it.producto_id == productoId }
+                            val unidades = item.lista_productos
                                 .sumOf { it.cantidad ?: 0 }
                             mapa[fecha!!] = mapa[fecha]!! + unidades
                         }
                     }
-
                     cambiarValoresGrafico(mapa.values.map { it.toFloat() })
                     cambiarFechasGrafico(dias)
-//                    .map { it.format(DateTimeFormatter.ofPattern("dd MMM")) }
                 }
 
                 "Semanal" -> {
@@ -264,7 +282,7 @@ class ReporteProductoViewModel: ViewModel() {
                         val fecha = item.fecha?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
                         val semana = fecha?.with(DayOfWeek.MONDAY)
                         if (semana in mapa.keys) {
-                            val unidades = item.lista_productos.filter { it.producto_id == productoId }
+                            val unidades = item.lista_productos
                                 .sumOf { it.cantidad ?: 0 }
                             mapa[semana!!] = mapa[semana]!! + unidades
                         }
@@ -272,30 +290,45 @@ class ReporteProductoViewModel: ViewModel() {
 
                     cambiarValoresGrafico(mapa.values.map { it.toFloat() })
                     cambiarFechasGrafico(semanas)
-//                    .map {
-//                    "Sem. ${it.get(ChronoField.ALIGNED_WEEK_OF_YEAR)}"
-//                }
                 }
 
                 "Mensual" -> {
-                    val meses = (0..6).map { now.minusMonths(it.toLong()).withDayOfMonth(1) }.reversed()
-                    val mapa = meses.associateWith { 0 }.toMutableMap()
+                    // Genera los últimos 5 periodos de 1 mes, del más antiguo al más reciente
+                    val periodos = (4 downTo 0).map { offset ->
+                        val inicio = now.minusMonths(offset.toLong())
+                        val fin = inicio.plusMonths(1)
+                        inicio to fin
+                    }
+
+                    // Mapa para agrupar unidades por periodo
+                    val mapa = periodos.associateWith { 0 }.toMutableMap()
 
                     compras.forEach { item ->
-                        val fecha = item.fecha?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
-                        val mes = fecha?.withDayOfMonth(1)
-                        if (mes in mapa.keys) {
-                            val unidades = item.lista_productos.filter { it.producto_id == productoId }
-                                .sumOf { it.cantidad ?: 0 }
-                            mapa[mes!!] = mapa[mes]!! + unidades
+                        val fechaItem = item.fecha
+                            ?.toDate()
+                            ?.toInstant()
+                            ?.atZone(ZoneId.systemDefault())
+                            ?.toLocalDate()
+
+                        if (fechaItem != null) {
+                            val periodo = periodos.find { fechaItem >= it.first && fechaItem < it.second }
+                            if (periodo != null) {
+                                val unidades = item.lista_productos.sumOf { it.cantidad ?: 0 }
+                                mapa[periodo] = mapa[periodo]!! + unidades
+                            }
                         }
                     }
 
-                    cambiarValoresGrafico(mapa.values.map { it.toFloat() })
-                    cambiarFechasGrafico(meses)
-//                    .map { it.format(DateTimeFormatter.ofPattern("MMM yyyy")) }
-                }
+                    // Mostrar los datos agrupados
+                    val valores = mapa.values.map { it.toFloat() }
 
+                    // Obtener una lista de LocalDates con el primer día de cada mes para las etiquetas
+                    val etiquetas = periodos.map { it.first }
+
+                    // Usar en tu gráfico
+                    cambiarValoresGrafico(valores)
+                    cambiarFechasGrafico(etiquetas)
+                }
                 else -> {
                     Log.e("DEBUG", "Elija una opción válida")
                 }
@@ -305,6 +338,52 @@ class ReporteProductoViewModel: ViewModel() {
             Log.e("DEBUG", "La lista de compras es null")
         }
 
+    }
+
+    private fun actualizarGraficoBarrasApiladasVentas() {
+        val ventas = _uiState.value.ventas ?: return
+        val periodo = _uiState.value.periodoTemporal
+        val now = LocalDate.now()
+
+        val fechas: List<LocalDate> = when (periodo) {
+            "Diario" -> (0..6).map { now.minusDays(it.toLong()) }.reversed()
+            "Semanal" -> (0..6).map { now.minusWeeks(it.toLong()).with(DayOfWeek.MONDAY) }.reversed()
+            "Mensual" -> (4 downTo 0).map { now.minusMonths(it.toLong()).withDayOfMonth(1) }
+            else -> return
+        }
+
+        val mapaPorFechaYUsuario = fechas.associateWith { mutableMapOf<String, Int>() }.toMutableMap()
+
+        ventas.forEach { venta ->
+            val fechaVenta = venta.fecha?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
+            val atendedorId = venta.atendedor_id ?: "Desconocido"
+
+            val claveFecha = when (periodo) {
+                "Diario" -> fechaVenta
+                "Semanal" -> fechaVenta?.with(DayOfWeek.MONDAY)
+                "Mensual" -> fechaVenta?.withDayOfMonth(1)
+                else -> null
+            }
+
+            if (claveFecha != null && claveFecha in mapaPorFechaYUsuario) {
+                val cantidad = venta.lista_productos.sumOf { it.cantidad ?: 0 }
+                val usuarioMap = mapaPorFechaYUsuario[claveFecha]!!
+                usuarioMap[atendedorId] = usuarioMap.getOrDefault(atendedorId, 0) + cantidad
+            }
+        }
+
+        val usuariosUnicos = mapaPorFechaYUsuario.values.flatMap { it.keys }.toSet()
+
+        val datosPorUsuario = usuariosUnicos.associateWith { usuario ->
+            fechas.map { fecha -> mapaPorFechaYUsuario[fecha]?.get(usuario)?.toFloat() ?: 0f }
+        }
+
+        _uiState.update {
+            it.copy(
+                fechasGrafico = fechas,
+                datosGraficoPorUsuario = datosPorUsuario
+            )
+        }
     }
 
     suspend fun actualizarIndicadores() {

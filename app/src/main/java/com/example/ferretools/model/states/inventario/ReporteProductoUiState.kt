@@ -9,8 +9,14 @@ data class ReporteProductoUiState(
     val compras: List<Compra>? = null,
     val ventas: List<Venta>? = null,
     val periodoTemporal: String = "Diario",
+
+    // Gráfico de Barras
+    val tipoGrafico: String = "Barras",
     val valoresGrafico: List<Float> = emptyList(),
     val fechasGrafico: List<LocalDate> = emptyList(),
+
+    // Gráfico de barras apiladas
+    val datosGraficoPorUsuario: Map<String, List<Float>> = emptyMap(),
 
     // KPIs venta
     val unidadesVendidas: Int = 0,

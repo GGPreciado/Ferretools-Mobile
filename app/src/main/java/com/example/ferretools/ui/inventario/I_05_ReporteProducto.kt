@@ -26,26 +26,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.ferretools.ui.components.SelectorOpciones
 import com.example.ferretools.ui.components.TopNavBar
 import com.example.ferretools.ui.components.reporte.ResumenBox
+import com.example.ferretools.ui.components.seleccion_productos.DropdownBar
 import com.example.ferretools.viewmodel.inventario.ReporteProductoViewModel
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.stacked
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import com.patrykandpatrick.vico.compose.common.component.shapeComponent
+import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.compose.common.insets
+import com.patrykandpatrick.vico.compose.common.rememberHorizontalLegend
+import com.patrykandpatrick.vico.compose.common.vicoTheme
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
+import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
+import com.patrykandpatrick.vico.core.common.LegendItem
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
+import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun I_05_ReporteProducto(
@@ -89,7 +101,7 @@ fun I_05_ReporteProducto(
             SelectorOpciones(
                 opcion1 = "Ventas",
                 opcion2 = "Compras",
-                seleccionado = ""
+                seleccionado = reporteProductoUiState.value.operacionSeleccionada
             ) {
                 reporteProductoViewModel.cambiarOperacionSeleccionada(it)
                 if (it == "Ventas") {
@@ -125,7 +137,16 @@ fun I_05_ReporteProducto(
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Monthly", fontSize = 13.sp)
+                            DropdownBar(
+                                opciones = listOf("Diario", "Semanal", "Mensual"),
+                                opcionPorDefecto = "Diario",
+                                onOpcionSeleccionada = { reporteProductoViewModel.cambiarPeriodoTemporal(it) }
+                            )
+                            DropdownBar(
+                                opciones = listOf("Barras", "Circular", "Apiladas"),
+                                opcionPorDefecto = "Barras",
+                                onOpcionSeleccionada = { reporteProductoViewModel.cambiarTipoGrafico(it) }
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -137,9 +158,10 @@ fun I_05_ReporteProducto(
                                 Log.e("DEBUG", "En ventas: ${reporteProductoUiState.value.valoresGrafico}")
                                 Log.e("DEBUG", "En ventas: ${reporteProductoUiState.value.fechasGrafico}")
 
-                                GraficoVentasPorPeriodo(
+                                GraficoBarrasPorPeriodo(
                                     datos = reporteProductoUiState.value.valoresGrafico,
                                     fechas = reporteProductoUiState.value.fechasGrafico,
+                                    periodoTemporal = reporteProductoUiState.value.periodoTemporal
                                 )
 
                             } else {
@@ -153,10 +175,23 @@ fun I_05_ReporteProducto(
                                 Log.e("DEBUG", "En compras: ${reporteProductoUiState.value.valoresGrafico}")
                                 Log.e("DEBUG", "EN compras: ${reporteProductoUiState.value.fechasGrafico}")
 
-                                GraficoVentasPorPeriodo(
-                                    datos = reporteProductoUiState.value.valoresGrafico,
-                                    fechas = reporteProductoUiState.value.fechasGrafico,
-                                )
+                                when (reporteProductoUiState.value.tipoGrafico) {
+                                    "Barras" -> {
+                                        GraficoBarrasPorPeriodo(
+                                            datos = reporteProductoUiState.value.valoresGrafico,
+                                            fechas = reporteProductoUiState.value.fechasGrafico,
+                                            periodoTemporal = reporteProductoUiState.value.periodoTemporal
+                                        )
+                                    }
+                                    "Apiladas" -> {
+                                        GraficoBarrasApiladasPorUsuario(
+                                            datosPorUsuario = reporteProductoUiState.value.datosGraficoPorUsuario,
+                                            fechas = reporteProductoUiState.value.fechasGrafico,
+                                            periodoTemporal = reporteProductoUiState.value.periodoTemporal
+                                        )
+                                    }
+                                }
+
 
                             } else {
                                 NoItemsFoundCard(operacion = reporteProductoUiState.value.operacionSeleccionada)
@@ -182,12 +217,12 @@ fun I_05_ReporteProducto(
                         ResumenBox(
                             titulo = "Unidades\nvendidas",
                             valor = reporteProductoUiState.value.unidadesVendidas.toString(),
-                            etiqueta = "+15%"
+                            etiqueta = "unidades\nvendidas"
                         )
                         ResumenBox(
                             titulo = "Total\nrecaudado",
                             valor = reporteProductoUiState.value.totalRecaudadoVentas.toString(),
-                            etiqueta = "+15%"
+                            etiqueta = "soles recaudados\npor ventas"
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -198,12 +233,12 @@ fun I_05_ReporteProducto(
                         ResumenBox(
                             titulo = "Ganancia promedio\npor venta",
                             valor = reporteProductoUiState.value.gananciaPromedioVenta.toString(),
-                            etiqueta = "+15%"
+                            etiqueta = "soles recaudados\npor cada unidad"
                         )
                         ResumenBox(
                             titulo = "Usuario con mayores ventas",
                             valor = reporteProductoUiState.value.usuarioMayoresVentas,
-                            etiqueta = "+15%"
+                            etiqueta = null
                         )
                     }
                 } else {
@@ -215,12 +250,12 @@ fun I_05_ReporteProducto(
                         ResumenBox(
                             titulo = "Unidades\ncompradas",
                             valor = reporteProductoUiState.value.unidadesCompradas.toString(),
-                            etiqueta = "+15%"
+                            etiqueta = "unidades\ncompradas"
                         )
                         ResumenBox(
                             titulo = "Total\nrecaudado",
                             valor = reporteProductoUiState.value.totalInvertidoCompras.toString(),
-                            etiqueta = "+15%"
+                            etiqueta = "soles invertidos\nen compras"
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -231,12 +266,12 @@ fun I_05_ReporteProducto(
                         ResumenBox(
                             titulo = "Precio promedio\npor compra",
                             valor = reporteProductoUiState.value.precioPromedioCompra.toString(),
-                            etiqueta = "+15%"
+                            etiqueta = "soles invertidos\npor cada unidad"
                         )
                         ResumenBox(
                             titulo = "Usuario con mayores compras",
                             valor = reporteProductoUiState.value.usuarioMayoresCompras,
-                            etiqueta = "+15%"
+                            etiqueta = null
                         )
                     }
                 }
@@ -260,27 +295,35 @@ fun NoItemsFoundCard(
 }
 
 @Composable
-fun GraficoVentasPorPeriodo(
+fun GraficoBarrasPorPeriodo(
     datos: List<Float>,
-    fechas: List<LocalDate>
+    fechas: List<LocalDate>,
+    periodoTemporal: String
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
-    val xToDateMapKey = remember { ExtraStore.Key<Map<Float, LocalDate>>() }
+    val xToFechasMapKey = remember { ExtraStore.Key<Map<Float, LocalDate>>() }
 
-    val mapa: Map<LocalDate, Float> = fechas.zip(datos).toMap()
-    val xToDates = mapa.keys.associateBy { it.toEpochDay().toFloat() }
+    val mapaFechasToDatos: Map<LocalDate, Float> = fechas.zip(datos).toMap()
+
+    // Crea una nueva llave para cada elemento y lo asocia con el elemento original
+    val xToFechas = fechas.indices.associate { it.toFloat() to fechas[it] }
 
     LaunchedEffect(fechas, datos) {
         modelProducer.runTransaction {
-            columnSeries { series(xToDates.keys, mapa.values) }
-            extras { extras -> extras[xToDateMapKey] = xToDates }
+            columnSeries { series(xToFechas.keys, mapaFechasToDatos.values) }
+            extras { extras -> extras[xToFechasMapKey] = xToFechas }
         }
     }
+    var dateFormatter: DateTimeFormatter
+    if (periodoTemporal == "Mensual") {
+        dateFormatter = DateTimeFormatter.ofPattern("MMMM", Locale("es"))
+    } else {
+        dateFormatter = DateTimeFormatter.ofPattern("dd MMM", Locale("es"))
+    }
 
-    val dateFormatter = DateTimeFormatter.ofPattern("dd MMM")
     val bottomFormatter = CartesianValueFormatter { context, x, _ ->
-        val map = context.model.extraStore.getOrNull(xToDateMapKey)
-        val fecha = map?.get(x.toFloat()) ?: LocalDate.ofEpochDay(x.toLong())
+        val extrasXToFechas = context.model.extraStore.getOrNull(xToFechasMapKey)
+        val fecha = extrasXToFechas?.get(x.toFloat()) ?: LocalDate.ofEpochDay(x.toLong())
         fecha.format(dateFormatter)
     }
 
@@ -296,6 +339,87 @@ fun GraficoVentasPorPeriodo(
         modifier = Modifier
             .fillMaxWidth()
             .height(240.dp)
+    )
+}
+
+@Composable
+fun GraficoBarrasApiladasPorUsuario(
+    datosPorUsuario: Map<String, List<Float>>,
+    fechas: List<LocalDate>,
+    periodoTemporal: String
+) {
+    val modelProducer = remember { CartesianChartModelProducer() }
+    val xToFechasMapKey = remember { ExtraStore.Key<Map<Float, LocalDate>>() }
+    val legendKey = remember { ExtraStore.Key<Set<String>>() }
+
+    val x = fechas.indices.map { it.toFloat() }
+    val xToFechas = x.zip(fechas).toMap()
+
+    val colores = listOf(
+        Color(0xFF1E88E5), Color(0xFFD81B60), Color(0xFF43A047), Color(0xFFF4511E),
+        Color(0xFF6A1B9A), Color(0xFF00897B), Color(0xFF5D4037), Color(0xFF3949AB)
+    )
+    val colorComponentes = colores.map { color ->
+        rememberLineComponent(fill = fill(color), thickness = 16.dp)
+    }
+
+    LaunchedEffect(datosPorUsuario, fechas) {
+        modelProducer.runTransaction {
+            columnSeries {
+                datosPorUsuario.values.forEachIndexed { index, lista ->
+                    series(x, lista)
+                }
+            }
+            extras {
+                it[xToFechasMapKey] = xToFechas
+                it[legendKey] = datosPorUsuario.keys
+            }
+        }
+    }
+
+    val dateFormatter = when (periodoTemporal) {
+        "Mensual" -> DateTimeFormatter.ofPattern("MMM", Locale("es"))
+        else -> DateTimeFormatter.ofPattern("dd MMM", Locale("es"))
+    }
+
+    val bottomFormatter = CartesianValueFormatter { context, xVal, _ ->
+        val fecha = context.model.extraStore.getOrNull(xToFechasMapKey)?.get(xVal.toFloat())
+        fecha?.format(dateFormatter) ?: ""
+    }
+
+    val labelComponent = rememberTextComponent(vicoTheme.textColor)
+
+    CartesianChartHost(
+        chart = rememberCartesianChart(
+            rememberColumnCartesianLayer(
+                columnProvider = ColumnCartesianLayer.ColumnProvider.series(colorComponentes),
+                mergeMode = { ColumnCartesianLayer.MergeMode.stacked() },
+                columnCollectionSpacing = 24.dp,
+            ),
+            startAxis = VerticalAxis.rememberStart(),
+            bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = bottomFormatter),
+            legend = rememberHorizontalLegend(
+                items = { extraStore ->
+                    extraStore[legendKey].forEachIndexed { index, label ->
+                        add(
+                            LegendItem(
+                                shapeComponent(
+                                    fill(colores[index % colores.size]),
+                                    CorneredShape.Pill
+                                ),
+                                labelComponent,
+                                label
+                            )
+                        )
+                    }
+                },
+                padding = insets(top = 12.dp)
+            )
+        ),
+        modelProducer = modelProducer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(260.dp)
     )
 }
 

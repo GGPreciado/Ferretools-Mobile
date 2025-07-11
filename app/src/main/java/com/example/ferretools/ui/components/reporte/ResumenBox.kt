@@ -16,13 +16,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ferretools.R
@@ -31,11 +35,11 @@ import com.example.ferretools.R
 fun ResumenBox(
     titulo: String,
     valor: String,
-    etiqueta: String
+    etiqueta: String? = null
 ) {
     Box(
         modifier = Modifier
-            .width(156.dp)
+            .width(180.dp)
             .height(150.dp)
             .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
             .background(Color.White, RoundedCornerShape(12.dp))
@@ -45,35 +49,74 @@ fun ResumenBox(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Absolute.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
                     modifier = Modifier
                         .size(36.dp)
-                        .background(Color(0xFFE0E0E0), RoundedCornerShape(8.dp)),
+                        .background(Color(0xFF00BF59), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painterResource(R.drawable.inventario),
+                        painterResource(R.drawable.indicador),
                         contentDescription = "Indicador",
                         modifier = Modifier.size(24.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(titulo, fontSize = 13.sp)
+                Text(
+                    text = titulo,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2
+                )
             }
-            Divider(Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(
+                Modifier.padding(vertical = 6.dp),
+
+            )
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(valor, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(
-                    text= etiqueta,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = valor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                    )
+                    etiqueta?.let {
+                        Text(
+                            text = it,
+                            fontSize = 10.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                            maxLines = 2,
+                            softWrap = true
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ResumenPrueba() {
+    ResumenBox(
+        titulo = "Usuario con mayores ventas",
+        valor = "admin",
+//        etiqueta = "unidades\nvendidas"
+    )
 }

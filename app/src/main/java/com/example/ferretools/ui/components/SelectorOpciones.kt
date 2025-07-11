@@ -37,7 +37,7 @@ fun SelectorOpciones(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp)
+            .height(50.dp)
             .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
     ) {
         // Botón Opción 1
