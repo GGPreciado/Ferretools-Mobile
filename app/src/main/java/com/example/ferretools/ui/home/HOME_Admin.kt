@@ -33,6 +33,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ferretools.viewmodel.HomeAdminViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 @Composable
 fun HOME_Admin(
@@ -103,6 +105,7 @@ fun HOME_Admin(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
             SummaryCard(
                 title = "Ventas de esta semana", 
                 value = ventasSemana.toString(), 
@@ -117,7 +120,7 @@ fun HOME_Admin(
         Spacer(modifier = Modifier.height(18.dp))
         // Accesos Directos
         Text(
-            text = "Accesos Directos",
+            text = stringResource(R.string.home_admin_accesos_directos),
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
             modifier = Modifier.padding(horizontal = 16.dp)
@@ -154,14 +157,14 @@ fun HOME_Admin(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Alertas de Stock", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(text = stringResource(R.string.home_admin_alertas_stock), fontWeight = FontWeight.Bold, fontSize = 20.sp)
             Button(
                 onClick = { navController.navigate(AppRoutes.Inventory.INVENTORY_REPORT) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE082)),
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp)
             ) {
-                Text("Reporte", color = Color.Black, fontSize = 14.sp)
+                Text(stringResource(R.string.home_admin_reporte), color = Color.Black, fontSize = 14.sp)
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -171,7 +174,7 @@ fun HOME_Admin(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
                 stockAlerts.isEmpty() -> {
-                    Text("No hay productos con bajo stock.", color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Text(text = stringResource(R.string.home_admin_no_bajo_stock), color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
                 else -> {
                     StockAlerts(
@@ -204,9 +207,9 @@ fun AdminQuickAccess(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            QuickAccessButtonE("Venta", Icons.Default.ShoppingCart, onVenta)
-            QuickAccessButtonE("Gasto", Icons.Default.Person, onGasto)
-            QuickAccessButtonE("Tienda", Icons.Default.List, onInventario)
+            QuickAccessButtonE(stringResource(R.string.home_admin_venta), Icons.Default.ShoppingCart, onVenta)
+            QuickAccessButtonE(stringResource(R.string.home_admin_gasto), Icons.Default.Person, onGasto)
+            QuickAccessButtonE(stringResource(R.string.home_admin_tienda), Icons.Default.List, onInventario)
         }
     }
 }

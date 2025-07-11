@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -20,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 
 import com.example.ferretools.ui.components.ConfirmationNavBar
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.R
 
 
 @Composable
@@ -54,10 +56,10 @@ fun V_04_VentaExitosa(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text("VENTA", style = MaterialTheme.typography.titleMedium)
-                    Text("EXITOSA", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.venta_venta), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.venta_exitosa), style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Icon(Icons.Default.ThumbUp, contentDescription = "Éxito", modifier = Modifier.size(32.dp))
+                    Icon(Icons.Default.ThumbUp, contentDescription = stringResource(R.string.venta_exito_icon), modifier = Modifier.size(32.dp))
                 }
             }
         }

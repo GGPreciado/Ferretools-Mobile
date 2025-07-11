@@ -25,6 +25,8 @@ import com.example.ferretools.ui.components.boleta.DetalleProductoFila
 import com.example.ferretools.viewmodel.pedido.PedidoViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 @Composable
 fun P_06_BoletaPedido(
@@ -33,7 +35,7 @@ fun P_06_BoletaPedido(
 ) {
     val pedido = viewModel.ultimoPedidoExitoso
     Scaffold(
-        topBar = { TopNavBar(navController, "Boleta de pedido") }
+        topBar = { TopNavBar(navController, stringResource(R.string.pedido_boleta_titulo)) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -58,38 +60,38 @@ fun P_06_BoletaPedido(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
-                            Text("Fecha de pedido", style = MaterialTheme.typography.bodyMedium)
-                            Text("Medio de pago", style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.pedido_fecha), style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.pedido_medio_pago), style = MaterialTheme.typography.bodyMedium)
                         }
                         Column {
                             val fechaFormateada = pedido?.fecha?.toDate()?.let {
                                 SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it)
-                            } ?: "N/A"
+                            } ?: stringResource(R.string.pedido_na)
                             val metodoPago = when (pedido?.metodoPago) {
-                                com.example.ferretools.model.enums.MetodosPago.Efectivo -> "Efectivo"
-                                com.example.ferretools.model.enums.MetodosPago.Yape -> "Yape"
-                                else -> "N/A"
+                                com.example.ferretools.model.enums.MetodosPago.Efectivo -> stringResource(R.string.pedido_efectivo)
+                                com.example.ferretools.model.enums.MetodosPago.Yape -> stringResource(R.string.pedido_yape)
+                                else -> stringResource(R.string.pedido_na)
                             }
                             Text(fechaFormateada, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                             Text(metodoPago, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Productos:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.pedido_productos), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Nombre", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                        Text("Cantidad", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                        Text("Precio", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.pedido_nombre), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.pedido_cantidad), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.pedido_precio), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Divider()
                     pedido?.productosConDetalles?.forEach { (item, producto) ->
                         DetalleProductoFila(
-                            nombre = producto?.nombre ?: "Producto desconocido",
+                            nombre = producto?.nombre ?: stringResource(R.string.pedido_producto_desconocido),
                             cantidad = (item.cantidad ?: 0).toString(),
                             precio = "S/ ${String.format("%.2f", item.subtotal ?: 0.0)}"
                         )
@@ -99,8 +101,8 @@ fun P_06_BoletaPedido(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("TOTAL", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text("S/ ${String.format("%.2f", pedido?.total ?: 0.0)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.pedido_total), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(String.format(stringResource(R.string.pedido_s_total), pedido?.total ?: 0.0), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
                 }
             }

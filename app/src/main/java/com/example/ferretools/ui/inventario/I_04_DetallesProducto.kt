@@ -1,5 +1,7 @@
 package com.example.ferretools.ui.inventario
 
+//import androidx.compose.foundation.layout.weight
+//import androidx.compose.foundation.layout.rememberScrollState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -24,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,21 +37,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.R
 import com.example.ferretools.navigation.AppRoutes
-import com.example.ferretools.model.database.Producto
-import androidx.compose.foundation.verticalScroll
-//import androidx.compose.foundation.layout.weight
-//import androidx.compose.foundation.layout.rememberScrollState
-import androidx.compose.foundation.rememberScrollState
 import com.example.ferretools.viewmodel.inventario.DetallesProductoViewModel
-import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun I_04_DetallesProducto(
@@ -172,7 +169,10 @@ fun I_04_DetallesProducto(
             // Botón de análisis
             Button(
                 onClick = {
-//                    navController.navigate(AppRoutes.Inventory.PRODUCT_REPORT)
+                    navController.navigate(AppRoutes.Inventory.PRODUCT_REPORT(
+                        productoId = producto.producto_id,
+                        productoNombre = producto.nombre
+                    ))
                           },
                 modifier = Modifier
                     .fillMaxWidth()

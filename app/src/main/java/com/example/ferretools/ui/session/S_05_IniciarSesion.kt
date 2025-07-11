@@ -45,6 +45,8 @@ import com.example.ferretools.viewmodel.session.IniciarSesionViewModel
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.ferretools.utils.NotificationHelper
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 
 @Composable
@@ -112,7 +114,7 @@ fun S_05_IniciarSesion(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Iniciar Sesión",
+            text = stringResource(R.string.iniciar_sesion_titulo),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
@@ -122,10 +124,10 @@ fun S_05_IniciarSesion(
         )
 
         LoginFormField(
-            label = "Correo electrónico",
+            label = stringResource(R.string.iniciar_sesion_correo_electronico),
             value = iniciarSesionUiState.value.email,
             onValueChange = { iniciarSesionViewModel.updateEmail(it) },
-            placeholder = "Correo",
+            placeholder = stringResource(R.string.iniciar_sesion_correo),
             keyboardType = KeyboardType.Email,
             isError = iniciarSesionUiState.value.email.isNotBlank() &&
                     iniciarSesionUiState.value.emailError != null,
@@ -135,10 +137,10 @@ fun S_05_IniciarSesion(
         Spacer(modifier = Modifier.height(16.dp))
 
         LoginFormField(
-            label = "Contraseña",
+            label = stringResource(R.string.iniciar_sesion_contrasena),
             value = iniciarSesionUiState.value.password,
             onValueChange = { iniciarSesionViewModel.updatePassword(it) },
-            placeholder = "Contraseña",
+            placeholder = stringResource(R.string.iniciar_sesion_contrasena),
             isPassword = true,
             showPassword = iniciarSesionUiState.value.showPassword,
             onTogglePassword = { iniciarSesionViewModel.toggleShowPassword() },
@@ -200,7 +202,7 @@ fun LoginFormField(
                 {
                     val icon = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = onTogglePassword) {
-                        Icon(imageVector = icon, contentDescription = if (showPassword) "Ocultar contraseña" else "Mostrar contraseña")
+                        Icon(imageVector = icon, contentDescription = if (showPassword) stringResource(R.string.iniciar_sesion_ocultar_contrasena) else stringResource(R.string.iniciar_sesion_mostrar_contrasena))
                     }
                 }
             } else null,
@@ -221,7 +223,7 @@ fun LoginFormField(
 @Composable
 fun ForgotPasswordLink(onClick: () -> Unit) {
     Text(
-        text = "¿Olvidaste tu contraseña?",
+        text = stringResource(R.string.iniciar_sesion_olvidaste_contrasena),
         color = MaterialTheme.colorScheme.tertiary,
         style = MaterialTheme.typography.bodyLarge,
         textAlign = TextAlign.End,
@@ -249,7 +251,7 @@ fun LoginButton(enabled: Boolean, onClick: () -> Unit) {
         elevation = ButtonDefaults.buttonElevation(4.dp)
     ) {
         Text(
-            text = "INICIAR SESIÓN",
+            text = stringResource(R.string.iniciar_sesion_boton),
             style = MaterialTheme.typography.labelSmall
         )
     }
@@ -262,12 +264,12 @@ fun RegisterLink(onClick: () -> Unit) {
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "¿No tienes cuenta? ",
+            text = stringResource(R.string.iniciar_sesion_no_tienes_cuenta),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge
         )
         Text(
-            text = "Registrarse",
+            text = stringResource(R.string.iniciar_sesion_registrarse),
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.clickable { onClick() },

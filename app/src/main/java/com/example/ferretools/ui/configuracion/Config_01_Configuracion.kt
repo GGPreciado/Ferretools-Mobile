@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -51,33 +50,30 @@ import com.example.ferretools.model.enums.RolUsuario
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
 import com.example.ferretools.utils.SesionUsuario
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 @Composable
 fun Config_01_Configuracion(
     navController: NavController,
-    darkModeEnabled: Boolean,
-    stockNotificationEnabled: Boolean,
-    // viewModel: ConfiguracionViewModel = viewModel() // Para uso futuro
 ) {
     Log.e("DEBUG", "Pantalla Configuración - rol actual: ${SesionUsuario.usuario?.rol}, rol deseado: ${SesionUsuario.rolDeseado}")
     val usuarioActual = SesionUsuario.usuario
     if (usuarioActual == null) {
         LaunchedEffect(Unit) {
-            navController.navigate(com.example.ferretools.navigation.AppRoutes.Auth.WELCOME) {
+            navController.navigate(AppRoutes.Auth.WELCOME) {
                 popUpTo(0) { inclusive = true }
             }
         }
         return
     }
-    var notificacionSolicitudesEnabled by remember { mutableStateOf(usuarioActual?.rol == RolUsuario.ADMIN && (usuarioActual?.let { it.notificacionSolicitudes } ?: true)) }
+    var notificacionSolicitudesEnabled by remember { mutableStateOf(usuarioActual.rol == RolUsuario.ADMIN && usuarioActual.notificacionSolicitudes) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     // Leer el valor actualizado de Firestore al entrar a la pantalla
-    LaunchedEffect(usuarioActual?.uid) {
-        if (usuarioActual?.rol == RolUsuario.ADMIN) {
+    LaunchedEffect(usuarioActual.uid) {
+        if (usuarioActual.rol == RolUsuario.ADMIN) {
             val db = FirebaseFirestore.getInstance()
             db.collection("usuarios").document(usuarioActual.uid).get()
                 .addOnSuccessListener { doc ->
@@ -158,7 +154,7 @@ fun Config_01_Configuracion(
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            if (usuarioActual?.rol == RolUsuario.CLIENTE) {
+            if (usuarioActual.rol == RolUsuario.CLIENTE) {
                 SettingsItem(
                     icon = Icons.Default.Person,
                     text = "Mi Solicitud",
@@ -176,22 +172,14 @@ fun Config_01_Configuracion(
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            SettingsSwitchItem(
-                icon = Icons.Default.DarkMode,
-                text = "Modo oscuro",
-                checked = darkModeEnabled,
-                onCheckedChange = { /* TODO: Implementar lógica de cambio de modo oscuro */ }
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            if (usuarioActual?.rol == RolUsuario.ADMIN) {
+            if (usuarioActual.rol == RolUsuario.ADMIN) {
                 SettingsSwitchItem(
                     icon = Icons.Default.Notifications,
                     text = "Notificación nueva solicitud",
                     checked = notificacionSolicitudesEnabled,
                     onCheckedChange = { checked ->
                         notificacionSolicitudesEnabled = checked
-                        usuarioActual?.let { user ->
+                        usuarioActual.let { user ->
                             val db = FirebaseFirestore.getInstance()
                             db.collection("usuarios").document(user.uid)
                                 .update("notificacionSolicitudes", checked)
@@ -336,8 +324,6 @@ fun Config_01_ConfiguracionPreview() {
         val navController = rememberNavController()
         Config_01_Configuracion(
             navController = navController,
-            darkModeEnabled = false,
-            stockNotificationEnabled = true
         )
     }
 

@@ -32,6 +32,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.example.ferretools.ui.home.HomeViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 // --- Constantes de Estilo ---
 private val GreenPrimary = Color(0xFF22D366)
@@ -83,17 +85,17 @@ fun PedidoClienteHistorialCard(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "Pedido #${pedido.id}",
+                    stringResource(R.string.pedido_num, pedido.id),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "Fecha: ${pedido.fecha}",
+                    stringResource(R.string.pedido_fecha_label, pedido.fecha),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextGray
                 )
                 Text(
-                    "Total: ${pedido.total}",
+                    stringResource(R.string.pedido_total_label, pedido.total),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -118,7 +120,7 @@ fun ListaHistorialPedidosCliente(
 ) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "Historial de Pedidos",
+            text = stringResource(R.string.pedido_historial),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = TextPrimary,
@@ -127,7 +129,7 @@ fun ListaHistorialPedidosCliente(
 
         if (pedidos.isEmpty()) {
             Text(
-                text = "No hay pedidos en el historial.",
+                text = stringResource(R.string.pedido_no_historial),
                 style = MaterialTheme.typography.bodyLarge,
                 color = TextGray,
                 modifier = Modifier.padding(16.dp)
@@ -185,7 +187,7 @@ fun P_05_HistorialPedidos(
         ) {
             var expanded by remember { mutableStateOf(false) }
             var ordenDescendente by remember { mutableStateOf(true) }
-            val ordenLabel = if (ordenDescendente) "Más recientes primero" else "Más antiguos primero"
+            val ordenLabel = if (ordenDescendente) stringResource(R.string.pedido_mas_recientes) else stringResource(R.string.pedido_mas_antiguos)
             Column(Modifier.padding(horizontal = 16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
@@ -197,14 +199,14 @@ fun P_05_HistorialPedidos(
                         }
                         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                             DropdownMenuItem(
-                                text = { Text("Más recientes primero") },
+                                text = { Text(stringResource(R.string.pedido_mas_recientes)) },
                                 onClick = {
                                     ordenDescendente = true
                                     expanded = false
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Más antiguos primero") },
+                                text = { Text(stringResource(R.string.pedido_mas_antiguos)) },
                                 onClick = {
                                     ordenDescendente = false
                                     expanded = false

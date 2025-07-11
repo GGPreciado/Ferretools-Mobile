@@ -21,6 +21,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.viewmodel.pedido.PedidoViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 private val GreenPrimary = Color(0xFF22D366)
 private val GreenSuccess = Color(0xFF00BF59)
@@ -43,7 +45,7 @@ fun P_E3_PrepararPedido(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = GreenPrimary),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.LocalShipping, contentDescription = "Atrás", tint = Color.Black)
+                        Icon(Icons.Default.LocalShipping, contentDescription = stringResource(R.string.pedido_atras), tint = Color.Black)
                     }
                 }
             )
@@ -60,7 +62,7 @@ fun P_E3_PrepararPedido(
         ) {
             if (!preparado) {
                 Text(
-                    "¿Confirmas que el pedido #$pedidoId está preparado y listo para ser entregado?",
+                    stringResource(R.string.pedido_confirmar_preparado, pedidoId),
                     style = MaterialTheme.typography.titleLarge,
                     color = TextPrimary,
                     fontWeight = FontWeight.Bold
@@ -75,7 +77,7 @@ fun P_E3_PrepararPedido(
                     colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Marcar como Preparado", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                    Text(stringResource(R.string.pedido_marcar_preparado), style = MaterialTheme.typography.titleMedium, color = Color.White)
                 }
             } else {
                 Icon(
@@ -86,7 +88,7 @@ fun P_E3_PrepararPedido(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "¡Pedido marcado como preparado!",
+                    stringResource(R.string.pedido_marcado_preparado),
                     style = MaterialTheme.typography.titleLarge,
                     color = GreenSuccess,
                     fontWeight = FontWeight.Bold
@@ -98,7 +100,7 @@ fun P_E3_PrepararPedido(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary)
                 ) {
-                    Text("Volver", color = Color.White)
+                    Text(stringResource(R.string.pedido_volver), color = Color.White)
                 }
             }
         }

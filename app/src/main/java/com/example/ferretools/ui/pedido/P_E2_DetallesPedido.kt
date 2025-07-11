@@ -26,6 +26,8 @@ import com.example.ferretools.utils.SesionUsuario
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import android.util.Log
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 private val GreenPrimary = Color(0xFF22D366)
 private val GreenSuccess = Color(0xFF00BF59)
@@ -100,20 +102,20 @@ fun P_E2_DetallesPedido(
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "Pedido #${pedido?.pedidoId ?: "-"}",
+                        stringResource(R.string.pedido_num, pedido?.pedidoId ?: "-"),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Cliente: ${pedido?.clienteId ?: "-"}", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.pedido_cliente, pedido?.clienteId ?: "-"), style = MaterialTheme.typography.bodyLarge)
                     val fechaFormateada = pedido?.fecha?.toDate()?.toString() ?: "-"
-                    Text("Fecha: $fechaFormateada", style = MaterialTheme.typography.bodyMedium, color = TextGray)
+                    Text(stringResource(R.string.pedido_fecha_label, fechaFormateada), style = MaterialTheme.typography.bodyMedium, color = TextGray)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Productos:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.pedido_productos), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     pedido?.lista_productos?.forEach { item ->
                         val producto = productosPorId[item.producto_id]
-                        val nombre = producto?.nombre ?: "Producto desconocido"
+                        val nombre = producto?.nombre ?: stringResource(R.string.pedido_producto_desconocido)
                         val cantidad = item.cantidad ?: 0
                         Text("- $nombre x$cantidad", style = MaterialTheme.typography.bodyMedium)
                     }
@@ -130,7 +132,7 @@ fun P_E2_DetallesPedido(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "Estado: ${pedido?.estado ?: "-"}",
+                            stringResource(R.string.pedido_estado, pedido?.estado ?: "-"),
                             style = MaterialTheme.typography.bodyLarge,
                             color = when (pedido?.estado?.lowercase()) {
                                 "preparado", "entregado" -> GreenSuccess
@@ -153,7 +155,7 @@ fun P_E2_DetallesPedido(
                         colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Preparar Pedido", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                        Text(stringResource(R.string.pedido_preparar), style = MaterialTheme.typography.titleMedium, color = Color.White)
                     }
                 } else if (esCliente) {
                     Button(
@@ -165,7 +167,7 @@ fun P_E2_DetallesPedido(
                         colors = ButtonDefaults.buttonColors(containerColor = RedError),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Cancelar Pedido", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                        Text(stringResource(R.string.pedido_cancelar), style = MaterialTheme.typography.titleMedium, color = Color.White)
                     }
                 }
             }
