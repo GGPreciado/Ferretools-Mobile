@@ -28,6 +28,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +39,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.theme.FerretoolsTheme
 import com.example.ferretools.viewmodel.session.RecuperarContrasenaViewModel
+import com.example.ferretools.R
 
 @Composable
 fun S_06_RecuperarContrasena(
@@ -69,7 +71,7 @@ fun S_06_RecuperarContrasena(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
+                    contentDescription = stringResource(R.string.recuperar_contrasena_volver),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -77,7 +79,7 @@ fun S_06_RecuperarContrasena(
             Spacer(modifier = Modifier.width(48.dp)) // Para equilibrar el espacio del botón
         }
         Text(
-            text = "Recuperar contraseña",
+            text = stringResource(R.string.recuperar_contrasena_titulo),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
@@ -87,7 +89,7 @@ fun S_06_RecuperarContrasena(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Se le mandará un código de confirmación.",
+            text = stringResource(R.string.recuperar_contrasena_mensaje),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
@@ -106,7 +108,7 @@ fun S_06_RecuperarContrasena(
                     modifier = Modifier.padding(end = 4.dp)
                 )
                 Text(
-                    text = "Ingrese su correo",
+                    text = stringResource(R.string.recuperar_contrasena_ingrese_correo),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.labelSmall
                 )
@@ -114,7 +116,8 @@ fun S_06_RecuperarContrasena(
             OutlinedTextField(
                 value = uiState.value.email,
                 onValueChange = { viewModel.updateEmail(it) },
-                placeholder = { Text("Correo", color = Color(0xFF999999)) },
+                label = { Text(stringResource(R.string.recuperar_contrasena_ingrese_correo)) },
+                placeholder = { Text(stringResource(R.string.recuperar_contrasena_correo)) },
                 singleLine = true,
                 isError = uiState.value.emailError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -138,7 +141,7 @@ fun S_06_RecuperarContrasena(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text(
-                    text = "ENVIAR CÓDIGO",
+                    text = stringResource(R.string.recuperar_contrasena_enviar_codigo),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.displayMedium
                 )
@@ -161,7 +164,7 @@ fun S_06_RecuperarContrasena(
                     modifier = Modifier.padding(end = 4.dp)
                 )
                 Text(
-                    text = "Escriba el código",
+                    text = stringResource(R.string.recuperar_contrasena_escriba_codigo),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.labelSmall
                 )
@@ -169,7 +172,8 @@ fun S_06_RecuperarContrasena(
             OutlinedTextField(
                 value = uiState.value.code,
                 onValueChange = { viewModel.updateCode(it) },
-                placeholder = { Text("Código", color = Color(0xFF999999)) },
+                label = { Text(stringResource(R.string.recuperar_contrasena_escriba_codigo)) },
+                placeholder = { Text(stringResource(R.string.recuperar_contrasena_codigo)) },
                 singleLine = true,
                 isError = uiState.value.codeError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -202,7 +206,7 @@ fun S_06_RecuperarContrasena(
                 elevation = ButtonDefaults.buttonElevation(4.dp)
             ) {
                 Text(
-                    text = "CONTINUAR",
+                    text = stringResource(R.string.recuperar_contrasena_continuar),
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )

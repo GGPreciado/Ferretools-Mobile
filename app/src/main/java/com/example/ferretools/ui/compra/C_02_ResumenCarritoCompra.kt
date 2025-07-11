@@ -71,6 +71,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun C_02_ResumenCarritoCompra(
@@ -121,7 +123,7 @@ fun C_02_ResumenCarritoCompra(
     }
 
     Scaffold(
-        topBar = { TopNavBar(navController, "Detalles de compra") },
+        topBar = { TopNavBar(navController, stringResource(R.string.compra_detalles)) },
         bottomBar = { AdminBottomNavBar(navController) }
     ) { padding ->
         LazyColumn(
@@ -132,23 +134,24 @@ fun C_02_ResumenCarritoCompra(
         ) {
             item {
                 // Fecha de venta (puedes personalizar con un selector de fecha real)
-                Text("Fecha de compra")
+                Text(stringResource(R.string.compra_fecha))
                 CampoFechaSeleccion()
                 Text(
-                    "DD/MM/YYYY",
+                    stringResource(R.string.compra_dd_mm_yyyy),
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(horizontal = 10.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 // Selección de método de pago
-                Text("Medio de pago", Modifier.padding(vertical = 8.dp))
+                Text(stringResource(R.string.compra_medio_pago), Modifier.padding(vertical = 8.dp))
+                val context = LocalContext.current
                 SelectorOpciones(
-                    opcion1 = "Efectivo",
-                    opcion2 = "Yape",
+                    opcion1 = stringResource(R.string.compra_efectivo),
+                    opcion2 = stringResource(R.string.compra_yape),
                     opcion2Img = R.drawable.yape,
-                    seleccionado = uiState.metodoPago.name
+                    seleccionado = if (uiState.metodoPago == MetodosPago.Efectivo) stringResource(R.string.compra_efectivo) else stringResource(R.string.compra_yape)
                 ) { seleccion ->
-                    viewModel.cambiarMetodoPago(if (seleccion == "Efectivo") MetodosPago.Efectivo else MetodosPago.Yape)
+                    viewModel.cambiarMetodoPago(if (seleccion == context.getString(R.string.compra_efectivo)) MetodosPago.Efectivo else MetodosPago.Yape)
                     Log.d("C_02_ResumenCarritoCompra", "Método de pago seleccionado: ${uiState.metodoPago}")
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -176,13 +179,13 @@ fun C_02_ResumenCarritoCompra(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                producto?.nombre ?: "Producto",
+                                producto?.nombre ?: stringResource(R.string.compra_producto),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
-                                "S/ ${producto?.precio ?: 0.0}",
+                                stringResource(R.string.compra_s_precio, producto?.precio ?: 0.0),
                                 color = Color.Gray,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium
@@ -235,7 +238,7 @@ fun C_02_ResumenCarritoCompra(
                             ) {
                                 Icon(
                                     Icons.Default.Delete,
-                                    contentDescription = "Eliminar",
+                                    contentDescription = stringResource(R.string.compra_eliminar),
                                     tint = Color.Red,
                                     modifier = Modifier.size(24.dp)
                                 )
@@ -254,8 +257,8 @@ fun C_02_ResumenCarritoCompra(
                         .padding(top = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Total")
-                    Text("S/ ${uiState.total}")
+                    Text(stringResource(R.string.compra_total))
+                    Text(stringResource(R.string.compra_s_total, uiState.total))
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 // Botón para confirmar la compra
@@ -267,9 +270,10 @@ fun C_02_ResumenCarritoCompra(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)),
+                    enabled = uiState.productosSeleccionados.isNotEmpty()
                 ) {
-                    Text("Confirmar Compra", color = Color.Black)
+                    Text(stringResource(R.string.compra_confirmar), color = Color.Black)
                 }
             }
         }

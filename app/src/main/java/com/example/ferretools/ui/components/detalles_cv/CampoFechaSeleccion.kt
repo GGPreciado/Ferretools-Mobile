@@ -19,15 +19,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun CampoFechaSeleccion(modifier: Modifier = Modifier) {
+fun CampoFechaSeleccion(
+    fechaInicial: LocalDate = LocalDate.now(),
+    onFechaChange: (LocalDate) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     // Estado para la fecha seleccionada
     val context = LocalContext.current
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val calendar = Calendar.getInstance()
+    
+    // Inicializar con la fecha proporcionada
+    calendar.set(fechaInicial.year, fechaInicial.monthValue - 1, fechaInicial.dayOfMonth)
     var fechaSeleccionada by remember { mutableStateOf(dateFormatter.format(calendar.time)) }
     var mostrarDialogo by remember { mutableStateOf(false) }
 
@@ -38,6 +47,8 @@ fun CampoFechaSeleccion(modifier: Modifier = Modifier) {
             { _, year, month, dayOfMonth ->
                 calendar.set(year, month, dayOfMonth)
                 fechaSeleccionada = dateFormatter.format(calendar.time)
+                val nuevaFecha = LocalDate.of(year, month + 1, dayOfMonth)
+                onFechaChange(nuevaFecha)
                 mostrarDialogo = false
             },
             calendar.get(Calendar.YEAR),
@@ -59,7 +70,7 @@ fun CampoFechaSeleccion(modifier: Modifier = Modifier) {
             )
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { mostrarDialogo = true }
             .padding(

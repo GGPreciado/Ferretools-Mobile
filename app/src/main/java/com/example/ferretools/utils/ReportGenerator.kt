@@ -3,6 +3,8 @@ package com.example.ferretools.utils
 import android.content.Context
 import android.net.Uri
 import com.example.ferretools.model.database.Producto
+import com.example.ferretools.viewmodel.balance.BalanceResumen
+import com.example.ferretools.viewmodel.balance.Movimiento
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.Document
@@ -235,6 +237,93 @@ class ReportGenerator {
                 e.printStackTrace()
                 null
             }
+        }
+        
+        /**
+         * Genera un reporte PDF del balance
+         */
+        fun generarPDFBalance(
+            resumen: BalanceResumen, 
+            movimientos: List<Movimiento>, 
+            fecha: String,
+            negocioNombre: String
+        ): ByteArray {
+            val outputStream = ByteArrayOutputStream()
+            val pdfWriter = PdfWriter(outputStream)
+            val pdfDocument = PdfDocument(pdfWriter)
+            val document = Document(pdfDocument)
+            
+            try {
+                // Título del reporte
+                val titulo = Paragraph("💰 REPORTE DE BALANCE")
+                    .setFontSize(20f)
+                    .setBold()
+                    .setTextAlignment(TextAlignment.CENTER)
+                document.add(titulo)
+                
+                // Información del negocio
+                val negocioParrafo = Paragraph("🏪 Negocio: $negocioNombre")
+                    .setFontSize(12f)
+                    .setTextAlignment(TextAlignment.CENTER)
+                document.add(negocioParrafo)
+                
+                // Fecha
+                val fechaParrafo = Paragraph("📅 Fecha: $fecha")
+                    .setFontSize(12f)
+                    .setTextAlignment(TextAlignment.CENTER)
+                document.add(fechaParrafo)
+                
+                // Resumen del balance
+                val resumenTexto = Paragraph("""
+                    
+                    💰 RESUMEN DEL BALANCE
+                    
+                    💵 Total: S/ ${String.format("%.2f", resumen.total)}
+                    📈 Ingresos: S/ ${String.format("%.2f", resumen.ingresos)}
+                    📉 Egresos: S/ ${String.format("%.2f", resumen.egresos)}
+                """.trimIndent())
+                    .setFontSize(11f)
+                document.add(resumenTexto)
+                
+                // Tabla de movimientos
+                if (movimientos.isNotEmpty()) {
+                    val tabla = Table(UnitValue.createPercentArray(floatArrayOf(40f, 20f, 20f, 20f)))
+                        .useAllAvailableWidth()
+                    
+                    // Headers de la tabla
+                    val headers = arrayOf("Productos", "Fecha", "Monto (S/)", "Método")
+                    headers.forEach { header ->
+                        val celda = Paragraph(header).setBold()
+                        tabla.addCell(celda)
+                    }
+                    
+                    // Datos de movimientos
+                    movimientos.forEach { movimiento ->
+                        tabla.addCell(Paragraph(movimiento.productos))
+                        tabla.addCell(Paragraph(movimiento.fecha))
+                        tabla.addCell(Paragraph(String.format("%.2f", movimiento.monto)))
+                        tabla.addCell(Paragraph(movimiento.metodo))
+                    }
+                    
+                    document.add(tabla)
+                }
+                
+                // Pie de página
+                val piePagina = Paragraph("""
+                    
+                    
+                    Reporte generado automáticamente por Ferretools
+                    © ${Calendar.getInstance().get(Calendar.YEAR)} Ferretools - Sistema de Gestión de Inventario
+                """.trimIndent())
+                    .setFontSize(8f)
+                    .setTextAlignment(TextAlignment.CENTER)
+                document.add(piePagina)
+                
+            } finally {
+                document.close()
+            }
+            
+            return outputStream.toByteArray()
         }
         
         /**

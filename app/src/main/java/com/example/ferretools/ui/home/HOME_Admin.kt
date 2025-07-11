@@ -37,6 +37,8 @@ import com.example.ferretools.ui.components.StockAlerts
 import com.example.ferretools.ui.components.SummaryCard
 import com.example.ferretools.ui.components.UserDataBar
 import com.example.ferretools.viewmodel.HomeAdminViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 @Composable
 fun HOME_Admin(
@@ -50,6 +52,10 @@ fun HOME_Admin(
     val userName = viewModel.userName.collectAsState().value
     val storeName = viewModel.storeName.collectAsState().value
 
+    // Observar estadísticas de la semana
+    val ventasSemana = viewModel.ventasSemana.collectAsState().value
+    val ingresosSemana = viewModel.ingresosSemana.collectAsState().value  
+  
     Scaffold(
         topBar = { UserDataBar(userName, storeName) },
         bottomBar = { AdminBottomNavBar(navController) }
@@ -68,41 +74,30 @@ fun HOME_Admin(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 SummaryCard(
-                    title = "Ventas de esta semana",
-                    value = "0",
+                    title = "Ventas de esta semana", 
+                    value = ventasSemana.toString(), 
                     modifier = Modifier.weight(1f)
                 )
                 SummaryCard(
-                    title = "Ingresos de esta semana",
-                    value = "0 PEN",
+                    title = "Ingresos de esta semana", 
+                    value = "S/ ${String.format("%.2f", ingresosSemana)}", 
                     modifier = Modifier.weight(1f)
                 )
-            }
-            Spacer(modifier = Modifier.height(18.dp))
-            // Accesos Directos
-            Text(
-                text = "Accesos Directos",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                /*
-                ShortcutButton("Venta", Icons.Default.ShoppingCart, Color(0xFF22D366)) {
-                    navController.navigate(AppRoutes.Sale.CART)
-                }
-                ShortcutButton("Gasto", Icons.Default.Person, Color(0xFF22D366)) {
-                    navController.navigate(AppRoutes.Purchase.CART)
-                }
-                ShortcutButton("Inventario", Icons.Default.List, Color(0xFF22D366)) {
-                    navController.navigate(AppRoutes.Inventory.LIST_PRODUCTS)
-                }
-    */
+        }
+        Spacer(modifier = Modifier.height(18.dp))
+        // Accesos Directos
+        Text(
+            text = stringResource(R.string.home_admin_accesos_directos),
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
                 AdminQuickAccess(
                     onVenta = { navController.navigate(AppRoutes.Sale.CART) },
                     onGasto = { navController.navigate(AppRoutes.Purchase.CART) },
@@ -118,37 +113,31 @@ fun HOME_Admin(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Alertas de Stock", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text(text = stringResource(R.string.home_admin_alertas_stock), fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 Button(
                     onClick = { navController.navigate(AppRoutes.Inventory.INVENTORY_REPORT) },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE082)),
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp)
                 ) {
-                    Text("Reporte", color = Color.Black, fontSize = 14.sp)
+                    Text(stringResource(R.string.home_admin_reporte), color = Color.Black, fontSize = 14.sp)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 when {
-                    isLoading -> {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                    }
-
-                    stockAlerts.isEmpty() -> {
-                        Text(
-                            "No hay productos con bajo stock.",
-                            color = Color.Gray,
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                    }
-
-                    else -> {
-                        StockAlerts(
-                            alerts = stockAlerts
-                        )
-                    }
+                isLoading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 }
+                stockAlerts.isEmpty() -> {
+                    Text(text = stringResource(R.string.home_admin_no_bajo_stock), color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+                }
+                else -> {
+                    StockAlerts(
+                        alerts = stockAlerts
+                    )
+                }
+              }
             }
         }
     }
@@ -172,10 +161,24 @@ fun AdminQuickAccess(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            QuickAccessButtonE("Venta", Icons.Default.ShoppingCart, onVenta)
-            QuickAccessButtonE("Gasto", Icons.Default.Person, onGasto)
-            QuickAccessButtonE("Tienda", Icons.Default.List, onInventario)
+            QuickAccessButtonE(stringResource(R.string.home_admin_venta), Icons.Default.ShoppingCart, onVenta)
+            QuickAccessButtonE(stringResource(R.string.home_admin_gasto), Icons.Default.Person, onGasto)
+            QuickAccessButtonE(stringResource(R.string.home_admin_tienda), Icons.Default.List, onInventario)
         }
+    }
+}
+
+@Composable
+fun QuickAccessButtonA(label: String, icon: ImageVector, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .background(Color(0xFF22D366), shape = RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(16.dp)
+    ) {
+        Icon(icon, contentDescription = label, tint = Color.Black, modifier = Modifier.size(32.dp))
+        Text(label, fontWeight = FontWeight.Bold, color = Color.Black)
     }
 }
 

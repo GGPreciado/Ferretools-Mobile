@@ -19,11 +19,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.R
 
 @Composable
 fun P_03_ConfirmarPedido(
@@ -34,10 +36,10 @@ fun P_03_ConfirmarPedido(
     AlertDialog(
         onDismissRequest = { onDismiss?.invoke() ?: navController.popBackStack() },
         title = {
-            Text(text = "¿Confirmar pedido?", style = MaterialTheme.typography.titleLarge)
+            Text(text = stringResource(R.string.pedido_confirmar_titulo))
         },
         text = {
-            Text("¿Estás seguro de que deseas realizar este pedido?", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.pedido_confirmar_texto))
         },
         confirmButton = {
             Button(
@@ -48,7 +50,7 @@ fun P_03_ConfirmarPedido(
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BF59))
             ) {
-                Text("Sí, confirmar", color = Color.White)
+                Text(stringResource(R.string.pedido_confirmar_si), color = Color.White)
             }
         },
         dismissButton = {
@@ -56,7 +58,7 @@ fun P_03_ConfirmarPedido(
                 onClick = { onDismiss?.invoke() ?: navController.popBackStack() },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))
             ) {
-                Text("Cancelar", color = Color.White)
+                Text(stringResource(R.string.pedido_confirmar_cancelar), color = Color.White)
             }
         },
         shape = RoundedCornerShape(16.dp),

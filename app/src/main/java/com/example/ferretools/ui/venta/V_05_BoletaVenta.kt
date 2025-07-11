@@ -28,6 +28,8 @@ import com.example.ferretools.ui.components.boleta.DetalleProductoFila
 import com.example.ferretools.viewmodel.venta.VentaViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 @Composable
 fun V_05_BoletaVenta(
@@ -35,7 +37,7 @@ fun V_05_BoletaVenta(
     viewModel: VentaViewModel = viewModel()
 ) {
     Scaffold(
-        topBar = { TopNavBar(navController, "Boleta de venta") }
+        topBar = { TopNavBar(navController, stringResource(R.string.venta_boleta_titulo)) }
     ) { padding ->
         val uiState by viewModel.uiState.collectAsState()
         val ventaExitosa = viewModel.ultimaVentaExitosa
@@ -67,8 +69,8 @@ fun V_05_BoletaVenta(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column {
-                                Text("Fecha de venta", fontSize = 14.sp)
-                                Text("Medio de pago", fontSize = 14.sp)
+                                Text(stringResource(R.string.venta_fecha), fontSize = 14.sp)
+                                Text(stringResource(R.string.venta_medio_pago), fontSize = 14.sp)
                             }
                             Column {
                                 val fechaFormateada = ventaExitosa?.fecha?.toDate()?.let { 
@@ -84,16 +86,16 @@ fun V_05_BoletaVenta(
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Productos:", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.venta_productos), fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(8.dp))
                         // Tabla de productos
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Nombre", fontWeight = FontWeight.Bold)
-                            Text("Cantidad", fontWeight = FontWeight.Bold)
-                            Text("Precio", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.venta_nombre), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.venta_cantidad), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.venta_precio), fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Divider()
@@ -102,7 +104,7 @@ fun V_05_BoletaVenta(
                     // Productos
                     items(ventaExitosa?.productosConDetalles ?: emptyList()) { (item, producto) ->
                         DetalleProductoFila(
-                            nombre = producto?.nombre ?: "Producto desconocido",
+                            nombre = producto?.nombre ?: stringResource(R.string.venta_producto_desconocido),
                             cantidad = (item.cantidad ?: 0).toString(),
                             precio = "$ ${String.format("%.2f", item.subtotal ?: 0.0)}"
                         )
@@ -115,7 +117,7 @@ fun V_05_BoletaVenta(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("TOTAL", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.venta_total), fontWeight = FontWeight.Bold)
                             Text("$ ${String.format("%.2f", ventaExitosa?.total ?: 0.0)}", fontWeight = FontWeight.Bold)
                         }
                     }

@@ -29,6 +29,8 @@ import androidx.compose.runtime.LaunchedEffect
 import java.text.SimpleDateFormat
 import java.util.Locale
 import android.util.Log
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 @Composable
 fun C_05_BoletaCompra(
@@ -43,14 +45,14 @@ fun C_05_BoletaCompra(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("No hay información de la compra reciente.", color = Color.Red)
+            Text(stringResource(R.string.compra_boleta_no_info), color = Color.Red)
         }
         return
     }
     val fechaCompra = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(compra.fecha.toDate())
     val metodoPago = compra.metodoPago.name
     Scaffold(
-        topBar = { TopNavBar(navController, "Boleta de compra") }
+        topBar = { TopNavBar(navController, stringResource(R.string.compra_boleta_titulo)) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -77,8 +79,8 @@ fun C_05_BoletaCompra(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
-                            Text("Fecha de compra", fontSize = 14.sp)
-                            Text("Medio de pago", fontSize = 14.sp)
+                            Text(stringResource(R.string.compra_fecha), fontSize = 14.sp)
+                            Text(stringResource(R.string.compra_medio_pago), fontSize = 14.sp)
                         }
                         Column {
                             Text(fechaCompra, fontSize = 14.sp)
@@ -86,16 +88,16 @@ fun C_05_BoletaCompra(
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Productos:", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.compra_productos), fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     // Tabla de productos
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Nombre", fontWeight = FontWeight.Bold)
-                        Text("Cantidad", fontWeight = FontWeight.Bold)
-                        Text("Precio", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.compra_nombre), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.compra_cantidad), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.compra_precio), fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Divider()
@@ -103,9 +105,9 @@ fun C_05_BoletaCompra(
                     compra.productosConDetalles.forEach { (item, producto) ->
                         Log.d("C_05_BoletaCompra", "Producto en boleta: ${producto?.nombre}, cantidad: ${item.cantidad}")
                         DetalleProductoFila(
-                            nombre = producto?.nombre ?: "Producto",
+                            nombre = producto?.nombre ?: stringResource(R.string.compra_producto),
                             cantidad = (item.cantidad ?: 0).toString(),
-                            precio = "S/ ${producto?.precio ?: 0.0}"
+                            precio = stringResource(R.string.compra_s_total, compra.total)
                         )
                     }
                     Divider(modifier = Modifier.padding(vertical = 4.dp))
@@ -114,8 +116,8 @@ fun C_05_BoletaCompra(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("TOTAL", fontWeight = FontWeight.Bold)
-                        Text("S/ ${compra.total}", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.compra_total), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.compra_s_total, compra.total), fontWeight = FontWeight.Bold)
                     }
                 }
             }

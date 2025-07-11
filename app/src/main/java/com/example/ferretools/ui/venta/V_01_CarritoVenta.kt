@@ -37,6 +37,9 @@ import com.example.ferretools.viewmodel.venta.VentaViewModel
 import com.example.ferretools.viewmodel.venta.VentaUiState
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 import kotlinx.coroutines.delay
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun V_01_CarritoVenta(
@@ -50,6 +53,7 @@ fun V_01_CarritoVenta(
     var categoriaSeleccionada by remember { mutableStateOf("") }
     var bannerMessage by remember { mutableStateOf("") }
     var showBanner by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     // Filtrado por búsqueda
     val productosFiltrados = productosUiState.productosFiltrados.filter {
@@ -74,7 +78,7 @@ fun V_01_CarritoVenta(
                 viewModel.buscarProductoPorCodigoBarras(scannedBarcode)
                 
                 // Mostrar mensaje de confirmación
-                bannerMessage = "Escaneando producto..."
+                bannerMessage = context.getString(R.string.venta_escaneando)
                 showBanner = true
                 
                 Log.d("V_01_CarritoVenta", "Procesando código de barras: $scannedBarcode")
@@ -127,7 +131,7 @@ fun V_01_CarritoVenta(
 
     Scaffold(
         topBar = {
-            TopNavBar(navController, "Selección de producto vendido")
+            TopNavBar(navController, stringResource(R.string.venta_seleccion_producto))
         },
         bottomBar = {
             AdminBottomNavBar(navController, Modifier.size(40.dp))
@@ -186,15 +190,19 @@ fun V_01_CarritoVenta(
                     val producto = productosFiltrados[idx]
                     val existente = uiState.productosSeleccionados.find { it.producto_id == producto.producto_id }
                     val cantidadEnCarrito = existente?.cantidad ?: 0
-                    val agotado = cantidadEnCarrito >= producto.cantidad_disponible && producto.cantidad_disponible > 0
+                    val agotado = producto.cantidad_disponible <= 0 || cantidadEnCarrito >= producto.cantidad_disponible
                     // Cada carta representa un producto. Si está agotado, se ve apagada y no responde al click.
                     CartaProducto(
                         producto = producto,
                         onClick = {
                             if (agotado) {
-                                bannerMessage = "No hay suficiente stock para agregar más de este producto."
+                                if (producto.cantidad_disponible <= 0) {
+                                    bannerMessage = "Producto sin stock disponible."
+                                } else {
+                                    bannerMessage = "No hay suficiente stock para agregar más de este producto."
+                                }
                                 showBanner = true
-                                Log.d("V_01_CarritoVenta", "Intento de agregar más productos que el stock disponible: ${producto.nombre}")
+                                Log.d("V_01_CarritoVenta", "Intento de agregar producto sin stock: ${producto.nombre}")
                             } else {
                                 Log.d("V_01_CarritoVenta", "Producto agregado al carrito de venta: ${producto.nombre}")
                                 viewModel.agregarProducto(producto, 1)
@@ -216,7 +224,7 @@ fun V_01_CarritoVenta(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)),
                 enabled = uiState.productosSeleccionados.isNotEmpty()
             ) {
-                Text("Continuar", color = Color.Black)
+                Text(stringResource(R.string.venta_continuar), color = Color.Black)
             }
         }
     }

@@ -44,6 +44,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.ferretools.R
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.ferretools.model.enums.RolUsuario
@@ -140,7 +142,7 @@ fun S_03_RegistroUsuario(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
+                    contentDescription = stringResource(R.string.registro_volver),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -149,7 +151,7 @@ fun S_03_RegistroUsuario(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Crear Cuenta",
+            text = stringResource(R.string.registro_crear_cuenta),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.fillMaxWidth(),
@@ -187,7 +189,7 @@ fun S_03_RegistroUsuario(
             } else {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Agregar imagen de perfil",
+                    contentDescription = stringResource(R.string.registro_imagen_perfil),
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(54.dp)
                 )
@@ -197,19 +199,19 @@ fun S_03_RegistroUsuario(
         Spacer(modifier = Modifier.height(24.dp))
 
         FormField(
-            label = "Nombres completos",
+            label = stringResource(R.string.registro_nombres_completos),
             value = registroUsuarioUiState.value.name,
             onValueChange = { registroUsuarioViewModel.updateName(it) },
-            placeholder = "Ingrese sus nombres"
+            placeholder = stringResource(R.string.registro_ingrese_nombres)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         FormField(
-            label = "Correo electrónico",
+            label = stringResource(R.string.registro_correo_electronico),
             value = registroUsuarioUiState.value.email,
             onValueChange = { registroUsuarioViewModel.updateEmail(it) },
-            placeholder = "Correo",
+            placeholder = stringResource(R.string.registro_correo),
             isError = registroUsuarioUiState.value.email.isNotBlank() &&
                     registroUsuarioUiState.value.emailError != null,
             errorText = registroUsuarioUiState.value.emailError,
@@ -222,10 +224,10 @@ fun S_03_RegistroUsuario(
         Spacer(modifier = Modifier.height(16.dp))
 
         FormField(
-            label = "Teléfono",
+            label = stringResource(R.string.registro_telefono),
             value = registroUsuarioUiState.value.phone,
             onValueChange = { registroUsuarioViewModel.updatePhone(it) },
-            placeholder = "Teléfono",
+            placeholder = stringResource(R.string.registro_telefono),
             keyboardType = KeyboardType.Phone,
             imeAction = ImeAction.Next,
             modifier = Modifier.focusRequester(phoneFocusRequester),
@@ -235,10 +237,10 @@ fun S_03_RegistroUsuario(
         Spacer(modifier = Modifier.height(16.dp))
 
         FormField(
-            label = "Contraseña",
+            label = stringResource(R.string.registro_contrasena),
             value = registroUsuarioUiState.value.password,
             onValueChange = { registroUsuarioViewModel.updatePassword(it) },
-            placeholder = "Contraseña",
+            placeholder = stringResource(R.string.registro_contrasena),
             isPassword = true,
             showPassword = registroUsuarioUiState.value.showPassword,
             onTogglePassword = { registroUsuarioViewModel.toggleShowPassword() },
@@ -254,10 +256,10 @@ fun S_03_RegistroUsuario(
         Spacer(modifier = Modifier.height(16.dp))
 
         FormField(
-            label = "Confirmar contraseña",
+            label = stringResource(R.string.registro_confirmar_contrasena),
             value = registroUsuarioUiState.value.confirmPassword,
             onValueChange = { registroUsuarioViewModel.updateConfirmPassword(it) },
-            placeholder = "Repite la contraseña",
+            placeholder = stringResource(R.string.registro_repite_contrasena),
             isPassword = true,
             showPassword = registroUsuarioUiState.value.showConfirmPassword,
             onTogglePassword = { registroUsuarioViewModel.toggleShowConfirmPassword() },
@@ -292,7 +294,7 @@ fun S_03_RegistroUsuario(
             ),
             elevation = ButtonDefaults.buttonElevation(4.dp)
         ) {
-            Text("REGISTRARSE", style = MaterialTheme.typography.labelSmall)
+            Text(text = stringResource(R.string.registro_registrarse), style = MaterialTheme.typography.labelSmall)
         }
     }
 }
@@ -332,7 +334,7 @@ private fun FormField(
                 {
                     val icon = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = onTogglePassword) {
-                        Icon(imageVector = icon, contentDescription = if (showPassword) "Ocultar contraseña" else "Mostrar contraseña")
+                        Icon(imageVector = icon, contentDescription = if (showPassword) stringResource(R.string.registro_ocultar_contrasena) else stringResource(R.string.registro_mostrar_contrasena))
                     }
                 }
             } else null,

@@ -13,12 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.R
 import com.example.ferretools.ui.components.ConfirmationNavBar
 
 @Composable
@@ -53,25 +55,25 @@ fun P_04_PedidoExitoso(
                     modifier = Modifier.padding(32.dp)
                 ) {
                     Text(
-                        "PEDIDO",
+                        stringResource(R.string.pedido_pedido),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.Black
                     )
                     Text(
-                        "EXITOSO",
+                        stringResource(R.string.pedido_exitosa),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Icon(
                         Icons.Default.ThumbUp,
-                        contentDescription = "Éxito",
+                        contentDescription = stringResource(R.string.pedido_exito_icon),
                         modifier = Modifier.size(48.dp),
                         tint = Color.Black
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
-                        "Tu pedido ha sido registrado correctamente. Recibirás una notificación cuando esté listo.",
+                        stringResource(R.string.pedido_volver),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = Color.Black
