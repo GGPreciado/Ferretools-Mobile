@@ -1,5 +1,6 @@
 package com.example.ferretools.viewmodel.inventario
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -136,24 +137,26 @@ class AgregarProductoViewModel(
                 
                 if (categoriaExistente != null) {
                     // La categoría ya existe, devolver su ID
+                    Log.d("DEBUG", "Ya existe la categoría")
                     onResult(categoriaExistente.id)
                 } else {
                     // La categoría no existe, crearla
                     val result = categoriaRepo.agregarCategoria(nombre)
                     if (result is Result.Success) {
                         // Buscar la categoría recién creada para obtener su ID
-                        // Como el stream se actualiza automáticamente, esperamos un poco
-                        kotlinx.coroutines.delay(500)
                         val categoriasActualizadas = _uiState.value.categorias
                         val nuevaCategoria = categoriasActualizadas.find { 
                             it.nombre.equals(nombre, ignoreCase = true) 
                         }
+                        Log.d("DEBUG", "Se creó una nueva categoría")
                         onResult(nuevaCategoria?.id)
                     } else {
+                        Log.d("DEBUG", "Error en crear categoría: $result")
                         onResult(null)
                     }
                 }
             } catch (e: Exception) {
+                Log.d("DEBUG", "${e.message}")
                 onResult(null)
             }
         }

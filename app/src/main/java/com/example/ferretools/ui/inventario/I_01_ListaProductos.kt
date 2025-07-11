@@ -186,7 +186,7 @@ fun I_01_ListaProductos(
                             .clickable {
                                 navController.navigate(
                                     AppRoutes.Inventory.PRODUCT_REPORT(
-                                        productoId = producto.codigo_barras,
+                                        productoId = producto.producto_id,
                                         productoNombre = producto.nombre
                                     )
                                 )

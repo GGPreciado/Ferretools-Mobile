@@ -1,5 +1,6 @@
 package com.example.ferretools.repository
 
+import android.util.Log
 import com.example.ferretools.model.database.Categoria
 import com.example.ferretools.model.Result
 import com.example.ferretools.utils.SesionUsuario
@@ -53,6 +54,7 @@ class CategoriaRepository(
             // Si tiene éxito, retorna Result.Success
             Result.Success(Unit)
         } catch (e: Exception) {
+            Log.d("DEBUG", "${e::class.simpleName}")
             // Si ocurre un error, retorna Result.Error con el mensaje
             Result.Error(e.message ?: "Error al agregar categoría")
         }
