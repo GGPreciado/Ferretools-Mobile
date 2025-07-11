@@ -33,6 +33,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.unit.sp
 import com.example.ferretools.viewmodel.HomeEmpleadoViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 // --- Constantes de Estilo ---
 private val GreenPrimary = Color(0xFF22D366)
@@ -120,7 +122,7 @@ fun PedidoHistorialCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Pedido #${pedido.id}",
+                    stringResource(R.string.pedido_num, pedido.id),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -138,17 +140,17 @@ fun PedidoHistorialCard(
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                "Cliente: ${pedido.cliente}",
+                stringResource(R.string.pedido_cliente, pedido.cliente),
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                "Fecha: ${pedido.fecha}",
+                stringResource(R.string.pedido_fecha_label, pedido.fecha),
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextGray
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                "Productos:",
+                stringResource(R.string.pedido_productos),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -169,7 +171,7 @@ fun ListaHistorialPedidos(
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "Historial de Pedidos",
+            text = stringResource(R.string.pedido_historial),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = TextPrimary,
@@ -177,7 +179,7 @@ fun ListaHistorialPedidos(
         )
         if (pedidos.isEmpty()) {
             Text(
-                text = "No hay pedidos en el historial.",
+                text = stringResource(R.string.pedido_no_historial),
                 style = MaterialTheme.typography.bodyLarge,
                 color = TextGray,
                 modifier = Modifier.padding(16.dp)
@@ -212,7 +214,7 @@ fun P_E1_HistorialPedidos(
     // DropdownMenu de orden
     var expanded by remember { mutableStateOf(false) }
     var ordenDescendente by remember { mutableStateOf(true) }
-    val ordenLabel = if (ordenDescendente) "Más recientes primero" else "Más antiguos primero"
+    val ordenLabel = if (ordenDescendente) stringResource(R.string.pedido_mas_recientes) else stringResource(R.string.pedido_mas_antiguos)
     Scaffold(
         topBar = { AlmaceneroTopBar(navController, userName, storeName) },
         bottomBar = {
@@ -230,7 +232,7 @@ fun P_E1_HistorialPedidos(
                 .padding(paddingValues)
         ) {
             Text(
-                text = "Historial de Pedidos",
+                text = stringResource(R.string.pedido_historial),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
@@ -248,14 +250,14 @@ fun P_E1_HistorialPedidos(
                     }
                     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         DropdownMenuItem(
-                            text = { Text("Más recientes primero") },
+                            text = { Text(stringResource(R.string.pedido_mas_recientes)) },
                             onClick = {
                                 ordenDescendente = true
                                 expanded = false
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Más antiguos primero") },
+                            text = { Text(stringResource(R.string.pedido_mas_antiguos)) },
                             onClick = {
                                 ordenDescendente = false
                                 expanded = false

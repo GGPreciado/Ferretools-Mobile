@@ -32,6 +32,8 @@ import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 import kotlinx.coroutines.delay
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun V_02_ResumenCarritoVenta(
@@ -43,6 +45,7 @@ fun V_02_ResumenCarritoVenta(
     val uiState by viewModel.uiState.collectAsState()
     var bannerMessage by remember { mutableStateOf("") }
     var showBanner by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     // Banner superior para advertencias
     if (showBanner) {
@@ -78,7 +81,7 @@ fun V_02_ResumenCarritoVenta(
     }
 
     Scaffold(
-        topBar = { TopNavBar(navController, "Detalles de venta") },
+        topBar = { TopNavBar(navController, stringResource(R.string.venta_detalles)) },
         bottomBar = { AdminBottomNavBar(navController) }
     ) { padding ->
         LazyColumn(
@@ -89,23 +92,25 @@ fun V_02_ResumenCarritoVenta(
         ) {
             item {
                 // Fecha de venta
-                Text("Fecha de venta")
+                Text(stringResource(R.string.venta_fecha))
                 CampoFechaSeleccion()
                 Text(
-                    "DD/MM/YYYY",
+                    stringResource(R.string.venta_dd_mm_yyyy),
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(horizontal = 10.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 // Selección de método de pago
-                Text("Medio de pago", Modifier.padding(vertical = 8.dp))
+                Text(stringResource(R.string.venta_medio_pago), Modifier.padding(vertical = 8.dp))
+                val efectivoStr = stringResource(R.string.venta_efectivo)
+                val yapeStr = stringResource(R.string.venta_yape)
                 SelectorOpciones(
-                    opcion1 = "Efectivo",
-                    opcion2 = "Yape",
+                    opcion1 = efectivoStr,
+                    opcion2 = yapeStr,
                     opcion2Img = R.drawable.yape,
-                    seleccionado = if (uiState.metodoPago == com.example.ferretools.model.enums.MetodosPago.Efectivo) "Efectivo" else "Yape"
+                    seleccionado = if (uiState.metodoPago == com.example.ferretools.model.enums.MetodosPago.Efectivo) efectivoStr else yapeStr
                 ) { seleccion ->
-                    viewModel.cambiarMetodoPago(if (seleccion == "Efectivo") com.example.ferretools.model.enums.MetodosPago.Efectivo else com.example.ferretools.model.enums.MetodosPago.Yape)
+                    viewModel.cambiarMetodoPago(if (seleccion == efectivoStr) com.example.ferretools.model.enums.MetodosPago.Efectivo else com.example.ferretools.model.enums.MetodosPago.Yape)
                     Log.d("V_02_ResumenCarritoVenta", "Método de pago seleccionado: ${uiState.metodoPago}")
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -133,13 +138,13 @@ fun V_02_ResumenCarritoVenta(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                producto?.nombre ?: "Producto",
+                                producto?.nombre ?: stringResource(R.string.venta_producto),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
-                                "S/ ${producto?.precio ?: 0.0}",
+                                stringResource(R.string.venta_s_precio, producto?.precio ?: 0.0),
                                 color = Color.Gray,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium
@@ -170,7 +175,7 @@ fun V_02_ResumenCarritoVenta(
                                         if (nuevaCantidad <= stockDisponible) {
                                             viewModel.actualizarCantidadProducto(item.producto_id ?: "", nuevaCantidad)
                                         } else {
-                                            bannerMessage = "No hay suficiente stock para este producto."
+                                            bannerMessage = context.getString(R.string.venta_no_suficiente_stock)
                                             showBanner = true
                                         }
                                     }
@@ -193,7 +198,7 @@ fun V_02_ResumenCarritoVenta(
                                     viewModel.actualizarCantidadProducto(item.producto_id ?: "", nuevaCantidad)
                                     Log.d("V_02_ResumenCarritoVenta", "Aumentó cantidad de ${producto?.nombre}")
                                 } else {
-                                    bannerMessage = "No hay suficiente stock para este producto."
+                                    bannerMessage = context.getString(R.string.venta_no_suficiente_stock)
                                     showBanner = true
                                 }
                             }) { Text("+") }
@@ -207,7 +212,7 @@ fun V_02_ResumenCarritoVenta(
                             ) {
                                 Icon(
                                     Icons.Default.Delete,
-                                    contentDescription = "Eliminar",
+                                    contentDescription = stringResource(R.string.venta_eliminar),
                                     tint = Color.Red,
                                     modifier = Modifier.size(24.dp)
                                 )
@@ -225,8 +230,8 @@ fun V_02_ResumenCarritoVenta(
                         .padding(top = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Total", fontWeight = FontWeight.Bold)
-                    Text("S/ ${String.format("%.2f", uiState.total)}", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.venta_total_label), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.venta_s_total, String.format("%.2f", uiState.total)), fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 // Botón Confirmar Venta
@@ -240,7 +245,7 @@ fun V_02_ResumenCarritoVenta(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)),
                     enabled = uiState.productosSeleccionados.isNotEmpty()
                 ) {
-                    Text("Confirmar Venta", color = Color.Black)
+                    Text(stringResource(R.string.venta_confirmar), color = Color.Black)
                 }
             }
         }

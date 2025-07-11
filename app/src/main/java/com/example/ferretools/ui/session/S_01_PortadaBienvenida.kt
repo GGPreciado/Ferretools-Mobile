@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,7 @@ fun S_01_PortadaBienvenida(
         // Imagen de fondo
         Image(
             painter = painterResource(id = R.drawable.fondo_almacen),
-            contentDescription = "Imagen de almacén",
+            contentDescription = stringResource(R.string.portada_imagen_almacen),
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
@@ -68,7 +69,7 @@ fun S_01_PortadaBienvenida(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Gestiona tu Ferretería",
+                    text = stringResource(R.string.portada_titulo),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.displayLarge,
                     textAlign = TextAlign.Center,
@@ -95,10 +96,7 @@ fun S_01_PortadaBienvenida(
                     shape = MaterialTheme.shapes.small,
                     elevation = ButtonDefaults.buttonElevation(4.dp)
                 ) {
-                    Text(
-                        text = "CREAR CUENTA",
-                        style = MaterialTheme.typography.labelSmall
-                    )
+                    Text(text = stringResource(R.string.portada_crear_cuenta))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -120,10 +118,7 @@ fun S_01_PortadaBienvenida(
                     shape = MaterialTheme.shapes.small,
                     elevation = ButtonDefaults.buttonElevation(4.dp)
                 ) {
-                    Text(
-                        text = "INICIAR SESIÓN",
-                        style = MaterialTheme.typography.labelSmall
-                    )
+                    Text(text = stringResource(R.string.portada_iniciar_sesion))
                 }
             }
         }

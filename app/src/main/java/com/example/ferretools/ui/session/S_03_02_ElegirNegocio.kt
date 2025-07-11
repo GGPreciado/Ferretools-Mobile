@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -48,6 +49,7 @@ import com.example.ferretools.viewmodel.session.ElegirNegocioViewModel
 import com.example.ferretools.viewmodel.session.NegociosUiState
 import com.example.ferretools.utils.SesionUsuario
 import kotlin.collections.find
+import com.example.ferretools.R
 
 @Composable
 fun S_03_02_ElegirNegocio(
@@ -62,6 +64,7 @@ fun S_03_02_ElegirNegocio(
     var isLoadingAfiliar by remember { mutableStateOf(false) }
 
     val negociosState by elegirNegocioViewModel.negociosState.collectAsState()
+    val context = LocalContext.current
 
     // Navegación tras afiliarse
     fun navegarADashboard() {
@@ -108,12 +111,12 @@ fun S_03_02_ElegirNegocio(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Atrás",
+                    contentDescription = stringResource(R.string.elegir_negocio_atras),
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
             Text(
-                text = "Elegir Negocio",
+                text = stringResource(R.string.elegir_negocio_titulo),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.padding(start = 8.dp)
@@ -133,7 +136,7 @@ fun S_03_02_ElegirNegocio(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Selecciona el negocio al que deseas afiliarte:",
+                    text = stringResource(R.string.elegir_negocio_subtitulo),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
@@ -150,11 +153,11 @@ fun S_03_02_ElegirNegocio(
                     ) {
                         Icon(
                             Icons.Default.AddBusiness,
-                            contentDescription = "Agregar Negocio",
+                            contentDescription = stringResource(R.string.elegir_negocio_agregar),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Agregar Negocio", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(R.string.elegir_negocio_agregar), style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -165,7 +168,7 @@ fun S_03_02_ElegirNegocio(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text("Buscar negocio") },
+                label = { Text(stringResource(R.string.elegir_negocio_buscar)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
@@ -199,9 +202,9 @@ fun S_03_02_ElegirNegocio(
                         ) {
                             Text(
                                 text = if (searchQuery.text.isNotEmpty())
-                                    "No se encontraron negocios"
+                                    stringResource(R.string.elegir_negocio_no_encontrados)
                                 else
-                                    "No hay negocios disponibles",
+                                    stringResource(R.string.elegir_negocio_no_disponibles),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -271,7 +274,7 @@ fun S_03_02_ElegirNegocio(
                         navController.navigate(AppRoutes.Auth.REGISTER_BUSINESS)
                     } else {
                         isLoadingAfiliar = false
-                        errorMessage = "Selecciona un negocio o crea uno nuevo."
+                        errorMessage = context.getString(R.string.elegir_negocio_error_seleccion)
                     }
                 },
                 enabled = selectedNegocioId != null && !isLoadingAfiliar && negociosState is NegociosUiState.Success,
@@ -288,7 +291,7 @@ fun S_03_02_ElegirNegocio(
                 if (isLoadingAfiliar) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("AFILIARSE", style = MaterialTheme.typography.labelSmall)
+                    Text(stringResource(R.string.elegir_negocio_afiliarse), style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
@@ -325,13 +328,13 @@ fun NegocioListItem(
             if (negocio.logoUrl != null) {
                 Image(
                     painter = painter,
-                    contentDescription = "Logo del negocio",
+                    contentDescription = stringResource(R.string.elegir_negocio_logo),
                     modifier = Modifier.size(48.dp)
                 )
             } else {
                 Icon(
                     imageVector = Icons.Default.AddBusiness,
-                    contentDescription = "Logo por defecto",
+                    contentDescription = stringResource(R.string.elegir_negocio_logo_defecto),
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(32.dp)
                 )
@@ -355,7 +358,7 @@ fun NegocioListItem(
         if (selected) {
             Icon(
                 imageVector = Icons.Filled.Visibility,
-                contentDescription = "Seleccionado",
+                contentDescription = stringResource(R.string.elegir_negocio_seleccionado),
                 tint = MaterialTheme.colorScheme.primary
             )
         }

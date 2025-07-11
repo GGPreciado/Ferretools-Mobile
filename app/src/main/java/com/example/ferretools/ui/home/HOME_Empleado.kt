@@ -29,6 +29,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.ferretools.navigation.AppRoutes
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ferretools.viewmodel.HomeEmpleadoViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 data class PedidoPendiente(
     val id: String,
@@ -121,26 +123,26 @@ fun EmpleadoBottomNavBar(
         NavigationBarItem(
             selected = false,
             onClick = onInicio,
-            icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
-            label = { Text("Inicio") }
+            icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.home_empleado_inicio)) },
+            label = { Text(stringResource(R.string.home_empleado_inicio)) }
         )
         NavigationBarItem(
             selected = false,
             onClick = onInventario,
-            icon = { Icon(Icons.Default.List, contentDescription = "Inventario") },
-            label = { Text("Inventario") }
+            icon = { Icon(Icons.Default.List, contentDescription = stringResource(R.string.home_empleado_inventario)) },
+            label = { Text(stringResource(R.string.home_empleado_inventario)) }
         )
         NavigationBarItem(
             selected = false,
             onClick = onHistorial,
-            icon = { Icon(Icons.Default.History, contentDescription = "Historial") },
-            label = { Text("Historial") }
+            icon = { Icon(Icons.Default.History, contentDescription = stringResource(R.string.home_empleado_historial)) },
+            label = { Text(stringResource(R.string.home_empleado_historial)) }
         )
         NavigationBarItem(
             selected = false,
             onClick = onCuenta,
-            icon = { Icon(Icons.Default.Person, contentDescription = "Cuenta") },
-            label = { Text("Cuenta") }
+            icon = { Icon(Icons.Default.Person, contentDescription = stringResource(R.string.home_empleado_cuenta)) },
+            label = { Text(stringResource(R.string.home_empleado_cuenta)) }
         )
     }
 }
@@ -154,7 +156,7 @@ fun AlmaceneroQuickAccess(
 ) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Text(
-            "Accesos Rápidos",
+            stringResource(R.string.home_empleado_accesos_rapidos),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF333333)
@@ -164,10 +166,10 @@ fun AlmaceneroQuickAccess(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            QuickAccessButtonE("Venta", Icons.Default.ShoppingCart, onCompra)
-            QuickAccessButtonE("Compra", Icons.Default.ShoppingCart, onVenta)
-            QuickAccessButtonE("Tienda", Icons.Default.List, onCatalogo)
-            QuickAccessButtonE("Historial", Icons.Default.History, onHistorial)
+            QuickAccessButtonE(stringResource(R.string.home_empleado_venta), Icons.Default.ShoppingCart, onCompra)
+            QuickAccessButtonE(stringResource(R.string.home_empleado_compra), Icons.Default.ShoppingCart, onVenta)
+            QuickAccessButtonE(stringResource(R.string.home_empleado_tienda), Icons.Default.List, onCatalogo)
+            QuickAccessButtonE(stringResource(R.string.home_empleado_historial), Icons.Default.History, onHistorial)
         }
     }
 }
@@ -190,14 +192,14 @@ fun QuickAccessButtonE(label: String, icon: ImageVector, onClick: () -> Unit) {
 fun ListaPedidosPendientes(pedidos: List<PedidoPendiente>, onPedidoClick: (PedidoPendiente) -> Unit) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Text(
-            "Pedidos Pendientes",
+            stringResource(R.string.home_empleado_pedidos_pendientes),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF333333),
             modifier = Modifier.padding(vertical = 12.dp)
         )
         if (pedidos.isEmpty()) {
-            Text("No hay pedidos pendientes.", color = Color.Gray, modifier = Modifier.padding(16.dp))
+            Text(stringResource(R.string.home_empleado_no_pedidos), color = Color.Gray, modifier = Modifier.padding(16.dp))
         } else {
             LazyColumn {
                 items(pedidos) { pedido ->
@@ -221,15 +223,15 @@ fun PedidoPendienteCard(pedido: PedidoPendiente, onClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.home_empleado_pedido_num, pedido.id), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Spacer(Modifier.weight(1f))
                 Text(pedido.estado, color = Color(0xFFE65100), fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
             Spacer(Modifier.height(4.dp))
-            Text("Cliente: ${pedido.cliente}", fontSize = 14.sp)
-            Text("Fecha: ${pedido.fecha}", fontSize = 13.sp, color = Color.Gray)
+            Text(stringResource(R.string.home_empleado_cliente, pedido.cliente), fontSize = 14.sp)
+            Text(stringResource(R.string.home_empleado_fecha, pedido.fecha), fontSize = 13.sp, color = Color.Gray)
             Spacer(Modifier.height(4.dp))
-            Text("Productos:", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+            Text(stringResource(R.string.home_empleado_productos), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
             pedido.productos.forEach {
                 Text("- $it", fontSize = 13.sp)
             }

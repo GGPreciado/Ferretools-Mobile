@@ -28,6 +28,8 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 
 private val GreenP = Color(0xFF22D366)
 private val GreenDark = Color(0xFF00BF59)
@@ -86,7 +88,7 @@ fun HOME_Cliente(
         ) {
             Spacer(Modifier.height(12.dp))
             Text(
-                "¡Bienvenido, $userName!",
+                text = stringResource(R.string.home_cliente_bienvenido, userName),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
@@ -164,9 +166,9 @@ fun ClienteQuickAccess(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            QuickAccessButtonC("Catálogo", Icons.Default.List, onCatalogo)
-            QuickAccessButtonC("Carrito", Icons.Default.ShoppingCart, onCarrito)
-            QuickAccessButtonC("Historial", Icons.Default.History, onHistorial)
+            QuickAccessButtonC(stringResource(R.string.home_cliente_catalogo), Icons.Default.List, onCatalogo)
+            QuickAccessButtonC(stringResource(R.string.home_cliente_carrito), Icons.Default.ShoppingCart, onCarrito)
+            QuickAccessButtonC(stringResource(R.string.home_cliente_historial), Icons.Default.History, onHistorial)
         }
     }
 }
@@ -192,14 +194,14 @@ fun PedidosRecientesCliente(
 ) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Text(
-            "Pedidos Pendientes",
+            text = stringResource(R.string.home_cliente_pedidos_pendientes),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = TextPrimary,
             modifier = Modifier.padding(vertical = 12.dp)
         )
         if (pedidos.isEmpty()) {
-            Text("Aún no has realizado pedidos.", color = TextSecondary, modifier = Modifier.padding(16.dp))
+            Text(text = stringResource(R.string.home_cliente_no_pedidos), color = TextSecondary, modifier = Modifier.padding(16.dp))
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp), // Ajusta el alto máximo si lo deseas
@@ -229,9 +231,9 @@ fun PedidoCard(pedido: PedidoCliente, onClick: (PedidoCliente) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
-                Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Text("Fecha: ${pedido.fecha}", fontSize = 13.sp, color = TextSecondary)
-                Text("Total: ${pedido.total}", fontSize = 13.sp)
+                Text(text = stringResource(R.string.home_cliente_pedido_num, pedido.id), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(text = stringResource(R.string.home_cliente_fecha, pedido.fecha), fontSize = 13.sp, color = TextSecondary)
+                Text(text = stringResource(R.string.home_cliente_total, pedido.total), fontSize = 13.sp)
             }
             Text(
                 pedido.estado,

@@ -32,6 +32,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.example.ferretools.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -70,7 +72,7 @@ fun S_07_CambiarContrasena(
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
+                    contentDescription = stringResource(R.string.cambiar_contrasena_volver),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -79,7 +81,7 @@ fun S_07_CambiarContrasena(
         }
 
         Text(
-            text = "Cambiar contraseña",
+            text = stringResource(R.string.cambiar_contrasena_titulo),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
@@ -91,7 +93,7 @@ fun S_07_CambiarContrasena(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Ingrese su nueva contraseña",
+            text = stringResource(R.string.cambiar_contrasena_ingrese),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
@@ -104,7 +106,8 @@ fun S_07_CambiarContrasena(
         OutlinedTextField(
             value = uiState.value.password,
             onValueChange = { viewModel.updatePassword(it) },
-            placeholder = { Text("Nueva contraseña") },
+            label = { Text(stringResource(R.string.cambiar_contrasena_nueva)) },
+            placeholder = { Text(stringResource(R.string.cambiar_contrasena_nueva)) },
             singleLine = true,
             isError = uiState.value.passwordError != null,
             visualTransformation = PasswordVisualTransformation(),
@@ -126,7 +129,8 @@ fun S_07_CambiarContrasena(
         OutlinedTextField(
             value = uiState.value.confirmPassword,
             onValueChange = { viewModel.updateConfirmPassword(it) },
-            placeholder = { Text("Confirmar contraseña") },
+            label = { Text(stringResource(R.string.cambiar_contrasena_confirmar)) },
+            placeholder = { Text(stringResource(R.string.cambiar_contrasena_confirmar)) },
             singleLine = true,
             isError = uiState.value.confirmPasswordError != null,
             visualTransformation = PasswordVisualTransformation(),
@@ -161,7 +165,7 @@ fun S_07_CambiarContrasena(
             elevation = ButtonDefaults.buttonElevation(4.dp)
         ) {
             Text(
-                text = "CAMBIAR CONTRASEÑA",
+                text = stringResource(R.string.cambiar_contrasena_boton),
                 style = MaterialTheme.typography.labelSmall
             )
         }
