@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
@@ -79,6 +81,7 @@ fun I_05_ReporteProducto(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .background(Color.White),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -142,7 +145,7 @@ fun I_05_ReporteProducto(
                                 onOpcionSeleccionada = { reporteProductoViewModel.cambiarPeriodoTemporal(it, productoId) }
                             )
                             DropdownBar(
-                                opciones = listOf("Barras", "Circular", "Apiladas"),
+                                opciones = listOf("Barras", "Apiladas"),
                                 opcionPorDefecto = "Barras",
                                 onOpcionSeleccionada = { reporteProductoViewModel.cambiarTipoGrafico(it, productoId) }
                             )

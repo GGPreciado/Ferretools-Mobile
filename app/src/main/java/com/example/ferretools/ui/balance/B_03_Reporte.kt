@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,6 +45,7 @@ fun B_03_Reporte(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .background(Color.White),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -106,7 +109,7 @@ fun B_03_Reporte(
                                 onOpcionSeleccionada = { reporteBalanceViewModel.cambiarPeriodoTemporal(it) }
                             )
                             DropdownBar(
-                                opciones = listOf("Barras", "Circular", "Apiladas"),
+                                opciones = listOf("Barras", "Apiladas"),
                                 opcionPorDefecto = "Barras",
                                 onOpcionSeleccionada = { reporteBalanceViewModel.cambiarTipoGrafico(it) }
                             )
