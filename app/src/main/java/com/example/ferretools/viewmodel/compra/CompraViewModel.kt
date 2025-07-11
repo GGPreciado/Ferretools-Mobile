@@ -10,6 +10,8 @@ import com.example.ferretools.model.Result
 import com.example.ferretools.repository.CompraRepository
 import com.example.ferretools.repository.ProductoRepository
 import com.example.ferretools.utils.SesionUsuario
+import com.example.ferretools.utils.BarcodeUtils
+import com.example.ferretools.utils.BarcodeUtils.logBarcodeScan
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import android.util.Log
 
 data class CompraUiState(
     val productosSeleccionados: List<ItemUnitario> = emptyList(),
@@ -57,10 +60,12 @@ class CompraViewModel(
         }
         actualizarProductosConDetalles(nuevosProductos)
     }
+    
     fun quitarProducto(productoId: String) {
         val nuevosProductos = _uiState.value.productosSeleccionados.filter { it.producto_id != productoId }
         actualizarProductosConDetalles(nuevosProductos)
     }
+    
     fun cambiarCantidad(productoId: String, nuevaCantidad: Int, precio: Double) {
         val nuevosProductos = _uiState.value.productosSeleccionados.map {
             if (it.producto_id == productoId)
@@ -69,6 +74,58 @@ class CompraViewModel(
         }
         actualizarProductosConDetalles(nuevosProductos)
     }
+    
+    /**
+     * Busca un producto por código de barras y lo agrega al carrito de compra
+     */
+    fun buscarProductoPorCodigoBarras(codigoBarras: String) {
+        val cleanBarcode = BarcodeUtils.cleanBarcode(codigoBarras)
+        
+        if (!BarcodeUtils.isValidBarcode(cleanBarcode)) {
+            _uiState.value = _uiState.value.copy(
+                status = CompraUiState.Status.Error,
+                mensaje = "Código de barras inválido"
+            )
+            return
+        }
+        
+        viewModelScope.launch {
+            val productos = productoRepository.getProductosStream().collect { result ->
+                val lista = when (result) {
+                    is Result.Success -> result.data
+                    else -> emptyList()
+                }
+                
+                val producto = lista.find { it.codigo_barras == cleanBarcode }
+                if (producto != null) {
+                    // Agregar producto al carrito de compra
+                    val nuevoItem = ItemUnitario(
+                        cantidad = 1,
+                        subtotal = producto.precio,
+                        producto_id = producto.producto_id
+                    )
+                    agregarProducto(nuevoItem)
+                    
+                    logBarcodeScan(cleanBarcode, true, producto.nombre)
+                    Log.d("CompraViewModel", "Producto encontrado y agregado: ${producto.nombre}")
+                    
+                    // No mostrar mensaje de éxito para mantener consistencia con el flujo de ventas
+                    _uiState.value = _uiState.value.copy(
+                        status = CompraUiState.Status.Idle,
+                        mensaje = null
+                    )
+                } else {
+                    logBarcodeScan(cleanBarcode, false)
+                    Log.d("CompraViewModel", "Producto no encontrado con código: $cleanBarcode")
+                    _uiState.value = _uiState.value.copy(
+                        status = CompraUiState.Status.Error,
+                        mensaje = "Producto no encontrado con código: $cleanBarcode"
+                    )
+                }
+            }
+        }
+    }
+    
     private fun actualizarProductosConDetalles(nuevosProductos: List<ItemUnitario>) {
         // Obtener detalles de productos (puedes optimizar esto si tienes los productos en memoria)
         viewModelScope.launch {
@@ -89,12 +146,15 @@ class CompraViewModel(
             }
         }
     }
+    
     fun cambiarMetodoPago(metodo: MetodosPago) {
         _uiState.value = _uiState.value.copy(metodoPago = metodo)
     }
+    
     fun cambiarFecha(fecha: Timestamp) {
         _uiState.value = _uiState.value.copy(fecha = fecha)
     }
+    
     fun registrarCompra() {
         val usuario = SesionUsuario.usuario
         val negocioId = usuario?.negocioId
@@ -122,6 +182,7 @@ class CompraViewModel(
             }
         }
     }
+    
     fun resetState() {
         _uiState.value = CompraUiState()
     }

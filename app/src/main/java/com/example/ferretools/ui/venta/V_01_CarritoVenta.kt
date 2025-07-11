@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+//import androidx.navigation.SavedStateHandle
 import com.example.ferretools.model.database.ItemUnitario
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.ui.components.AdminBottomNavBar
@@ -32,6 +34,7 @@ import com.example.ferretools.ui.components.seleccion_productos.ScanButton
 import com.example.ferretools.ui.components.seleccion_productos.SearchBar
 import com.example.ferretools.ui.components.seleccion_productos.SelectorCategoria
 import com.example.ferretools.viewmodel.venta.VentaViewModel
+import com.example.ferretools.viewmodel.venta.VentaUiState
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 import kotlinx.coroutines.delay
 
@@ -52,6 +55,31 @@ fun V_01_CarritoVenta(
     val productosFiltrados = productosUiState.productosFiltrados.filter {
         it.nombre.contains(searchQuery, ignoreCase = true) ||
         it.codigo_barras.contains(searchQuery, ignoreCase = true)
+    }
+
+    // Manejo del código de barras escaneado
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(100) // Polling cada 100ms para detectar cambios
+            val backStackEntry = navController.currentBackStackEntry
+            val scannedBarcode = backStackEntry?.savedStateHandle?.get<String>("scanned_barcode")
+            
+            if (scannedBarcode != null) {
+                Log.d("V_01_CarritoVenta", "Código de barras escaneado detectado: $scannedBarcode")
+                
+                // Limpiar el código escaneado para evitar procesamiento duplicado
+                backStackEntry.savedStateHandle.remove<String>("scanned_barcode")
+                
+                // Buscar y agregar el producto automáticamente
+                viewModel.buscarProductoPorCodigoBarras(scannedBarcode)
+                
+                // Mostrar mensaje de confirmación
+                bannerMessage = "Escaneando producto..."
+                showBanner = true
+                
+                Log.d("V_01_CarritoVenta", "Procesando código de barras: $scannedBarcode")
+            }
+        }
     }
 
     // Banner superior para advertencias
@@ -75,6 +103,25 @@ fun V_01_CarritoVenta(
         LaunchedEffect(bannerMessage) {
             delay(2000)
             showBanner = false
+        }
+    }
+
+    // Mostrar mensajes de error del ViewModel
+    LaunchedEffect(uiState.status) {
+        when (uiState.status) {
+            VentaUiState.Status.Error -> {
+                uiState.mensaje?.let { mensaje ->
+                    bannerMessage = mensaje
+                    showBanner = true
+                    Log.d("V_01_CarritoVenta", "Error del ViewModel: $mensaje")
+                }
+                viewModel.resetState()
+            }
+            VentaUiState.Status.Success -> {
+                Log.d("V_01_CarritoVenta", "Operación exitosa del ViewModel")
+                viewModel.resetState()
+            }
+            else -> {}
         }
     }
 
@@ -105,9 +152,11 @@ fun V_01_CarritoVenta(
                             top = 14.dp,
                             start = 10.dp
                         )
-                        .weight(0.20f)
-                        .size(45.dp)
-                        .clickable { /* TODO: Pantalla de Escanear producto */ }
+                        .weight(0.20f),
+                    onClick = { 
+                        Log.d("V_01_CarritoVenta", "Navegando al escáner de códigos de barras")
+                        navController.navigate(AppRoutes.Sale.BARCODE_SCANNER)
+                    }
                 )
             }
 
@@ -157,7 +206,10 @@ fun V_01_CarritoVenta(
             }
             // Botón para continuar al resumen del carrito de venta
             Button(
-                onClick = { navController.navigate(AppRoutes.Sale.CART_SUMMARY) },
+                onClick = { 
+                    Log.d("V_01_CarritoVenta", "Navegando al resumen del carrito de venta")
+                    navController.navigate(AppRoutes.Sale.CART_SUMMARY) 
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),

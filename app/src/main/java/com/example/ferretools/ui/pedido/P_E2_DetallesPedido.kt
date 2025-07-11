@@ -17,6 +17,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.navigation.AppRoutes
+import com.example.ferretools.viewmodel.pedido.PedidoViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.model.database.Pedido
+import com.example.ferretools.model.database.Producto
+import com.example.ferretools.model.enums.RolUsuario
+import com.example.ferretools.utils.SesionUsuario
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import android.util.Log
 
 private val GreenPrimary = Color(0xFF22D366)
 private val GreenSuccess = Color(0xFF00BF59)
@@ -37,10 +46,33 @@ data class PedidoDetalle(
 @Composable
 fun P_E2_DetallesPedido(
     navController: NavController,
-    pedido: PedidoDetalle,
+    pedidoId: String,
+    viewModel: PedidoViewModel = viewModel(),
     onPrepararPedido: (() -> Unit)? = null,
-    // viewModel: DetallesPedidoViewModel = viewModel() // Para uso futuro
+    onPedidoCancelado: (() -> Unit)? = null
 ) {
+    // Cargar historial y buscar el pedido
+    val usuario = SesionUsuario.usuario
+    val esCliente = usuario?.rol == RolUsuario.CLIENTE
+    val esAlmacenero = usuario?.rol == RolUsuario.ALMACENERO
+
+    val pedidos = if (esCliente)
+        viewModel.historialPedidos.collectAsState().value
+    else
+        viewModel.todosPedidosNegocio.collectAsState().value
+
+    val pedido = pedidos.find { it.pedidoId == pedidoId }
+
+    LaunchedEffect(esCliente) {
+        if (esCliente) viewModel.cargarHistorialPedidosCliente()
+        else viewModel.cargarTodosPedidosNegocio()
+    }
+    // Obtener productos por ID
+    val productoIds: List<String> = pedido?.lista_productos?.mapNotNull { it.producto_id } ?: emptyList()
+    LaunchedEffect(productoIds) {
+        if (productoIds.isNotEmpty()) viewModel.getProductosPorIds(productoIds)
+    }
+    val productosPorId: Map<String, Producto?> = viewModel.productosPorId.collectAsState().value
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,37 +100,41 @@ fun P_E2_DetallesPedido(
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "Pedido #${pedido.id}",
+                        "Pedido #${pedido?.pedidoId ?: "-"}",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Cliente: ${pedido.cliente}", style = MaterialTheme.typography.bodyLarge)
-                    Text("Fecha: ${pedido.fecha}", style = MaterialTheme.typography.bodyMedium, color = TextGray)
+                    Text("Cliente: ${pedido?.clienteId ?: "-"}", style = MaterialTheme.typography.bodyLarge)
+                    val fechaFormateada = pedido?.fecha?.toDate()?.toString() ?: "-"
+                    Text("Fecha: $fechaFormateada", style = MaterialTheme.typography.bodyMedium, color = TextGray)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("Productos:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    pedido.productos.forEach { producto ->
-                        Text("- $producto", style = MaterialTheme.typography.bodyMedium)
+                    pedido?.lista_productos?.forEach { item ->
+                        val producto = productosPorId[item.producto_id]
+                        val nombre = producto?.nombre ?: "Producto desconocido"
+                        val cantidad = item.cantidad ?: 0
+                        Text("- $nombre x$cantidad", style = MaterialTheme.typography.bodyMedium)
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = when (pedido.estado) {
-                                "Preparado", "Entregado" -> GreenSuccess
-                                "Cancelado" -> RedError
+                            tint = when (pedido?.estado?.lowercase()) {
+                                "preparado", "entregado" -> GreenSuccess
+                                "cancelado" -> RedError
                                 else -> TextGray
                             }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "Estado: ${pedido.estado}",
+                            "Estado: ${pedido?.estado ?: "-"}",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = when (pedido.estado) {
-                                "Preparado", "Entregado" -> GreenSuccess
-                                "Cancelado" -> RedError
+                            color = when (pedido?.estado?.lowercase()) {
+                                "preparado", "entregado" -> GreenSuccess
+                                "cancelado" -> RedError
                                 else -> TextGray
                             },
                             fontWeight = FontWeight.Bold
@@ -106,16 +142,31 @@ fun P_E2_DetallesPedido(
                     }
                 }
             }
-
-            // Botón para preparar pedido solo si el estado es "Pendiente"
-            if (pedido.estado == "Pendiente") {
+            // Botón para preparar/cancelar pedido según rol y estado
+            if (pedido != null && pedido.estado.lowercase() == "pendiente") {
                 Spacer(modifier = Modifier.height(32.dp))
-                Button(
-                    onClick = { onPrepararPedido?.invoke() },
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Preparar Pedido", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                if (esAlmacenero) {
+                    Button(
+                        onClick = {
+                            navController.navigate(AppRoutes.Order.Employee.prepareWithId(pedido.pedidoId))
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenPrimary),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Preparar Pedido", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                    }
+                } else if (esCliente) {
+                    Button(
+                        onClick = {
+                            Log.d("P_E2_DetallesPedido", "Cliente cancela pedido: ${pedido.pedidoId}")
+                            viewModel.cancelarPedido(pedido.pedidoId)
+                            onPedidoCancelado?.invoke()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = RedError),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Cancelar Pedido", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                    }
                 }
             }
         }
@@ -135,7 +186,9 @@ fun PreviewP_E2_DetallesPedido() {
     )
     P_E2_DetallesPedido(
         navController = navController,
-        pedido = pedidoDemo,
-        onPrepararPedido = {}
+        pedidoId = "003", // Assuming a valid ID for the preview
+        viewModel = viewModel(), // Pass a dummy viewModel for preview
+        onPrepararPedido = {},
+        onPedidoCancelado = {}
     )
 }

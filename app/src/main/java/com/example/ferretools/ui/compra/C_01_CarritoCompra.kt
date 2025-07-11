@@ -32,6 +32,7 @@ import com.example.ferretools.ui.components.seleccion_productos.ScanButton
 import com.example.ferretools.ui.components.seleccion_productos.SearchBar
 import com.example.ferretools.ui.components.seleccion_productos.SelectorCategoria
 import com.example.ferretools.viewmodel.compra.CompraViewModel
+import com.example.ferretools.viewmodel.compra.CompraUiState
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 import com.example.ferretools.model.database.Producto
 import com.example.ferretools.model.database.ItemUnitario
@@ -55,15 +56,52 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 @Composable
 fun C_01_CarritoCompra(
     navController: NavController,
-    viewModel: CompraViewModel,
+    compraViewModel: CompraViewModel,
     listaProductosViewModel: ListaProductosViewModel = viewModel()
 ) {
     val productosUiState = listaProductosViewModel.uiState.collectAsState().value
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by compraViewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var categoriaSeleccionada by remember { mutableStateOf("") }
     var bannerMessage by remember { mutableStateOf("") }
     var showBanner by remember { mutableStateOf(false) }
+
+    // --- INTEGRACIÓN MEJORADA DEL ESCÁNER DE CÓDIGO DE BARRAS EN COMPRAS ---
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(100) // Polling cada 100ms para detectar cambios
+            val backStackEntry = navController.currentBackStackEntry
+            val scannedBarcode = backStackEntry?.savedStateHandle?.get<String>("barcode_result")
+            
+            if (scannedBarcode != null) {
+                Log.d("C_01_CarritoCompra", "Código de barras escaneado detectado: $scannedBarcode")
+                
+                // Limpiar el código escaneado para evitar procesamiento duplicado
+                backStackEntry.savedStateHandle.remove<String>("barcode_result")
+                
+                // Usar el ViewModel para buscar y agregar el producto
+                compraViewModel.buscarProductoPorCodigoBarras(scannedBarcode)
+                
+                Log.d("C_01_CarritoCompra", "Procesando código de barras: $scannedBarcode")
+            }
+        }
+    }
+
+    // Mostrar mensajes del ViewModel solo para errores
+    LaunchedEffect(uiState.status) {
+        when (uiState.status) {
+            CompraUiState.Status.Error -> {
+                uiState.mensaje?.let { mensaje ->
+                    bannerMessage = mensaje
+                    showBanner = true
+                    Log.d("C_01_CarritoCompra", "Error del ViewModel: $mensaje")
+                }
+                compraViewModel.resetState()
+            }
+            // No mostrar mensajes de éxito para mantener consistencia con el flujo de ventas
+            else -> {}
+        }
+    }
 
     // Filtrado por búsqueda
     val productosFiltrados = productosUiState.productosFiltrados.filter {
@@ -125,8 +163,11 @@ fun C_01_CarritoCompra(
                             start = 10.dp
                         )
                         .weight(0.20f)
-                        .size(45.dp)
-                        .clickable { /* TODO: Pantalla de Escanear producto */ }
+                        .size(45.dp),
+                    onClick = {
+                        Log.d("C_01_CarritoCompra", "Navegando al escáner de código de barras (compras)")
+                        navController.navigate(AppRoutes.Purchase.BARCODE_SCANNER)
+                    }
                 )
             }
 
@@ -158,7 +199,7 @@ fun C_01_CarritoCompra(
                     CartaProducto(
                         producto = producto,
                         onClick = {
-                            viewModel.agregarProducto(ItemUnitario(
+                            compraViewModel.agregarProducto(ItemUnitario(
                                 cantidad = 1,
                                 subtotal = producto.precio,
                                 producto_id = producto.producto_id
@@ -171,11 +212,15 @@ fun C_01_CarritoCompra(
             }
             // Botón para continuar al resumen del carrito
             Button(
-                onClick = { navController.navigate(AppRoutes.Purchase.CART_SUMMARY) },
+                onClick = { 
+                    Log.d("C_01_CarritoCompra", "Navegando al resumen del carrito de compra")
+                    navController.navigate(AppRoutes.Purchase.CART_SUMMARY) 
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)),
+                enabled = uiState.productosSeleccionados.isNotEmpty()
             ) {
                 Text("Continuar", color = Color.Black)
             }

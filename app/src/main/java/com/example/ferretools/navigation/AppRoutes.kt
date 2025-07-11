@@ -67,6 +67,7 @@ object AppRoutes {
         const val CATEGORY_ADDED = "inventory_category_added"
         const val INVENTORY_REPORT = "inventory_report"
         const val SHARE_REPORT = "inventory_share_report"
+        const val BARCODE_SCANNER = "inventory_barcode_scanner"
 
         @Serializable
         data class PRODUCT_REPORT(val productoId: String, val productoNombre: String)
@@ -85,6 +86,7 @@ object AppRoutes {
         const val CONFIRM = "purchase_confirm"
         const val SUCCESS = "purchase_success"
         const val RECEIPT = "purchase_receipt"
+        const val BARCODE_SCANNER = "purchase_barcode_scanner"
     }
 
     // Rutas de Ventas
@@ -94,6 +96,7 @@ object AppRoutes {
         const val CONFIRM = "sale_confirm"
         const val SUCCESS = "sale_success"
         const val RECEIPT = "sale_receipt"
+        const val BARCODE_SCANNER = "sale_barcode_scanner"
     }
 
     // Rutas de Pedidos
@@ -104,12 +107,16 @@ object AppRoutes {
         const val SUCCESS = "order_success"
         const val HISTORY = "order_history"
         const val RECEIPT = "order_receipt"
+        const val DETAILS = "order/details/{pedidoId}"
+        const val BARCODE_SCANNER = "order_barcode_scanner"
+        fun detailsWithId(pedidoId: String) = "order/details/$pedidoId"
 
         // Rutas específicas para empleados
         object Employee {
             const val HISTORY = "order_employee_history"
             const val DETAILS = "order_employee_details"
-            const val PREPARE = "order_employee_prepare"
+            const val PREPARE = "order_employee_prepare/{pedidoId}"
+            fun prepareWithId(pedidoId: String) = "order_employee_prepare/$pedidoId"
         }
     }
 
