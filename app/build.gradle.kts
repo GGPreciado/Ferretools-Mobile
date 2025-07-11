@@ -104,4 +104,11 @@ dependencies {
     
     // Permisos
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+    
+    // PDF Generation
+    implementation("com.itextpdf:itext7-core:7.2.3")
+    
+    // Excel Generation
+    implementation("org.apache.poi:poi:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
 }
