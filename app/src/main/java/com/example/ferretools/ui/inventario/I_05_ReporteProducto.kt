@@ -411,9 +411,6 @@ fun GraficoBarrasApiladasPorUsuario(
         Color(0xFF1E88E5), Color(0xFFD81B60), Color(0xFF43A047), Color(0xFFF4511E),
         Color(0xFF6A1B9A), Color(0xFF00897B), Color(0xFF5D4037), Color(0xFF3949AB)
     )
-//    val colorComponentes = colores.map { color ->
-//        rememberLineComponent(fill = fill(color), thickness = 16.dp)
-//    }
 
     Log.d("DEBUG", "Usuarios: ${datosPorUsuario.keys}")
     Log.d("DEBUG", "Fechas: ${fechas}")

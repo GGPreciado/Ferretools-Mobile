@@ -1,6 +1,6 @@
 package com.example.ferretools.ui.balance
 
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -10,76 +10,80 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.ferretools.R
 import com.example.ferretools.ui.components.SelectorOpciones
 import com.example.ferretools.ui.components.TopNavBar
 import com.example.ferretools.ui.components.reporte.ResumenBox
-
-private val YellowPrimary = Color(0xFFFFEB3B)
-private val CardBorder = Color.Black
-
-data class ResumenReporte(
-    val productosDiferentes: Int,
-    val categoriasDiferentes: Int,
-    val productosTotales: Int,
-    val gananciasTotales: Double,
-    val productosDiferentesPorcentaje: String,
-    val categoriasDiferentesPorcentaje: String,
-    val productosTotalesPorcentaje: String,
-    val gananciasTotalesPorcentaje: String
-)
+import com.example.ferretools.ui.components.seleccion_productos.DropdownBar
+import com.example.ferretools.ui.inventario.GraficoBarrasApiladasPorUsuario
+import com.example.ferretools.ui.inventario.GraficoBarrasPorPeriodo
+import com.example.ferretools.ui.inventario.NoDataFoundCard
+import com.example.ferretools.ui.inventario.NoItemsFoundCard
+import com.example.ferretools.viewmodel.balance.ReporteBalanceViewModel
 
 @Composable
 fun B_03_Reporte(
     navController: NavController,
-    // viewModel: ReporteViewModel = viewModel() // Para uso futuro
+    reporteBalanceViewModel: ReporteBalanceViewModel = viewModel()
 ) {
-    // Datos de ejemplo
-    val resumen = ResumenReporte(
-        productosDiferentes = 25,
-        categoriasDiferentes = 8,
-        productosTotales = 120,
-        gananciasTotales = 3500.0,
-        productosDiferentesPorcentaje = "+15%",
-        categoriasDiferentesPorcentaje = "+10%",
-        productosTotalesPorcentaje = "+20%",
-        gananciasTotalesPorcentaje = "+18%"
-    )
-    var seleccionado by remember { mutableStateOf("Compras") }
+    val reporteBalanceUiState = reporteBalanceViewModel.uiState.collectAsState().value
+
+    LaunchedEffect(Unit) {
+        reporteBalanceViewModel.cargarVentasDeProducto()
+    }
 
     Scaffold(
-        topBar = { TopNavBar(navController, "Reporte de Ventas y Compras") }
+        topBar = { TopNavBar(navController, "Reporte por Producto") }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
                 .fillMaxSize()
                 .background(Color.White),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(32.dp)) // Espacio adicional arriba de los elementos
+
+            // Botón de fecha
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEB3B)),
+                onClick = {},
+            ) {
+                Text("Reporte de ${reporteBalanceUiState.operacionSeleccionada.lowercase()}", color = Color.Black)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Selector de ventas/compras
             SelectorOpciones(
-                opcion1 = "Compras",
-                opcion2 = "Ventas",
-                seleccionado = seleccionado
-            ) { seleccionado = it }
+                opcion1 = "Ventas",
+                opcion2 = "Compras",
+                seleccionado = reporteBalanceUiState.operacionSeleccionada
+            ) {
+                reporteBalanceViewModel.cambiarOperacionSeleccionada(it)
+                if (it == "Ventas") {
+                    reporteBalanceViewModel.cargarVentasDeProducto()
+                } else {
+                    reporteBalanceViewModel.cargarComprasDeProducto()
+                }
+            }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.padding(vertical = 8.dp))
 
             // Box del gráfico
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .height(240.dp)
-                    .border(2.dp, CardBorder, RoundedCornerShape(12.dp))
+                    .height(300.dp)
+                    .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
                 Column(
@@ -91,40 +95,112 @@ fun B_03_Reporte(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Estadísticas de ${seleccionado}",
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium
+                            "Estadísticas de ${reporteBalanceUiState.operacionSeleccionada}",
+                            fontWeight = FontWeight.Bold
                         )
-                        // Selector de periodo (puedes hacerlo interactivo si lo deseas)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Mensual", fontSize = 13.sp)
+                        // Selector de periodo
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            DropdownBar(
+                                opciones = listOf("Diario", "Semanal", "Mensual"),
+                                opcionPorDefecto = "Diario",
+                                onOpcionSeleccionada = { reporteBalanceViewModel.cambiarPeriodoTemporal(it) }
+                            )
+                            DropdownBar(
+                                opciones = listOf("Barras", "Circular", "Apiladas"),
+                                opcionPorDefecto = "Barras",
+                                onOpcionSeleccionada = { reporteBalanceViewModel.cambiarTipoGrafico(it) }
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    // Placeholder del gráfico
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.grafico),
-                            contentDescription = "Gráfico",
-                            modifier = Modifier.size(400.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // Botón PDF
-                    Button(
-                        onClick = { /* TODO: Exportar a PDF */ },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
-                    ) {
-                        Text("Convertir a PDF", color = Color.Black)
+                    if (reporteBalanceUiState.operacionSeleccionada == "Ventas") {
+                        if (reporteBalanceUiState.listaVentas != null) {
+                            if (reporteBalanceUiState.listaVentas.isNotEmpty()) {
+
+                                Log.e("DEBUG", "En ventas: ${reporteBalanceUiState.datosGrafico}")
+                                Log.e("DEBUG", "En ventas: ${reporteBalanceUiState.fechasGrafico}")
+
+                                when (reporteBalanceUiState.tipoGrafico) {
+                                    "Barras" -> {
+                                        if (reporteBalanceViewModel.hayDatos(reporteBalanceUiState.datosGrafico)
+                                            && reporteBalanceUiState.fechasGrafico.isNotEmpty()) {
+                                            GraficoBarrasPorPeriodo(
+                                                datos = reporteBalanceUiState.datosGrafico,
+                                                fechas = reporteBalanceUiState.fechasGrafico,
+                                                periodoTemporal = reporteBalanceUiState.periodoTemporal
+                                            )
+                                        } else {
+                                            NoDataFoundCard()
+                                        }
+                                    }
+                                    "Apiladas" -> {
+                                        if (reporteBalanceUiState.datosGraficoPorUsuario.isNotEmpty()
+                                            && reporteBalanceUiState.fechasGrafico.isNotEmpty()) {
+                                            GraficoBarrasApiladasPorUsuario(
+                                                datosPorUsuario = reporteBalanceUiState.datosGraficoPorUsuario,
+                                                fechas = reporteBalanceUiState.fechasGrafico,
+                                                periodoTemporal = reporteBalanceUiState.periodoTemporal
+                                            )
+                                        } else {
+                                            NoDataFoundCard()
+                                        }
+
+                                    }
+                                    else -> {
+                                        Log.d("DEBUG", "Elija un tipo de gráfico válido")
+                                    }
+                                }
+
+                            } else {
+                                NoItemsFoundCard(operacion = reporteBalanceUiState.operacionSeleccionada)
+                            }
+                        }
+                    } else {
+                        if (reporteBalanceUiState.listaCompras != null) {
+                            if (reporteBalanceUiState.listaCompras.isNotEmpty()) {
+
+                                Log.e("DEBUG", "En compras: ${reporteBalanceUiState.datosGrafico}")
+                                Log.e("DEBUG", "EN compras: ${reporteBalanceUiState.fechasGrafico}")
+
+                                when (reporteBalanceUiState.tipoGrafico) {
+                                    "Barras" -> {
+                                        if (reporteBalanceViewModel.hayDatos(reporteBalanceUiState.datosGrafico)
+                                            && reporteBalanceUiState.fechasGrafico.isNotEmpty()) {
+                                            GraficoBarrasPorPeriodo(
+                                                datos = reporteBalanceUiState.datosGrafico,
+                                                fechas = reporteBalanceUiState.fechasGrafico,
+                                                periodoTemporal = reporteBalanceUiState.periodoTemporal
+                                            )
+                                        } else {
+                                            NoDataFoundCard()
+                                        }
+                                    }
+                                    "Apiladas" -> {
+                                        Log.d("DEBUG", "Cambiar a barras apiladas")
+                                        if (reporteBalanceUiState.datosGraficoPorUsuario.isNotEmpty()
+                                            && reporteBalanceUiState.fechasGrafico.isNotEmpty()) {
+                                            GraficoBarrasApiladasPorUsuario(
+                                                datosPorUsuario = reporteBalanceUiState.datosGraficoPorUsuario,
+                                                fechas = reporteBalanceUiState.fechasGrafico,
+                                                periodoTemporal = reporteBalanceUiState.periodoTemporal
+                                            )
+                                        } else {
+                                            NoDataFoundCard()
+                                        }
+                                    }
+                                    else -> {
+                                        Log.d("DEBUG", "Elija un tipo de gráfico válido")
+                                    }
+                                }
+
+
+                            } else {
+                                NoItemsFoundCard(operacion = reporteBalanceUiState.operacionSeleccionada)
+                            }
+                        }
                     }
                 }
             }
@@ -136,36 +212,80 @@ fun B_03_Reporte(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    ResumenBox(
-                        titulo = "Productos\ndiferentes",
-                        valor = resumen.productosDiferentes.toString(),
-                        etiqueta = resumen.productosDiferentesPorcentaje
-                    )
-                    ResumenBox(
-                        titulo = "Categorías\ndiferentes",
-                        valor = resumen.categoriasDiferentes.toString(),
-                        etiqueta = resumen.categoriasDiferentesPorcentaje
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    ResumenBox(
-                        titulo = "Productos\ntotales",
-                        valor = resumen.productosTotales.toString(),
-                        etiqueta = resumen.productosTotalesPorcentaje
-                    )
-                    ResumenBox(
-                        titulo = "Ganancias\ntotales",
-                        valor = "S/ ${resumen.gananciasTotales}",
-                        etiqueta = resumen.gananciasTotalesPorcentaje
-                    )
+                if (reporteBalanceUiState.operacionSeleccionada == "Ventas") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        ResumenBox(
+                            titulo = "Unidades\nvendidas",
+                            valor = "XXXX",
+//                            valor = reporteBalanceUiState.unidadesVendidas.toString(),
+                            etiqueta = "unidades\nvendidas"
+                        )
+                        ResumenBox(
+                            titulo = "Total\nrecaudado",
+                            valor = "XXXX",
+//                            valor = reporteBalanceUiState.totalRecaudadoVentas.toString(),
+                            etiqueta = "soles recaudados\npor ventas"
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        ResumenBox(
+                            titulo = "Ganancia promedio\npor venta",
+                            valor = "XXXX",
+//                            valor = reporteBalanceUiState.gananciaPromedioVenta.toString(),
+                            etiqueta = "soles recaudados\npor cada unidad"
+                        )
+                        ResumenBox(
+                            titulo = "Usuario con mayores ventas",
+                            valor = "XXXX",
+//                            valor = reporteBalanceUiState.usuarioMayoresVentas,
+                            etiqueta = null
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        ResumenBox(
+                            titulo = "Unidades\ncompradas",
+                            valor = "XXXX",
+//                            valor = reporteBalanceUiState.unidadesCompradas.toString(),
+                            etiqueta = "unidades\ncompradas"
+                        )
+                        ResumenBox(
+                            titulo = "Total\nrecaudado",
+                            valor = "XXXX",
+//                            valor = reporteBalanceUiState.totalInvertidoCompras.toString(),
+                            etiqueta = "soles invertidos\nen compras"
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        ResumenBox(
+                            titulo = "Precio promedio\npor compra",
+                            valor = "XXXX",
+//                            valor = reporteBalanceUiState.precioPromedioCompra.toString(),
+                            etiqueta = "soles invertidos\npor cada unidad"
+                        )
+                        ResumenBox(
+                            titulo = "Usuario con mayores compras",
+                            valor = "XXXX",
+//                            valor = reporteBalanceUiState.usuarioMayoresCompras,
+                            etiqueta = null
+                        )
+                    }
                 }
             }
         }
