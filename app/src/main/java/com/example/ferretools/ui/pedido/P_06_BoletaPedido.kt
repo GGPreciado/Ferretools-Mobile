@@ -90,10 +90,14 @@ fun P_06_BoletaPedido(
                     Spacer(modifier = Modifier.height(4.dp))
                     Divider()
                     pedido?.productosConDetalles?.forEach { (item, producto) ->
+                        val precioUnitario = producto?.precio ?: 0.0
+                        val cantidad = item.cantidad ?: 0
+                        val subtotal = precioUnitario * cantidad
+                        
                         DetalleProductoFila(
                             nombre = producto?.nombre ?: stringResource(R.string.pedido_producto_desconocido),
-                            cantidad = (item.cantidad ?: 0).toString(),
-                            precio = "S/ ${String.format("%.2f", item.subtotal ?: 0.0)}"
+                            cantidad = cantidad.toString(),
+                            precio = "S/ ${String.format("%.2f", subtotal)}"
                         )
                     }
                     Divider(modifier = Modifier.padding(vertical = 4.dp))

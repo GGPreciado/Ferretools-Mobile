@@ -184,12 +184,24 @@ fun C_02_ResumenCarritoCompra(
                                 fontSize = 16.sp,
                                 modifier = Modifier.weight(1f)
                             )
-                            Text(
-                                stringResource(R.string.compra_s_precio, producto?.precio ?: 0.0),
-                                color = Color.Gray,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.End
+                            ) {
+                                Text(
+                                    stringResource(R.string.compra_s_precio, producto?.precio ?: 0.0),
+                                    color = Color.Gray,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                val cantidad = item.cantidad ?: 0
+                                val subtotal = (producto?.precio ?: 0.0) * cantidad
+                                Text(
+                                    "Subtotal: $ ${String.format("%.2f", subtotal)}",
+                                    color = Color.Black,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         // Fila inferior: controles de cantidad y eliminar

@@ -103,10 +103,14 @@ fun V_05_BoletaVenta(
                     
                     // Productos
                     items(ventaExitosa?.productosConDetalles ?: emptyList()) { (item, producto) ->
+                        val precioUnitario = producto?.precio ?: 0.0
+                        val cantidad = item.cantidad ?: 0
+                        val subtotal = precioUnitario * cantidad
+                        
                         DetalleProductoFila(
                             nombre = producto?.nombre ?: stringResource(R.string.venta_producto_desconocido),
-                            cantidad = (item.cantidad ?: 0).toString(),
-                            precio = "$ ${String.format("%.2f", item.subtotal ?: 0.0)}"
+                            cantidad = cantidad.toString(),
+                            precio = "$ ${String.format("%.2f", subtotal)}"
                         )
                     }
                     

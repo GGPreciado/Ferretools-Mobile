@@ -30,6 +30,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun P_02_CarritoCliente(
@@ -121,7 +123,23 @@ fun P_02_CarritoCliente(
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                         ) {
                             Text(producto?.nombre ?: "Producto", fontWeight = FontWeight.Bold)
-                            Text("S/ ${producto?.precio ?: 0.0}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Column(
+                                horizontalAlignment = Alignment.End
+                            ) {
+                                Text(
+                                    "S/ ${producto?.precio ?: 0.0}", 
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp
+                                )
+                                val cantidad = item.cantidad ?: 0
+                                val subtotal = (producto?.precio ?: 0.0) * cantidad
+                                Text(
+                                    "Subtotal: S/ ${String.format("%.2f", subtotal)}",
+                                    color = Color.Black,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         Row(
