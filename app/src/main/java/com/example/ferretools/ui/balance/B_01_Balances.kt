@@ -134,12 +134,6 @@ fun B_01_Balances(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Button(
-                            onClick = { navController.navigate(AppRoutes.Balance.DETAILS) },
-                            colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
-                        ) {
-                            Text("Ver detalles", color = Color.Black)
-                        }
-                        Button(
                             onClick = { 
                                 val fechaActual = dateFormatter.format(java.util.Date())
                                 val pdfContent = ReportGenerator.generarPDFBalance(

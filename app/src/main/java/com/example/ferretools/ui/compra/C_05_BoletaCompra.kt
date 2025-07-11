@@ -1,8 +1,17 @@
 package com.example.ferretools.ui.compra
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Scaffold
@@ -11,26 +20,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.ferretools.ui.components.TopNavBar
-import com.example.ferretools.ui.components.boleta.BoletaNavBar
-import com.example.ferretools.ui.components.boleta.DetalleProductoFila
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.ferretools.R
+import com.example.ferretools.ui.components.TopNavBar
+import com.example.ferretools.ui.components.boleta.DetalleProductoFila
 import com.example.ferretools.viewmodel.compra.CompraViewModel
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import java.text.SimpleDateFormat
 import java.util.Locale
-import android.util.Log
-import androidx.compose.ui.res.stringResource
-import com.example.ferretools.R
 
 @Composable
 fun C_05_BoletaCompra(
@@ -121,9 +123,6 @@ fun C_05_BoletaCompra(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(40.dp))
-            // Acciones de la boleta (volver, compartir, etc.)
-            BoletaNavBar(navController)
         }
     }
 }
