@@ -3,13 +3,16 @@ package com.example.ferretools.navigation
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
 import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.example.ferretools.ui.balance.B_01_Balances
 import com.example.ferretools.ui.balance.B_02_Detalles
 import com.example.ferretools.ui.balance.B_03_Reporte
+import com.example.ferretools.ui.catalogo.I_C1_VerCatalogo
+import com.example.ferretools.ui.catalogo.I_C2_DetallesProducto
 import com.example.ferretools.ui.compra.C_01_CarritoCompra
 import com.example.ferretools.ui.compra.C_02_ResumenCarritoCompra
 import com.example.ferretools.ui.compra.C_04_CompraExitosa
@@ -24,6 +27,7 @@ import com.example.ferretools.ui.home.HOME_Cliente
 import com.example.ferretools.ui.home.HOME_Empleado
 import com.example.ferretools.ui.home.PedidoCliente
 import com.example.ferretools.ui.inventario.I_01_ListaProductos
+import com.example.ferretools.ui.inventario.I_01_ListaProductosEmpleado
 import com.example.ferretools.ui.inventario.I_02_AgregarProducto
 import com.example.ferretools.ui.inventario.I_04_DetallesProducto
 import com.example.ferretools.ui.inventario.I_05_ReporteProducto
@@ -32,13 +36,6 @@ import com.example.ferretools.ui.inventario.I_08_ListaCategorias
 import com.example.ferretools.ui.inventario.I_09_CrearCategoria
 import com.example.ferretools.ui.inventario.I_10_DetallesCategoria
 import com.example.ferretools.ui.inventario.I_12_ReporteInventario
-import com.example.ferretools.ui.catalogo.I_C1_VerCatalogo
-import com.example.ferretools.ui.catalogo.I_C2_DetallesProducto
-import com.example.ferretools.viewmodel.inventario.AgregarProductoViewModel
-import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
-import com.example.ferretools.viewmodel.inventario.DetallesProductoViewModel
-import com.example.ferretools.viewmodel.inventario.ReporteInventarioViewModel
-import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 import com.example.ferretools.ui.pedido.P_01_AgregarAlCarrito
 import com.example.ferretools.ui.pedido.P_02_CarritoCliente
 import com.example.ferretools.ui.pedido.P_03_ConfirmarPedido
@@ -48,7 +45,6 @@ import com.example.ferretools.ui.pedido.P_06_BoletaPedido
 import com.example.ferretools.ui.pedido.P_E1_HistorialPedidos
 import com.example.ferretools.ui.pedido.P_E2_DetallesPedido
 import com.example.ferretools.ui.pedido.P_E3_PrepararPedido
-import com.example.ferretools.ui.pedido.PedidoDetalle
 import com.example.ferretools.ui.pedido.PedidoHistorial
 import com.example.ferretools.ui.session.S_01_PortadaBienvenida
 import com.example.ferretools.ui.session.S_02_SeleccionRol
@@ -58,15 +54,18 @@ import com.example.ferretools.ui.session.S_04_RegistroNegocio
 import com.example.ferretools.ui.session.S_05_IniciarSesion
 import com.example.ferretools.ui.session.S_06_RecuperarContrasena
 import com.example.ferretools.ui.session.S_07_CambiarContrasena
+import com.example.ferretools.ui.venta.BarcodeScannerScreen
 import com.example.ferretools.ui.venta.V_01_CarritoVenta
 import com.example.ferretools.ui.venta.V_02_ResumenCarritoVenta
 import com.example.ferretools.ui.venta.V_04_VentaExitosa
 import com.example.ferretools.ui.venta.V_05_BoletaVenta
-import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
 import com.example.ferretools.viewmodel.compra.CompraViewModel
-import androidx.navigation.NavType
-import com.example.ferretools.ui.venta.BarcodeScannerScreen
-import com.example.ferretools.ui.inventario.I_01_ListaProductosEmpleado
+import com.example.ferretools.viewmodel.inventario.AgregarProductoViewModel
+import com.example.ferretools.viewmodel.inventario.DetallesProductoViewModel
+import com.example.ferretools.viewmodel.inventario.EditarProductoViewModel
+import com.example.ferretools.viewmodel.inventario.ListaCategoriasViewModel
+import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
+import com.example.ferretools.viewmodel.inventario.ReporteInventarioViewModel
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -81,13 +80,6 @@ fun AppNavigation(navController: NavHostController) {
             productos = listOf("Arroz x2", "Azúcar x1"),
             estado = "Entregado"
         )
-    )
-    val mockPedidoDetalle = PedidoDetalle(
-        id = "001",
-        cliente = "Juan Pérez",
-        fecha = "2024-06-10",
-        productos = listOf("Arroz x2", "Azúcar x1"),
-        estado = "Pendiente"
     )
     val pedidosDemo = listOf(
         PedidoCliente("1001", "2024-06-10", "Entregado", "S/ 45.00"),
@@ -147,9 +139,7 @@ fun AppNavigation(navController: NavHostController) {
         // Configuración Stack
         composable(AppRoutes.Config.MAIN) {
             Config_01_Configuracion(
-                navController = navController,
-                darkModeEnabled = false,
-                stockNotificationEnabled = false
+                navController = navController
             )
         }
         composable(AppRoutes.Config.EDIT_PROFILE) {
@@ -204,9 +194,7 @@ fun AppNavigation(navController: NavHostController) {
         }
         composable(AppRoutes.Client.CONFIG) {
             Config_01_Configuracion(
-                navController = navController,
-                darkModeEnabled = false,
-                stockNotificationEnabled = false
+                navController = navController
             )
         }
         composable(AppRoutes.Employee.DASHBOARD) {

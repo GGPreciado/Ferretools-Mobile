@@ -144,7 +144,7 @@ class EditarPerfilViewModel: ViewModel() {
         val updatedUserMap = mapOf(
             "nombre" to _uiState.value.name,
             "celular" to _uiState.value.phone,
-            "foto" to fotoUrl
+            "fotoUrl" to fotoUrl
         )
 
         db.collection("usuarios")
