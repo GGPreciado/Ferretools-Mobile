@@ -47,6 +47,10 @@ fun HOME_Admin(
     val userName = viewModel.userName.collectAsState().value
     val storeName = viewModel.storeName.collectAsState().value
     
+    // Observar estadísticas de la semana
+    val ventasSemana = viewModel.ventasSemana.collectAsState().value
+    val ingresosSemana = viewModel.ingresosSemana.collectAsState().value
+    
     /*
     LaunchedEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
@@ -99,8 +103,16 @@ fun HOME_Admin(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SummaryCard(title = "Ventas de esta semana", value = "0", modifier = Modifier.weight(1f))
-            SummaryCard(title = "Ingresos de esta semana", value = "0 PEN", modifier = Modifier.weight(1f))
+            SummaryCard(
+                title = "Ventas de esta semana", 
+                value = ventasSemana.toString(), 
+                modifier = Modifier.weight(1f)
+            )
+            SummaryCard(
+                title = "Ingresos de esta semana", 
+                value = "S/ ${String.format("%.2f", ingresosSemana)}", 
+                modifier = Modifier.weight(1f)
+            )
         }
         Spacer(modifier = Modifier.height(18.dp))
         // Accesos Directos

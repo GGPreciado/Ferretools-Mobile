@@ -46,4 +46,22 @@ class CompraRepository(
             productoRef.update("cantidad_disponible", nuevoStock).await()
         }
     }
+
+    /**
+     * Obtiene todas las compras de un negocio específico.
+     */
+    suspend fun obtenerComprasPorNegocio(negocioId: String): Result<List<Compra>> {
+        return try {
+            val snapshot = db.collection("compras")
+                .whereEqualTo("negocioId", negocioId)
+                .get()
+                .await()
+            
+            val compras = snapshot.documents.mapNotNull { it.toObject(Compra::class.java) }
+            Result.Success(compras)
+        } catch (e: Exception) {
+            Log.e("CompraRepository", "Error al obtener compras: ${e.message}")
+            Result.Error(e.message ?: "Error al obtener las compras")
+        }
+    }
 } 

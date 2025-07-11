@@ -186,15 +186,19 @@ fun V_01_CarritoVenta(
                     val producto = productosFiltrados[idx]
                     val existente = uiState.productosSeleccionados.find { it.producto_id == producto.producto_id }
                     val cantidadEnCarrito = existente?.cantidad ?: 0
-                    val agotado = cantidadEnCarrito >= producto.cantidad_disponible && producto.cantidad_disponible > 0
+                    val agotado = producto.cantidad_disponible <= 0 || cantidadEnCarrito >= producto.cantidad_disponible
                     // Cada carta representa un producto. Si está agotado, se ve apagada y no responde al click.
                     CartaProducto(
                         producto = producto,
                         onClick = {
                             if (agotado) {
-                                bannerMessage = "No hay suficiente stock para agregar más de este producto."
+                                if (producto.cantidad_disponible <= 0) {
+                                    bannerMessage = "Producto sin stock disponible."
+                                } else {
+                                    bannerMessage = "No hay suficiente stock para agregar más de este producto."
+                                }
                                 showBanner = true
-                                Log.d("V_01_CarritoVenta", "Intento de agregar más productos que el stock disponible: ${producto.nombre}")
+                                Log.d("V_01_CarritoVenta", "Intento de agregar producto sin stock: ${producto.nombre}")
                             } else {
                                 Log.d("V_01_CarritoVenta", "Producto agregado al carrito de venta: ${producto.nombre}")
                                 viewModel.agregarProducto(producto, 1)

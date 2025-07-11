@@ -118,4 +118,17 @@ class ProductoRepository(
             false
         }
     }
+
+    // Obtiene todos los productos de un negocio específico
+    suspend fun obtenerProductosPorNegocio(negocioId: String): List<Producto> {
+        return try {
+            val snapshot = db.collection("productos")
+                .whereEqualTo("negocioId", negocioId)
+                .get()
+                .await()
+            snapshot.documents.mapNotNull { it.toObject(Producto::class.java) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 } 

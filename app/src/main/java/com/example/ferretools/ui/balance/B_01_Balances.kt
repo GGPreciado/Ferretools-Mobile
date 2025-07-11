@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,10 +21,18 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.R
 import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.ui.components.AdminBottomNavBar
+import com.example.ferretools.ui.components.LoadingOverlay
 import com.example.ferretools.ui.components.SelectorOpciones
 import com.example.ferretools.ui.components.UserDataBar
 import com.example.ferretools.ui.components.detalles_cv.CampoFechaSeleccion
 import com.example.ferretools.viewmodel.HomeAdminViewModel
+import com.example.ferretools.viewmodel.balance.BalanceViewModel
+import com.example.ferretools.utils.ReportGenerator
+import com.example.ferretools.utils.SesionUsuario
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 private val YellowPrimary = Color(0xFFFFEB3B)
 private val GreenLight = Color(0xFFB9F6CA)
@@ -31,36 +41,28 @@ private val GreenText = Color(0xFF22D366)
 private val RedText = Color.Red
 private val CardBorder = Color.Black
 
-data class BalanceResumen(
-    val total: Double,
-    val ingresos: Double,
-    val egresos: Double
-)
 
-data class Movimiento(
-    val productos: String,
-    val fecha: String,
-    val monto: Double,
-    val metodo: String
-)
 
 @Composable
 fun B_01_Balances(
     navController: NavController,
-    homeAdminViewModel: HomeAdminViewModel = viewModel()
-    // viewModel: BalanceViewModel = viewModel() // Para uso futuro
+    homeAdminViewModel: HomeAdminViewModel = viewModel(),
+    balanceViewModel: BalanceViewModel = viewModel()
 ) {
     // Observar datos del usuario y negocio
     val userName = homeAdminViewModel.userName.collectAsState().value
     val storeName = homeAdminViewModel.storeName.collectAsState().value
     
-    // Ejemplo de datos mockeados
-    val resumen = BalanceResumen(1200.0, 2000.0, 800.0)
-    val movimientos = listOf(
-        Movimiento("Arroz x2, Azúcar x1", "2024-06-10", 150.0, "Efectivo"),
-        Movimiento("Leche x3, Pan x5", "2024-06-11", 80.0, "Tarjeta")
-    )
+    // Observar datos del balance
+    val resumen = balanceViewModel.resumen.collectAsState().value
+    val movimientos = balanceViewModel.movimientos.collectAsState().value
+    val isLoading = balanceViewModel.isLoading.collectAsState().value
+    val error = balanceViewModel.error.collectAsState().value
+    val fechaSeleccionada = balanceViewModel.fechaSeleccionada.collectAsState().value
+    
     var filtro by remember { mutableStateOf("Ingresos") }
+    val context = LocalContext.current
+    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
     Scaffold(
         topBar = { UserDataBar(userName, storeName) },
@@ -71,9 +73,26 @@ fun B_01_Balances(
                 .padding(padding)
                 .padding(16.dp)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
-            Text("Fecha", style = MaterialTheme.typography.titleMedium)
-            CampoFechaSeleccion()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Fecha", style = MaterialTheme.typography.titleMedium)
+                Button(
+                    onClick = { balanceViewModel.actualizarFecha(fechaSeleccionada) },
+                    colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary),
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text("Actualizar", color = Color.Black, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            CampoFechaSeleccion(
+                fechaInicial = fechaSeleccionada,
+                onFechaChange = { balanceViewModel.actualizarFecha(it) }
+            )
 
             Text("Balance", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp))
             Box(
@@ -89,7 +108,11 @@ fun B_01_Balances(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("Total", style = MaterialTheme.typography.bodyLarge)
-                        Text("S/ ${resumen.total}", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "S/ ${String.format("%.2f", resumen.total)}", 
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (resumen.total >= 0) GreenText else RedText
+                        )
                     }
                     Divider(Modifier.padding(vertical = 8.dp))
                     Row(
@@ -98,11 +121,11 @@ fun B_01_Balances(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                             Text("Ingresos", color = GreenText, style = MaterialTheme.typography.bodyMedium)
-                            Text("S/ ${resumen.ingresos}", color = GreenText, style = MaterialTheme.typography.bodyLarge)
+                            Text("S/ ${String.format("%.2f", resumen.ingresos)}", color = GreenText, style = MaterialTheme.typography.bodyLarge)
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                             Text("Egresos", color = RedText, style = MaterialTheme.typography.bodyMedium)
-                            Text("S/ ${resumen.egresos}", color = RedText, style = MaterialTheme.typography.bodyLarge)
+                            Text("S/ ${String.format("%.2f", resumen.egresos)}", color = RedText, style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                     Divider(Modifier.padding(vertical = 8.dp))
@@ -117,7 +140,30 @@ fun B_01_Balances(
                             Text("Ver detalles", color = Color.Black)
                         }
                         Button(
-                            onClick = { /* TODO: Exportar a PDF */ },
+                            onClick = { 
+                                val fechaActual = dateFormatter.format(java.util.Date())
+                                val pdfContent = ReportGenerator.generarPDFBalance(
+                                    resumen = resumen,
+                                    movimientos = movimientos,
+                                    fecha = fechaActual,
+                                    negocioNombre = storeName
+                                )
+                                val uri = ReportGenerator.guardarArchivo(
+                                    context = context,
+                                    contenido = pdfContent,
+                                    nombreArchivo = "balance_${fechaActual.replace("/", "_")}.pdf",
+                                    mimeType = "application/pdf"
+                                )
+                                uri?.let { fileUri ->
+                                    val intent = Intent(Intent.ACTION_SEND).apply {
+                                        type = "application/pdf"
+                                        putExtra(Intent.EXTRA_STREAM, fileUri)
+                                        putExtra(Intent.EXTRA_SUBJECT, "Reporte de Balance - $storeName")
+                                        putExtra(Intent.EXTRA_TEXT, "Reporte de balance generado el $fechaActual")
+                                    }
+                                    context.startActivity(Intent.createChooser(intent, "Compartir reporte"))
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
                         ) {
                             Text("Convertir a PDF", color = Color.Black)
@@ -136,9 +182,59 @@ fun B_01_Balances(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ListaMovimientos(movimientos = movimientos.filter {
-                if (filtro == "Ingresos") it.monto >= 0 else it.monto < 0
-            })
+            if (isLoading) {
+                LoadingOverlay(show = true, message = "Cargando balance...")
+            } else if (error != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            error,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.Red
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = { 
+                                balanceViewModel.limpiarError()
+                                balanceViewModel.actualizarFecha(fechaSeleccionada)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary)
+                        ) {
+                            Text("Reintentar", color = Color.Black)
+                        }
+                    }
+                }
+            } else {
+                if (SesionUsuario.usuario?.negocioId == null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "No hay negocio asignado",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.Gray
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Contacta al administrador para asignar un negocio",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                } else {
+                    ListaMovimientos(movimientos = balanceViewModel.filtrarMovimientos(filtro))
+                }
+            }
 
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -176,10 +272,21 @@ fun B_01_Balances(
 }
 
 @Composable
-fun ListaMovimientos(movimientos: List<Movimiento>, modifier: Modifier = Modifier) {
+fun ListaMovimientos(movimientos: List<com.example.ferretools.viewmodel.balance.Movimiento>, modifier: Modifier = Modifier) {
     Column(modifier = modifier.padding(horizontal = 16.dp)) {
         if (movimientos.isEmpty()) {
-            Text("No hay movimientos.", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "No hay movimientos para mostrar.", 
+                    style = MaterialTheme.typography.bodyLarge, 
+                    color = Color.Gray
+                )
+            }
         } else {
             movimientos.forEach { mov ->
                 Row(
@@ -206,7 +313,11 @@ fun ListaMovimientos(movimientos: List<Movimiento>, modifier: Modifier = Modifie
                         Text(mov.fecha, style = MaterialTheme.typography.labelSmall)
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("S/ ${mov.monto}", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "S/ ${String.format("%.2f", mov.monto)}", 
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (mov.monto >= 0) GreenText else RedText
+                        )
                         Text(mov.metodo, style = MaterialTheme.typography.labelSmall)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
