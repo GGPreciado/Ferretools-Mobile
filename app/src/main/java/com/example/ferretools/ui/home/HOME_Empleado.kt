@@ -27,6 +27,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ferretools.navigation.AppRoutes
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ferretools.viewmodel.HomeEmpleadoViewModel
 
 data class PedidoPendiente(
     val id: String,
@@ -40,10 +42,14 @@ data class PedidoPendiente(
 fun HOME_Empleado(
     navController: NavController,
     pedidosPendientes: List<PedidoPendiente> = emptyList(),
-    // viewModel: HomeEmpleadoViewModel = viewModel() // Para uso futuro
+    viewModel: HomeEmpleadoViewModel = viewModel()
 ) {
+    // Observar datos del usuario y negocio
+    val userName = viewModel.userName.collectAsState().value
+    val storeName = viewModel.storeName.collectAsState().value
+    
     Scaffold(
-        topBar = { TopNavBarEmpleado() },
+        topBar = { TopNavBarEmpleado(userName, storeName) },
         bottomBar = {
             EmpleadoBottomNavBar(
                 onInicio = { /* Pantalla actual */ },
@@ -78,7 +84,7 @@ fun HOME_Empleado(
 }
 
 @Composable
-fun TopNavBarEmpleado() {
+fun TopNavBarEmpleado(userName: String, storeName: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -98,8 +104,8 @@ fun TopNavBarEmpleado() {
         }
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text("Nombre de Usuario", color = Color.White, fontWeight = FontWeight.Bold)
-            Text("Nombre de la Tienda", color = Color.White, fontSize = 13.sp)
+            Text(userName, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(storeName, color = Color.White, fontSize = 13.sp)
         }
     }
 }

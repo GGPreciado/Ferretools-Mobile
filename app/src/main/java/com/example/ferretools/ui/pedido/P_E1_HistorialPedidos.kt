@@ -7,10 +7,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +31,8 @@ import com.example.ferretools.viewmodel.pedido.PedidoViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.unit.sp
+import com.example.ferretools.viewmodel.HomeEmpleadoViewModel
 
 // --- Constantes de Estilo ---
 private val GreenPrimary = Color(0xFF22D366)
@@ -80,18 +83,23 @@ fun AlmaceneroTopBar(
         }
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text(
-                userName,
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                storeName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White
-            )
+            Text(userName, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(storeName, color = Color.White, fontSize = 13.sp)
         }
+//        Column {
+////            Text(
+////                userName,
+////                style = MaterialTheme.typography.titleMedium,
+////                color = Color.White,
+////                fontWeight = FontWeight.Bold
+////            )
+////            Text(
+////                storeName,
+////                style = MaterialTheme.typography.bodyMedium,
+////                color = Color.White
+////            )
+//
+//        }
     }
 }
 
@@ -190,12 +198,16 @@ fun P_E1_HistorialPedidos(
     navController: NavController,
     pedidosHistorial: List<PedidoHistorial> = emptyList(),
     onPedidoClick: (PedidoHistorial) -> Unit,
-    userName: String = "Nombre de Usuario",
-    storeName: String = "Nombre de la Tienda",
-    viewModel: PedidoViewModel = viewModel()
+    viewModel: PedidoViewModel = viewModel(),
+    homeEmpleadoViewModel: HomeEmpleadoViewModel = viewModel()
 ) {
     // Observar todos los pedidos del negocio en tiempo real
     val todosPedidos = viewModel.todosPedidosNegocio.collectAsState().value
+
+    // Observar datos del usuario y negocio
+    val userName = homeEmpleadoViewModel.userName.collectAsState().value
+    val storeName = homeEmpleadoViewModel.storeName.collectAsState().value
+
     LaunchedEffect(Unit) { viewModel.cargarTodosPedidosNegocio() }
     // DropdownMenu de orden
     var expanded by remember { mutableStateOf(false) }
@@ -203,11 +215,13 @@ fun P_E1_HistorialPedidos(
     val ordenLabel = if (ordenDescendente) "Más recientes primero" else "Más antiguos primero"
     Scaffold(
         topBar = { AlmaceneroTopBar(navController, userName, storeName) },
-        bottomBar = { EmpleadoBottomNavBar(
-            onInicio = { /* Pantalla actual */ },
-            onInventario = { navController.navigate(AppRoutes.Employee.INVENTORY) },
-            onHistorial = { navController.navigate(AppRoutes.Order.Employee.HISTORY) },
-            onCuenta = { navController.navigate(AppRoutes.Config.MAIN) }) },
+        bottomBar = {
+            EmpleadoBottomNavBar(
+                onInicio = { /* Pantalla actual */ },
+                onInventario = { navController.navigate(AppRoutes.Employee.INVENTORY) },
+                onHistorial = { navController.navigate(AppRoutes.Order.Employee.HISTORY) },
+                onCuenta = { navController.navigate(AppRoutes.Config.MAIN) })
+        },
         containerColor = BackgroundColor
     ) { paddingValues ->
         Column(
@@ -261,14 +275,22 @@ fun P_E1_HistorialPedidos(
                         id = it.pedidoId,
                         cliente = it.clienteId ?: "-",
                         fecha = it.fecha?.toDate()?.let { date ->
-                            java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault()).format(date)
+                            java.text.SimpleDateFormat(
+                                "dd/MM/yyyy HH:mm",
+                                java.util.Locale.getDefault()
+                            ).format(date)
                         } ?: "",
                         productos = it.lista_productos.map { item -> "${item.producto_id} x${item.cantidad}" },
                         estado = it.estado.replaceFirstChar { c -> c.uppercase() }
                     )
                 },
                 onPedidoClick = { pedido ->
-                    navController.navigate(com.example.ferretools.navigation.AppRoutes.Order.DETAILS.replace("{pedidoId}", pedido.id))
+                    navController.navigate(
+                        com.example.ferretools.navigation.AppRoutes.Order.DETAILS.replace(
+                            "{pedidoId}",
+                            pedido.id
+                        )
+                    )
                 }
             )
         }
@@ -276,31 +298,31 @@ fun P_E1_HistorialPedidos(
 }
 
 // --- PREVIEW ---
-@Preview(showBackground = true)
-@Composable
-fun PreviewP_E1_HistorialPedidos() {
-    val navController = rememberNavController()
-    val pedidosDemo = listOf(
-        PedidoHistorial(
-            id = "001",
-            cliente = "Juan Pérez",
-            fecha = "2024-06-10",
-            productos = listOf("Arroz x2", "Azúcar x1"),
-            estado = "Entregado"
-        ),
-        PedidoHistorial(
-            id = "002",
-            cliente = "María López",
-            fecha = "2024-06-11",
-            productos = listOf("Leche x3", "Pan x5"),
-            estado = "Cancelado"
-        )
-    )
-    P_E1_HistorialPedidos(
-        navController = navController,
-        pedidosHistorial = pedidosDemo,
-        onPedidoClick = {},
-        userName = "Carlos Ruiz",
-        storeName = "Bodega Central"
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewP_E1_HistorialPedidos() {
+//    val navController = rememberNavController()
+//    val pedidosDemo = listOf(
+//        PedidoHistorial(
+//            id = "001",
+//            cliente = "Juan Pérez",
+//            fecha = "2024-06-10",
+//            productos = listOf("Arroz x2", "Azúcar x1"),
+//            estado = "Entregado"
+//        ),
+//        PedidoHistorial(
+//            id = "002",
+//            cliente = "María López",
+//            fecha = "2024-06-11",
+//            productos = listOf("Leche x3", "Pan x5"),
+//            estado = "Cancelado"
+//        )
+//    )
+//    P_E1_HistorialPedidos(
+//        navController = navController,
+//        pedidosHistorial = pedidosDemo,
+//        onPedidoClick = {},
+//        userName = "Carlos Ruiz",
+//        storeName = "Bodega Central"
+//    )
+//}

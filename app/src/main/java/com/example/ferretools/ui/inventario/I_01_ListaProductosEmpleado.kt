@@ -31,16 +31,23 @@ import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.ui.components.SummaryCard
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
 import com.example.ferretools.ui.home.EmpleadoBottomNavBar
+import com.example.ferretools.viewmodel.HomeEmpleadoViewModel
 
 @Composable
 fun I_01_ListaProductosEmpleado(
     navController: NavController,
-    listaProductosViewModel: ListaProductosViewModel = viewModel()
+    listaProductosViewModel: ListaProductosViewModel = viewModel(),
+    homeEmpleadoViewModel: HomeEmpleadoViewModel = viewModel()
 ) {
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }
 
     val uiState = listaProductosViewModel.uiState.collectAsState().value
     val scrollState = rememberScrollState()
+    
+    // Observar datos del usuario y negocio
+    val userName = homeEmpleadoViewModel.userName.collectAsState().value
+    val storeName = homeEmpleadoViewModel.storeName.collectAsState().value
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,12 +79,12 @@ fun I_01_ListaProductosEmpleado(
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
-                    text = "Nombre de Usuario", 
+                    text = userName, 
                     color = MaterialTheme.colorScheme.onPrimary, 
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Nombre de la Tienda", 
+                    text = storeName, 
                     color = MaterialTheme.colorScheme.onPrimary, 
                     fontSize = 13.sp
                 )

@@ -42,6 +42,11 @@ fun HOME_Admin(
     val context = LocalContext.current
     val stockAlerts by viewModel.stockAlerts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    
+    // Observar datos del usuario y negocio
+    val userName = viewModel.userName.collectAsState().value
+    val storeName = viewModel.storeName.collectAsState().value
+    
     /*
     LaunchedEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
@@ -82,8 +87,8 @@ fun HOME_Admin(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column {
-                Text("Nombre de Usuario", color = Color.White, fontWeight = FontWeight.Bold)
-                Text("Nombre de la Tienda", color = Color.White, fontSize = 13.sp)
+                Text(userName, color = Color.White, fontWeight = FontWeight.Bold)
+                Text(storeName, color = Color.White, fontSize = 13.sp)
             }
         }
         Spacer(modifier = Modifier.height(12.dp))

@@ -46,8 +46,6 @@ data class PedidoCliente(
 @Composable
 fun HOME_Cliente(
     navController: NavController,
-    userName: String = "Cliente",
-    storeName: String = "Mi Tienda",
     pedidosRecientes: List<PedidoCliente> = emptyList(),
     selectedMenu: Int = 0,
     viewModel: HomeViewModel = viewModel()
@@ -56,6 +54,10 @@ fun HOME_Cliente(
 
     // Observar pedidos pendientes del usuario activo
     val pedidosPendientes = viewModel.pedidosPendientes.collectAsState().value
+    
+    // Observar datos del usuario y negocio
+    val userName = viewModel.userName.collectAsState().value
+    val storeName = viewModel.storeName.collectAsState().value
 
     // Cargar pedidos pendientes al iniciar
     LaunchedEffect(Unit) {

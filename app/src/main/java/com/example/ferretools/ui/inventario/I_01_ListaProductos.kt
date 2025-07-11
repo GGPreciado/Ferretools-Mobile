@@ -53,16 +53,23 @@ import com.example.ferretools.navigation.AppRoutes
 import com.example.ferretools.ui.components.AdminBottomNavBar
 import com.example.ferretools.ui.components.SummaryCard
 import com.example.ferretools.viewmodel.inventario.ListaProductosViewModel
+import com.example.ferretools.viewmodel.HomeAdminViewModel
 
 @Composable
 fun I_01_ListaProductos(
     navController: NavController,
-    listaProductosViewModel: ListaProductosViewModel = viewModel()
+    listaProductosViewModel: ListaProductosViewModel = viewModel(),
+    homeAdminViewModel: HomeAdminViewModel = viewModel()
 ) {
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }
 
     val uiState = listaProductosViewModel.uiState.collectAsState().value
     val scrollState = rememberScrollState()
+    
+    // Observar datos del usuario y negocio
+    val userName = homeAdminViewModel.userName.collectAsState().value
+    val storeName = homeAdminViewModel.storeName.collectAsState().value
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -95,12 +102,12 @@ fun I_01_ListaProductos(
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
-                    text = "Nombre de Usuario", 
+                    text = userName, 
                     color = MaterialTheme.colorScheme.onPrimary, 
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Nombre de la Tienda", 
+                    text = storeName, 
                     color = MaterialTheme.colorScheme.onPrimary, 
                     fontSize = 13.sp
                 )
@@ -185,10 +192,10 @@ fun I_01_ListaProductos(
                             .padding(vertical = 6.dp)
                             .clickable {
                                 navController.navigate(
-                                    AppRoutes.Inventory.PRODUCT_REPORT(
-                                        productoId = producto.codigo_barras,
-                                        productoNombre = producto.nombre
-                                    )
+//                                    AppRoutes.Inventory.PRODUCT_DETAILS(
+//                                        productoId = producto.producto_id
+//                                        //productoNombre = producto.nombre
+                                    "inventory_product_details/${producto.producto_id}?isReadOnly=false"
                                 )
                             },
                         colors = CardDefaults.cardColors(

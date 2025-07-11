@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.example.ferretools.ui.home.HomeViewModel
 
 // --- Constantes de Estilo ---
 private val GreenPrimary = Color(0xFF22D366)
@@ -145,17 +146,21 @@ fun ListaHistorialPedidosCliente(
 
 @Composable
 fun P_05_HistorialPedidos(
-    userName: String,
-    storeName: String,
     navController: NavController,
     pedidosHistorial: List<PedidoCliente> = emptyList(),
     selectedMenu: Int,
     onMenuSelect: (Int) -> Unit,
     onPedidoClick: (PedidoCliente) -> Unit,
-    viewModel: PedidoViewModel = viewModel()
+    viewModel: PedidoViewModel = viewModel(),
+    homeViewModel: HomeViewModel = viewModel()
 ) {
     // Observar historial de pedidos en tiempo real
     val historialPedidos = viewModel.historialPedidos.collectAsState().value
+    
+    // Observar datos del usuario y negocio
+    val userName = homeViewModel.userName.collectAsState().value
+    val storeName = homeViewModel.storeName.collectAsState().value
+    
     LaunchedEffect(Unit) {
         viewModel.cargarHistorialPedidosCliente()
     }
@@ -244,8 +249,6 @@ fun P_05_HistorialPedidosPreview() {
     )
 
     P_05_HistorialPedidos(
-        userName = "Carlos Ruiz",
-        storeName = "Bodega Central",
         navController = navController,
         pedidosHistorial = pedidosDemo,
         selectedMenu = 0,

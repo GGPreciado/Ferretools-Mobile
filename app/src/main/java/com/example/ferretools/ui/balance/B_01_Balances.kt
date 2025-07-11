@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.ferretools.R
@@ -21,6 +22,7 @@ import com.example.ferretools.ui.components.AdminBottomNavBar
 import com.example.ferretools.ui.components.SelectorOpciones
 import com.example.ferretools.ui.components.UserDataBar
 import com.example.ferretools.ui.components.detalles_cv.CampoFechaSeleccion
+import com.example.ferretools.viewmodel.HomeAdminViewModel
 
 private val YellowPrimary = Color(0xFFFFEB3B)
 private val GreenLight = Color(0xFFB9F6CA)
@@ -45,8 +47,13 @@ data class Movimiento(
 @Composable
 fun B_01_Balances(
     navController: NavController,
+    homeAdminViewModel: HomeAdminViewModel = viewModel()
     // viewModel: BalanceViewModel = viewModel() // Para uso futuro
 ) {
+    // Observar datos del usuario y negocio
+    val userName = homeAdminViewModel.userName.collectAsState().value
+    val storeName = homeAdminViewModel.storeName.collectAsState().value
+    
     // Ejemplo de datos mockeados
     val resumen = BalanceResumen(1200.0, 2000.0, 800.0)
     val movimientos = listOf(
@@ -56,7 +63,7 @@ fun B_01_Balances(
     var filtro by remember { mutableStateOf("Ingresos") }
 
     Scaffold(
-        topBar = { UserDataBar("Nombre de usuario", "Nombre de tienda") },
+        topBar = { UserDataBar(userName, storeName) },
         bottomBar = { AdminBottomNavBar(navController) }
     ) { padding ->
         Column(

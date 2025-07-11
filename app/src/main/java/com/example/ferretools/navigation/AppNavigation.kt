@@ -197,9 +197,9 @@ fun AppNavigation(navController: NavHostController) {
                 pedidosHistorial = pedidosDemo,
                 selectedMenu = 2,
                 onMenuSelect = {},
-                onPedidoClick = {},
-                userName = "Cliente Demo",
-                storeName = "Tienda Demo"
+                onPedidoClick = {}
+//                userName = "Cliente Demo",
+//                storeName = "Tienda Demo"
             )
         }
         composable(AppRoutes.Client.CONFIG) {
@@ -391,9 +391,9 @@ fun AppNavigation(navController: NavHostController) {
                 pedidosHistorial = pedidosDemo,
                 selectedMenu = 2,
                 onMenuSelect = {},
-                onPedidoClick = {},
-                userName = "Cliente Demo",
-                storeName = "Tienda Demo"
+                onPedidoClick = {}
+//                userName = "Cliente Demo",
+//                storeName = "Tienda Demo"
             )
         }
         composable(AppRoutes.Order.RECEIPT) {
@@ -403,9 +403,9 @@ fun AppNavigation(navController: NavHostController) {
             P_E1_HistorialPedidos(
                 navController = navController,
                 pedidosHistorial = mockPedidosHistorial,
-                onPedidoClick = {},
-                userName = "Empleado Demo",
-                storeName = "Tienda Demo"
+                onPedidoClick = {}
+//                userName = "Empleado Demo",
+//                storeName = "Tienda Demo"
             )
         }
         composable(
