@@ -24,7 +24,7 @@ fun UserDataBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF22D366))
+            .background(Color(0xFF00BF59))
             .padding(vertical = 10.dp, horizontal = 8.dp)
             .padding(top = 40.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -45,8 +45,8 @@ fun UserDataBar(
         }
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text(nombreUsuario, color = Color.White, fontWeight = FontWeight.Bold)
-            Text(nombreTienda, color = Color.White, fontSize = 13.sp)
+            Text(nombreUsuario, color = Color.Black, fontWeight = FontWeight.Bold)
+            Text(nombreTienda, color = Color.Black, fontSize = 13.sp)
         }
     }
 }
