@@ -5,10 +5,10 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentReference
 
 data class Compra(
-    val fecha: Timestamp,
-    val total: Double,
-    val metodo_pago: MetodosPago,
-    val lista_productos: List<ItemUnitario>,
-    val negocioId: DocumentReference,
-    val usuarioId: DocumentReference
+    val fecha: Timestamp? = null,
+    val total: Double? = 0.0,
+    val metodo_pago: MetodosPago = MetodosPago.Efectivo,
+    val lista_productos: List<ItemUnitario> = emptyList(),
+    val negocioId: String? = null,
+    val usuarioId: String? = null
 )
