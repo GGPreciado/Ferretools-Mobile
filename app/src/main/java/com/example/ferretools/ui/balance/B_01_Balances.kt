@@ -75,11 +75,14 @@ fun B_01_Balances(
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
+        android.util.Log.d("BalanceScreen", "Permission result: $permissions")
         val allGranted = permissions.values.all { it }
         if (allGranted) {
             // Permissions granted, proceed with PDF generation
+            android.util.Log.d("BalanceScreen", "All permissions granted, proceeding with PDF generation")
             shouldGeneratePDF = true
         } else {
+            android.util.Log.d("BalanceScreen", "Some permissions denied")
             android.widget.Toast.makeText(
                 context,
                 "Se requieren permisos de almacenamiento para generar el PDF. Ve a Configuración > Aplicaciones > Ferretools > Permisos",
@@ -233,17 +236,27 @@ fun B_01_Balances(
                             onClick = { 
                                 if (isGeneratingPDF) return@Button
                                 
-                                // Request permissions if not already granted
-                                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
-                                    // For Android 10 and below, request WRITE_EXTERNAL_STORAGE
-                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                                // Try to generate PDF directly first, only request permissions if it fails
+                                android.util.Log.d("BalanceScreen", "Android SDK: ${android.os.Build.VERSION.SDK_INT}, API R: ${android.os.Build.VERSION_CODES.R}")
+                                android.util.Log.d("BalanceScreen", "Android Version: ${android.os.Build.VERSION.RELEASE}")
+                                android.util.Log.d("BalanceScreen", "Device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
+                                
+                                // For Android 11+ (API 30+), try direct generation first
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                                    android.util.Log.d("BalanceScreen", "Android 11+, trying direct PDF generation")
+                                    shouldGeneratePDF = true
+                                } else {
+                                    // For Android 10 and below, check WRITE_EXTERNAL_STORAGE permission
+                                    val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                                    android.util.Log.d("BalanceScreen", "Android < 11, has WRITE_EXTERNAL_STORAGE permission: $hasPermission")
+                                    
+                                    if (!hasPermission) {
+                                        android.util.Log.d("BalanceScreen", "Requesting WRITE_EXTERNAL_STORAGE permission")
                                         permissionLauncher.launch(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE))
                                     } else {
+                                        android.util.Log.d("BalanceScreen", "Permission already granted, proceeding with PDF generation")
                                         shouldGeneratePDF = true
                                     }
-                                } else {
-                                    // For Android 11+ (API 30+), scoped storage is used, no need for WRITE_EXTERNAL_STORAGE
-                                    shouldGeneratePDF = true
                                 }
                             },
                             enabled = !isGeneratingPDF,
